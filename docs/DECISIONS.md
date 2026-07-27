@@ -30,6 +30,14 @@ monitoring." Detection (catching an actual attack) is what makes the product liv
 to its name. Everything else (wizard, packaging, VLAN quarantine) depends on detection 
 existing first.
 
+## Why the first-boot wizard only targets security config, not general IT literacy
+The wizard removes security configuration complexity, not general IT literacy — 
+we're not building for a zero-technical-knowledge user. It assumes the person running 
+it (owner, part-time IT contractor, or MSP) is comfortable with basic sysadmin/
+networking concepts like IP addresses and running a server. What it removes is having 
+to know security-specific things: how to write detection rules, harden services, or 
+configure alerting correctly. See OVERVIEW.md for the full target-user definition.
+
 ## Why VLAN quarantine and networking come last
 Quarantine is an action taken in response to a detection. It can't be built or tested 
 meaningfully before detection rules exist and reliably fire. Sequence: detect first, 
