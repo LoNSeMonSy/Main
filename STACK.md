@@ -48,3 +48,26 @@
 
 ## Planned (not yet deployed)
 - Ollama (local AI — plain-English alert explainer)
+
+## Hosts & Addresses
+
+| Host | Runs | Local IP | Tailscale IP |
+|---|---|---|---|
+| appliance (grafana-influxdb) | Grafana, InfluxDB, Wazuh, NetAlertX, backup-trigger, audit-collector | 192.168.12.112 | 100.75.238.78 |
+| mainserver | Proxmox VE | 192.168.12.230 | 100.117.221.2 |
+| PBS | Proxmox Backup Server | 192.168.12.131 | 100.109.112.31 |
+| backupserver | Proxmox node | 192.168.12.130 | 100.123.236.113 |
+| WIZARDTEST | test VM (stopped) | DHCP | 100.65.246.6 |
+| corp-fileserver | test LXC | 192.168.12.134 | — |
+| corp-workstation | test LXC | 192.168.12.173 | — |
+| attacker | test LXC | 192.168.12.102 | — |
+
+## Service ports (on the appliance)
+
+| Service | URL |
+|---|---|
+| Grafana | http://192.168.12.112:3000 · http://100.75.238.78:3000 |
+| Wazuh dashboard | https://192.168.12.112 · https://100.75.238.78 |
+| NetAlertX | http://192.168.12.112:20211 · http://100.75.238.78:20211 |
+| InfluxDB | http://192.168.12.112:8086 |
+| backup-trigger | http://192.168.12.112:5001 |
