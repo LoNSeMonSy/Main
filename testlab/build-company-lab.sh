@@ -32,7 +32,7 @@ install_agent() {   # $1 = vmid
   pct exec "$1" -- bash -c "
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq && apt-get install -y -qq curl gnupg apt-transport-https >/dev/null
-    curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --dearmor -o /usr/share/keyrings/wazuh.gpg
+    curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --batch --yes --dearmor -o /usr/share/keyrings/wazuh.gpg
     echo 'deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/${WAZUH_MAJOR}/apt/ stable main' > /etc/apt/sources.list.d/wazuh.list
     apt-get update -qq
     WAZUH_MANAGER='${MANAGER_IP}' apt-get install -y -qq wazuh-agent >/dev/null
