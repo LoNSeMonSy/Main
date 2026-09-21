@@ -1,29 +1,39 @@
 #!/usr/bin/env bash
 #
-# LoNSeMonSy first-run installer  --  ROUGH DRAFT / SCAFFOLD
+# LoNSeMonSy first-run installer.
 #
-# Brings up the appliance stack (Docker) and points the operator at the two UIs:
-#   * Grafana         -- the DEFAULT interface: a simple network/security overview
-#                        for the business owner. This is the face of the product.
-#   * Wazuh dashboard -- OPTIONAL, for advanced users (MSP / IT contractor) who
-#                        want deep investigation. Both read the same Wazuh indexer.
+# It generates the site's secrets, writes appliance/.env, and brings up the Docker
+# stack (InfluxDB, Grafana, backup-trigger, audit-collector, NetAlertX scanner).
+# Grafana is the customer's single UI; the Wazuh dashboard is an optional advanced tool.
 #
-# Design notes for the team (decisions still open, marked TODO below):
-#   - The Wazuh SERVER (manager/indexer/dashboard) currently installs natively,
-#     outside this script. Integrating that install here is a TODO.
-#   - Installing the Wazuh AGENT on endpoints (Proxmox nodes, PBS, workstations)
-#     is OPTIONAL and never forced -- agents live on OTHER hosts. This script only
-#     PRINTS the enrolment one-liner; the operator runs it where they want it.
+# USAGE:
+#   ./install.sh              real install: writes appliance/.env and STARTS the stack
+#   ./install.sh --dry-run    TEST MODE: writes a throwaway .env in a temp dir and only
+#                             VALIDATES the compose stack -- starts nothing, touches
+#                             nothing live. Safe to run on a machine already running the
+#                             stack. Use this to test the wizard.
+#
+# Design notes (still open, marked TODO):
+#   - The Wazuh SERVER install is delegated to Wazuh's own installer (a TODO hook below),
+#     not hand-rolled here -- keeps this script thin glue over off-the-shelf tools.
+#   - The Wazuh AGENT on other machines is OPTIONAL; this script only prints the command.
 #
 set -euo pipefail
 cd "$(dirname "$0")"
 APP_DIR="appliance"
-ENV_FILE="$APP_DIR/.env"
+
+DRY_RUN=0
+[ "${1:-}" = "--dry-run" ] && DRY_RUN=1
+
+if [ "$DRY_RUN" = "1" ]; then
+  ENV_FILE="$(mktemp -d)/.env"     # throwaway -- never the live appliance/.env
+else
+  ENV_FILE="$APP_DIR/.env"
+fi
 
 # --- banner --------------------------------------------------------------------
-# Uses figlet (+ lolcat if present) when available; falls back to plain ASCII so a
-# fresh appliance with neither installed still gets a clean title. `apt install
-# figlet lolcat` for the colourful version.
+# Uses figlet (+ lolcat if present); falls back to plain ASCII so a fresh box with
+# neither still gets a clean title. `apt install figlet lolcat` for the colourful one.
 banner() {
   local title="LoNSeMonSy"
   if command -v figlet >/dev/null; then
@@ -38,7 +48,8 @@ banner() {
         local-first security monitoring     |__/
 ASCII
   fi
-  echo "  local network security monitoring + backup  --  installer (draft)"
+  echo "  local network security monitoring + backup  --  installer"
+  [ "$DRY_RUN" = "1" ] && echo "  *** DRY RUN: nothing will be started or changed ***"
   echo
 }
 
@@ -70,7 +81,7 @@ preflight() {
 # --- collect site config -------------------------------------------------------
 collect() {
   say "Site configuration"
-  echo "These are the values unique to this customer. Secrets are generated for you."
+  echo "These are the values unique to this site. Secrets are generated for you."
 
   PVE_HOST=$(prompt "Proxmox VE host/IP")
   PVE_NODE=$(prompt "Proxmox node name" "$(hostname -s)")
@@ -80,6 +91,10 @@ collect() {
   PVE_TOKEN_SECRET=$(prompt "  PVE_TOKEN_SECRET")
   BACKUP_STORAGE=$(prompt "PVE storage ID of the PBS target (e.g. pbs-aws)")
   BACKUP_VMIDS=$(prompt "VMIDs to back up (comma-separated, blank = all)" "")
+
+  # NetAlertX scanner: which subnet to scan, and on which interface.
+  SCAN_SUBNETS=$(prompt "Network to scan for devices ('<cidr> --interface=<iface>')" \
+                        "192.168.12.0/24 --interface=eth0")
 
   # TODO(team): a single PVE_HOST/PVE_NODE assumes one node. Multi-node customers
   # need discovery here -- see docs/TEMPLATE_TODO.md (PVE_NODES entry).
@@ -122,26 +137,45 @@ BACKUP_COMPRESS=zstd
 CORS_ORIGIN=http://localhost:3000
 TRIGGER_TOKEN=$(gen_secret)
 
+# NetAlertX network scanner (endpoint discovery + new-device alerts).
+NETALERTX_PORT=20211
+SCAN_SUBNETS=$SCAN_SUBNETS
+
 # Wazuh indexer login for Grafana's OpenSearch datasource. Use a READ-ONLY user.
-# TODO(team): set the readall user's password with the indexer's own tool and
-# paste it here -- see appliance/.env.example.
-WAZUH_INDEXER_USER=readall
+# TODO(team): set a dedicated read-only indexer user's password and paste it here
+# (see appliance/.env.example and wazuh/apply-grafana-wazuh-link.sh).
+WAZUH_INDEXER_USER=grafana
 WAZUH_INDEXER_PASSWORD=
 ENV
-  echo "  Secrets written. Back this file up somewhere safe -- it is the only copy."
+  echo "  Secrets written."
+  if [ "$DRY_RUN" = "0" ]; then
+    echo "  Back this file up somewhere safe -- it is the only copy."
+  fi
 }
 
-# --- bring up ------------------------------------------------------------------
+# --- bring up (or, in dry-run, just validate) ----------------------------------
 bring_up() {
+  if [ "$DRY_RUN" = "1" ]; then
+    say "Dry run: validating the compose stack against the generated config"
+    if ( cd "$APP_DIR" && docker compose --env-file "$ENV_FILE" config -q ); then
+      echo "  compose config is VALID ✓"
+      echo "  would start: $(cd "$APP_DIR" && docker compose --env-file "$ENV_FILE" config --services | tr '\n' ' ')"
+    else
+      die "compose config FAILED to validate -- the wizard produced bad config."
+    fi
+    return
+  fi
   say "Starting the appliance stack"
   ( cd "$APP_DIR" && docker compose up -d )
   echo "  Containers up."
-  # TODO(team): install/verify the Wazuh SERVER here, then run
-  #   wazuh/apply-grafana-wazuh-link.sh  to wire Grafana -> Wazuh indexer.
+  # TODO(team): install/verify the Wazuh SERVER here by calling Wazuh's own installer
+  #   (curl -sO https://packages.wazuh.com/.../wazuh-install.sh && bash wazuh-install.sh -a),
+  #   then run wazuh/apply-grafana-wazuh-link.sh to wire Grafana -> the Wazuh indexer.
 }
 
 # --- optional: Wazuh agent enrolment ------------------------------------------
 offer_agent() {
+  [ "$DRY_RUN" = "1" ] && return
   say "Optional: monitor other machines"
   echo "Detection of THIS appliance works already (local agent). To also watch your"
   echo "Proxmox nodes, PBS, or workstations, install the Wazuh AGENT on each and point"
@@ -154,26 +188,37 @@ offer_agent() {
   # On each Debian/Ubuntu host you want monitored:
   WAZUH_MANAGER='$ip' apt-get install wazuh-agent
   systemctl enable --now wazuh-agent
-
-  # (RPM hosts and other OSes: see https://documentation.wazuh.com/current/installation-guide/)
 AGENT
   fi
 }
 
 # --- done ----------------------------------------------------------------------
 finish() {
+  if [ "$DRY_RUN" = "1" ]; then
+    say "Dry run complete"
+    cat <<DONE
+
+  Nothing was started and nothing live was changed.
+  The throwaway config it generated is at: $ENV_FILE
+  (inspect it, then delete its temp dir when done)
+
+  To do the real install, run without --dry-run on a clean machine.
+DONE
+    return
+  fi
   local ip; ip=$(hostname -I | awk '{print $1}')
-  say "Done (draft)"
+  say "Done"
   cat <<DONE
 
   Your interfaces:
-    Grafana  (start here)   http://$ip:3000     -- simple overview, for everyday use
-    Wazuh    (advanced)     https://$ip         -- deep investigation, optional
+    Grafana  (start here)   http://$ip:3000       -- simple overview, everyday use
+    NetAlertX (devices)     http://$ip:20211      -- network device inventory
+    Wazuh    (advanced)     https://$ip           -- deep investigation, optional
 
   Grafana admin password is in $ENV_FILE (GRAFANA_ADMIN_PASSWORD).
 
-  Still TODO before this is turnkey:
-    - integrate the Wazuh server install into this script
+  Still TODO before fully turnkey:
+    - call Wazuh's installer for the detection server (see bring_up TODO)
     - set WAZUH_INDEXER_PASSWORD, then run wazuh/apply-grafana-wazuh-link.sh
     - multi-node Proxmox discovery (see docs/TEMPLATE_TODO.md)
 DONE
