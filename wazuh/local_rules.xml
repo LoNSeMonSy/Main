@@ -1,0 +1,43 @@
+<!--
+  LoNSeMonSy custom detection rules.  Deployed to the Wazuh manager at
+  /var/ossec/etc/rules/local_rules.xml, then `systemctl restart wazuh-manager`.
+
+  This is a SCAFFOLD. The stock Wazuh ruleset already detects SSH brute force
+  (rules 5710 / 5716 / 5712). Your job is to TUNE: decide the threshold, the
+  severity, and the plain-English wording a non-expert should see — then prove
+  it fires against your test loop. The decisions below are the graded part;
+  don't ship the placeholders.
+
+  How to work this file:
+    1. Run the failed-login loop (see wazuh/TESTING.md) and watch
+       /var/ossec/logs/alerts/alerts.json to see which stock rule fires.
+    2. Fill in the TODOs below with numbers YOU chose and can justify.
+    3. Restart the manager, re-run the loop, confirm THIS rule fires.
+-->
+<group name="lonsemonsy,ssh,">
+
+  <!-- SSH brute force, LoNSeMonSy-tuned.
+       Parent 5712 is Wazuh's stock composite for repeated auth failures. -->
+  <rule id="100100" level="TODO_LEVEL">   <!-- TODO: pick 1-15. Justify it. -->
+    <if_matched_sid>5712</if_matched_sid>
+
+    <!-- TODO: how many failures in how many seconds counts as an attack on
+         a small-business LAN? Stock is 6 in 120s. Decide and defend YOUR number. -->
+    <frequency>TODO_COUNT</frequency>
+    <timeframe>TODO_SECONDS</timeframe>
+
+    <!-- TODO: rewrite for a non-security owner. Not "SSH brute force (sid 5712)".
+         Something like: "Someone is repeatedly guessing passwords on <host>." -->
+    <description>TODO_PLAIN_ENGLISH_DESCRIPTION</description>
+
+    <group>authentication_failures,attack,</group>
+    <mitre>
+      <id>T1110</id>   <!-- Brute Force -->
+    </mitre>
+  </rule>
+
+  <!-- Room to grow: scenario 2 (new/unknown device) and scenario 3 (port scan)
+       land here later. Scenario 3 needs the network mirror (see DECISIONS.md);
+       don't stub it until that exists. -->
+
+</group>

@@ -48,3 +48,31 @@ Grafana already does what we need (time series graphs, table panels for NOC-styl
 views). Building a custom frontend is real engineering scope we don't have time for 
 in a 3-month fall window. Time is better spent on detection logic, the part that's 
 actually new and hard.
+
+## Why we're deploying Wazuh rather than writing the detection layer ourselves
+Detection rules in Wazuh are declarative XML in `ossec.conf` and its rule files, and
+SSH brute-force is covered by decoders it already ships with. That makes the fall
+detection work configuration and tuning rather than new application code, which is
+both faster for a 3-month window and something every member of the team can read and
+explain. It also brings its own dashboard, so we are not maintaining a display either.
+The cost is honest: Wazuh covers one of our three scenarios out of the box, and its
+documented all-in-one minimum is well above what the appliance VM has today.
+
+## Why the appliance VM is being resized rather than kept lightweight
+`mainserver` has 16 GB total, and we are allocating 8 GB of it to the appliance guest
+to meet Wazuh's documented all-in-one minimum. This is a real concession: OVERVIEW.md
+sells "runs on a cheap mini PC", and an 8 GB floor raises the bill of materials for a
+shipped appliance. We are accepting it for the school project because the alternative
+is writing the detection layer ourselves, which we cannot defend as our own work. If
+the product is ever taken further, a headless Wazuh manager without the indexer and
+dashboard is the path back to a small footprint.
+
+## Why network visibility, and port-scan detection with it, is deferred
+The appliance is an ordinary bridged guest on `vmbr0`: one `eth0`, no promiscuous mode,
+and it is not the gateway. It therefore sees only traffic addressed to it, so port-scan
+detection cannot work no matter which SIEM we run — this is not a tool-choice problem.
+Fixing it means a mirror/SPAN on the Proxmox bridge or making the appliance the gateway,
+both of which touch host networking and are Tim's call under the safety rule in
+appliance/CLAUDE.md. Deferred rather than dropped: Wazuh is host-based and gives us
+scenario 1 without it, and Suricata can be added later as configuration once the mirror
+exists. If it never does, port scan comes out of Phase 2 and we document why.

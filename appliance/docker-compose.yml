@@ -24,7 +24,7 @@ services:
       retries: 10
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:13.0.2
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -35,10 +35,119 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      # Button panel (backup trigger) + OpenSearch datasource so Grafana can read
+      # the Wazuh indexer. Comma-separated; do not split into two lines.
+      - GF_INSTALL_PLUGINS=volkovlabs-form-panel,grafana-opensearch-datasource
       - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      # Wazuh indexer login used by the provisioned OpenSearch datasource.
+      # Use a READ-ONLY indexer user here, never admin (see .env.example).
+      - WAZUH_INDEXER_USER=${WAZUH_INDEXER_USER:-readall}
+      - WAZUH_INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-}
+    # Lets the container resolve the host, where the Wazuh indexer runs natively.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       influxdb:
         condition: service_healthy
+
+  backup-trigger:
+    build:
+      context: ./trigger
+      args:
+        APP_UID: ${APPLIANCE_UID:-1001}
+    container_name: backup-trigger
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      # Proxmox VE, see .env
+      - PVE_HOST=${PVE_HOST}
+      - PVE_PORT=${PVE_PORT:-8006}
+      - PVE_NODE=${PVE_NODE}
+      - PVE_VERIFY_SSL=${PVE_VERIFY_SSL:-false}
+      - PVE_TOKEN_ID=${PVE_TOKEN_ID:-}
+      - PVE_TOKEN_SECRET=${PVE_TOKEN_SECRET:-}
+      - PVE_USER=${PVE_USER:-}
+      - PVE_PASSWORD=${PVE_PASSWORD:-}
+      # Backup job defaults
+      - BACKUP_STORAGE=${BACKUP_STORAGE}
+      - BACKUP_VMIDS=${BACKUP_VMIDS:-}
+      - BACKUP_MODE=${BACKUP_MODE:-snapshot}
+      - BACKUP_COMPRESS=${BACKUP_COMPRESS:-zstd}
+      # InfluxDB, reached over the compose network by service name
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      # Service
+      - POLL_INTERVAL_S=${POLL_INTERVAL_S:-5}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - TRIGGER_TOKEN=${TRIGGER_TOKEN:-}
+      # Post-backup import on PBS, see .env
+      - PBS_IMPORT_ENABLED=${PBS_IMPORT_ENABLED:-false}
+      - PBS_HOST=${PBS_HOST:-}
+      - PBS_SSH_USER=${PBS_SSH_USER:-root}
+    volumes:
+      # Read-only, and the key is restricted to a forced command on the PBS side.
+      - ${PBS_SSH_KEY_PATH:-/home/lonsemonsy/.ssh/id_ed25519_pbs}:/run/secrets/pbs_key:ro
+      - ${PBS_KNOWN_HOSTS_PATH:-/home/lonsemonsy/.ssh/known_hosts_pbs}:/run/secrets/pbs_known_hosts:ro
+    depends_on:
+      influxdb:
+        condition: service_healthy
+
+  audit-collector:
+    build:
+      context: ./audit
+    container_name: audit-collector
+    restart: unless-stopped
+    environment:
+      # InfluxDB, reached over the compose network by service name
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      # One measurement for every source, split by the `source` tag.
+      - AUDIT_MEASUREMENT=${AUDIT_MEASUREMENT:-audit_log}
+      - AUDIT_POLL_INTERVAL_S=${AUDIT_POLL_INTERVAL_S:-300}
+      - AUDIT_BACKFILL_DAYS=${AUDIT_BACKFILL_DAYS:-30}
+      - AUDIT_OVERLAP_MIN=${AUDIT_OVERLAP_MIN:-10}
+      # --- source: Proxmox VE ---
+      # On by default: it reuses the same credentials backup-trigger already
+      # needs, so there is nothing new for an operator to create.
+      - PVEAUDIT_ENABLED=${PVEAUDIT_ENABLED:-true}
+      - PVE_HOST=${PVE_HOST}
+      - PVE_PORT=${PVE_PORT:-8006}
+      - PVE_VERIFY_SSL=${PVE_VERIFY_SSL:-false}
+      - PVE_TOKEN_ID=${PVE_TOKEN_ID:-}
+      - PVE_TOKEN_SECRET=${PVE_TOKEN_SECRET:-}
+      - PVE_USER=${PVE_USER:-}
+      - PVE_PASSWORD=${PVE_PASSWORD:-}
+      - PVEAUDIT_LOG_MAX=${PVEAUDIT_LOG_MAX:-500}
+      - PVEAUDIT_TASK_LIMIT=${PVEAUDIT_TASK_LIMIT:-500}
+      # --- source: Tailscale ---
+      # Off by default: needs a credential a human has to create in the admin
+      # console. Preferred is an OAuth client scoped to logs:configuration:read;
+      # TAILSCALE_API_KEY is the simpler fallback. Blank tailnet means "the
+      # tailnet this credential belongs to".
+      - TSAUDIT_ENABLED=${TSAUDIT_ENABLED:-false}
+      - TAILSCALE_TAILNET=${TAILSCALE_TAILNET:-}
+      - TAILSCALE_OAUTH_CLIENT_ID=${TAILSCALE_OAUTH_CLIENT_ID:-}
+      - TAILSCALE_OAUTH_CLIENT_SECRET=${TAILSCALE_OAUTH_CLIENT_SECRET:-}
+      - TAILSCALE_API_KEY=${TAILSCALE_API_KEY:-}
+    # No published port on purpose: /poll and /health are only called by
+    # alerts-feed over the compose network, never from a browser.
+    depends_on:
+      influxdb:
+        condition: service_healthy
+
+networks:
+  # Pinned so the bridge gateway (172.20.0.1) is stable: the Wazuh indexer binds
+  # to it, and Grafana reaches the indexer over it. Not routable from the LAN.
+  default:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
 
 volumes:
   influxdb-data:

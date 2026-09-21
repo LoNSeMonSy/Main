@@ -66,3 +66,19 @@ Grafana).
   this counts as portable to another Proxmox host.
 - No first-boot config wizard yet, no install script, no detection layer — those are
   fall-semester, team scope (see ROADMAP.md).
+
+## September 2026: Wazuh adoption + hub cleanup
+
+- Adopted Wazuh as the detection engine (native install on the appliance). SSH
+  brute-force detection confirmed working via local agent 000.
+- Wired Grafana to the Wazuh indexer with the provisioned `grafana-opensearch-datasource`
+  (reaches the native indexer over the pinned bridge gateway 172.20.0.1, credentials
+  from `.env`). Datasource goes healthy once `WAZUH_INDEXER_PASSWORD` is set for a
+  read-only `readall` user and `wazuh/apply-grafana-wazuh-link.sh` binds the indexer.
+- Removed the custom hub: deleted `alerts-feed` (5002) and `alert-generator` and their
+  code. Verified nothing depended on them; `audit-collector` kept (still writes real
+  Proxmox audit data to InfluxDB for a future Grafana panel).
+- Pinned the compose network to 172.20.0.0/24 and Grafana to `13.0.2` (off `:latest`).
+- Added customer-facing repo scaffolding: `README.md`, `LICENSE.md`, `install.sh`
+  (draft wizard), `VERSIONS`, `appliance/.env.example`, `wazuh/` (rules template,
+  retention policy, testing guide, apply script).

@@ -1,0 +1,29 @@
+apiVersion: 1
+
+# Lets Grafana read the Wazuh indexer directly, so Wazuh alerts render as Grafana
+# panels next to the backup data — one front door, no data-copy pipeline.
+#
+# Reaches the indexer (native on the host) at the pinned bridge gateway 172.20.0.1.
+# Credentials come from .env through compose, never hardcoded.
+#
+# NOTE: with a wildcard index (wazuh-alerts-*), this plugin's "Save & test" button
+# shows a false "Index not found". Queries and panels work regardless — verified by
+# a live query returning ~1.2k alerts. Do not chase the red test button.
+datasources:
+  - name: Wazuh
+    type: grafana-opensearch-datasource
+    access: proxy
+    url: https://172.20.0.1:9200
+    basicAuth: true
+    basicAuthUser: $__env{WAZUH_INDEXER_USER}
+    jsonData:
+      # Self-signed indexer cert; the connection is still TLS, just not CA-verified.
+      tlsSkipVerify: true
+      flavor: opensearch
+      version: 2.19.5
+      database: "wazuh-alerts-*"
+      timeField: "timestamp"
+      pplEnabled: true
+    secureJsonData:
+      basicAuthPassword: $__env{WAZUH_INDEXER_PASSWORD}
+    editable: false
