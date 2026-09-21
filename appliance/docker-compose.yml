@@ -140,6 +140,33 @@ services:
       influxdb:
         condition: service_healthy
 
+  # Network device discovery + new-device alerts (SRS 3.2 "Scan the Network";
+  # roadmap scenario 2). Off-the-shelf: NetAlertX. host networking is REQUIRED for
+  # ARP/L2 scanning and only shares the appliance's existing LAN access -- it does
+  # NOT touch vmbr0 or change how the GUI is reached. UI 20211, GraphQL 20212.
+  netalertx:
+    image: ghcr.io/netalertx/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+    environment:
+      - PORT=${NETALERTX_PORT:-20211}
+      - GRAPHQL_PORT=${NETALERTX_GRAPHQL_PORT:-20212}
+      - TZ=${TZ:-America/New_York}
+      # Which subnet(s) to scan, and on which interface. See .env.example.
+      - SCAN_SUBNETS=${SCAN_SUBNETS:-192.168.12.0/24 --interface=eth0}
+    volumes:
+      - netalertx-data:/data
+
 networks:
   # Pinned so the bridge gateway (172.20.0.1) is stable: the Wazuh indexer binds
   # to it, and Grafana reaches the indexer over it. Not routable from the LAN.
@@ -153,3 +180,4 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  netalertx-data:
