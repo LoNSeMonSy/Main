@@ -32,12 +32,15 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # Read-only view of the NetAlertX device DB so Grafana can show the device
+      # inventory in the same pane (SQLite datasource). RO: Grafana never writes it.
+      - netalertx-data:/var/lib/netalertx:ro
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       # Button panel (backup trigger) + OpenSearch datasource so Grafana can read
       # the Wazuh indexer. Comma-separated; do not split into two lines.
-      - GF_INSTALL_PLUGINS=volkovlabs-form-panel,grafana-opensearch-datasource
+      - GF_INSTALL_PLUGINS=volkovlabs-form-panel,grafana-opensearch-datasource,frser-sqlite-datasource
       - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
       # Wazuh indexer login used by the provisioned OpenSearch datasource.
       # Use a READ-ONLY indexer user here, never admin (see .env.example).

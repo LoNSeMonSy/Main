@@ -296,6 +296,179 @@
       ],
       "title": "Top alert types",
       "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "title": "Network Devices (NetAlertX)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT count(*) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT count(*) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Devices on network",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT sum(devIsNew) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT sum(devIsNew) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "New / unknown devices",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Online now",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "queryType": "table",
+          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Network device inventory",
+      "type": "table"
     }
   ],
   "refresh": "30s",
