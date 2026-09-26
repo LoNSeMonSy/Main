@@ -12,8 +12,8 @@ there is no second appliance to keep in step, and nothing to clone. Add a machin
 the company by adding an agent; its events appear in the same Wazuh automatically.
 
 ```
-        corp-fileserver ─┐
-        corp-workstation ─┼─(Wazuh agents)─▶  appliance (192.168.12.112)  ─▶ Grafana
+        srv-files01 ─┐
+        ws-reception ─┼─(Wazuh agents)─▶  appliance (192.168.12.112)  ─▶ Grafana
         (more as needed) ─┘                    the one SIEM / manager
 
         attacker ───────(no agent; it's the threat)──▶ attacks the company
@@ -23,9 +23,9 @@ the company by adding an agent; its events appear in the same Wazuh automaticall
 
 | Machine | Stands for | Monitored |
 |---|---|---|
-| corp-fileserver | the company's server | yes |
-| corp-workstation | an employee PC | yes |
-| attacker | external/compromised host | no (adversary) |
+| srv-files01 | the company's server | yes |
+| ws-reception | an employee PC | yes |
+| kali-redteam | external/compromised host | no (adversary) |
 
 Add more employees/servers by editing the `LAB=(...)` list at the top of
 `build-company-lab.sh` — each line is one container.
@@ -39,7 +39,7 @@ demo attack + teardown commands at the end.
 
 ## What will and won't be detected (be honest in the writeup)
 
-- **SSH brute force: detected.** Host-based, via the agent on corp-fileserver. This is
+- **SSH brute force: detected.** Host-based, via the agent on srv-files01. This is
   the working scenario.
 - **Port scan: not yet.** Needs network visibility (a mirror port) the appliance does
   not have — see docs/DECISIONS.md. The `nmap` step runs, but Wazuh won't flag it until

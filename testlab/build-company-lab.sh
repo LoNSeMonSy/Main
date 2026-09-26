@@ -21,9 +21,9 @@ ROOTPW="lab-$(openssl rand -hex 6)"   # one shared lab password, printed at the 
 
 # vmid : hostname : memory(MB) : role(agent|attacker)
 LAB=(
-  "8101:corp-fileserver:512:agent"
-  "8102:corp-workstation:384:agent"
-  "8103:attacker:384:attacker"
+  "8101:srv-files01:512:agent"
+  "8102:ws-reception:384:agent"
+  "8103:kali-redteam:384:attacker"
 )
 
 say(){ printf '\n\033[1;36m==>\033[0m %s\n' "$*"; }
@@ -81,8 +81,8 @@ cat <<DONE
 
   Run the demo attack (from the attacker container):
     pct exec 8103 -- bash -c '
-      TARGET=\$(getent hosts corp-fileserver | awk "{print \\\$1}")
-      # brute force SSH — Wazuh should fire 5710/5712 for corp-fileserver
+      TARGET=\$(getent hosts srv-files01 | awk "{print \\\$1}")
+      # brute force SSH — Wazuh should fire 5710/5712 for srv-files01
       hydra -l root -P <(printf "bad1\nbad2\nbad3\nbad4\nbad5\nbad6\nbad7\nbad8\n") \
         ssh://\$TARGET -t 4 || true
       nmap -sS \$TARGET      # port scan (needs network visibility to be *detected*)

@@ -11,9 +11,9 @@ stack) plus a small **company test network** of monitored machines. Work here is
 flowchart TB
     subgraph host["Proxmox host — mainserver (192.168.12.230)"]
       appliance["Appliance VM · 192.168.12.112<br/>Wazuh server · Grafana · InfluxDB · NetAlertX"]
-      fs["corp-fileserver (LXC) · 192.168.12.134<br/>Wazuh agent"]
-      ws["corp-workstation (LXC) · 192.168.12.173<br/>Wazuh agent"]
-      atk["attacker (LXC) · 192.168.12.102<br/>no agent — the threat"]
+      fs["srv-files01 (LXC) · 192.168.12.134<br/>Wazuh agent"]
+      ws["ws-reception (LXC) · 192.168.12.173<br/>Wazuh agent"]
+      atk["kali-redteam (LXC) · 192.168.12.102<br/>no agent — the threat"]
     end
     owner["Owner / MSP"] -->|"Grafana :3000"| appliance
     fs -->|"agent → manager 1514/1515"| appliance
@@ -29,9 +29,9 @@ manager. This mirrors how a customer's machines would report to a shipped applia
 | Machine | Role | Local IP |
 |---|---|---|
 | appliance (grafana-influxdb) | the SIEM | 192.168.12.112 |
-| corp-fileserver | monitored server (agent 001) | 192.168.12.134 |
-| corp-workstation | monitored workstation (agent 002) | 192.168.12.173 |
-| attacker | threat generator (no agent) | 192.168.12.102 |
+| srv-files01 | monitored server (agent 001) | 192.168.12.134 |
+| ws-reception | monitored workstation (agent 002) | 192.168.12.173 |
+| kali-redteam | threat generator (no agent) | 192.168.12.102 |
 
 ## Building it
 
@@ -49,14 +49,14 @@ appliance, and puts attack tools on the attacker. Footprint ≈ 1.3 GB RAM / ~12
 
 1. Confirm the company machines registered, on the appliance:
    ```bash
-   sudo /var/ossec/bin/agent_control -l      # expect corp-fileserver + corp-workstation
+   sudo /var/ossec/bin/agent_control -l      # expect srv-files01 + ws-reception
    ```
 2. Run the SSH brute-force from the attacker (printed by the build script), then watch it
    land in Grafana (Wazuh datasource) or the Wazuh dashboard — rule 5710/5712 fires.
 
 ## Scope (be honest in the demo)
 
-- **SSH brute-force: detected** — host-based, via the agent on `corp-fileserver`.
+- **SSH brute-force: detected** — host-based, via the agent on `srv-files01`.
 - **Port scan: not yet** — needs a network traffic mirror the appliance doesn't have (see
   `docs/DECISIONS.md`). The `nmap` step runs but isn't flagged. Present as a known, scoped
   limitation, not a gap.

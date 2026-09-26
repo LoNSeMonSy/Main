@@ -58,9 +58,9 @@
 | PBS | Proxmox Backup Server | 192.168.12.131 | 100.109.112.31 |
 | backupserver | Proxmox node | 192.168.12.130 | 100.123.236.113 |
 | WIZARDTEST | test VM (stopped) | DHCP | 100.65.246.6 |
-| corp-fileserver | test LXC | 192.168.12.134 | — |
-| corp-workstation | test LXC | 192.168.12.173 | — |
-| attacker | test LXC | 192.168.12.102 | — |
+| srv-files01 | test LXC | 192.168.12.134 | — |
+| ws-reception | test LXC | 192.168.12.173 | — |
+| kali-redteam | test LXC | 192.168.12.102 | — |
 
 ## Service ports (on the appliance)
 
