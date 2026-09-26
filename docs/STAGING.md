@@ -7,17 +7,31 @@ stack) plus a small **company test network** of monitored machines. Work here is
 
 ## Topology
 
-```
-Proxmox host (mainserver)
-├── appliance VM (192.168.12.112)         the SIEM: Wazuh server + Grafana + InfluxDB
-│      ▲ Wazuh agents report here (1514/1515)
-├── corp-fileserver   (LXC, agent)   ─┐   "the company's server"
-├── corp-workstation  (LXC, agent)   ─┼─▶ monitored by the appliance
-└── attacker          (LXC, no agent) ┘   external threat
+```mermaid
+flowchart TB
+    subgraph host["Proxmox host — mainserver (192.168.12.230)"]
+      appliance["Appliance VM · 192.168.12.112<br/>Wazuh server · Grafana · InfluxDB · NetAlertX"]
+      fs["corp-fileserver (LXC) · 192.168.12.134<br/>Wazuh agent"]
+      ws["corp-workstation (LXC) · 192.168.12.173<br/>Wazuh agent"]
+      atk["attacker (LXC) · 192.168.12.102<br/>no agent — the threat"]
+    end
+    owner["Owner / MSP"] -->|"Grafana :3000"| appliance
+    fs -->|"agent → manager 1514/1515"| appliance
+    ws -->|"agent → manager"| appliance
+    atk -.->|"attacks"| fs
 ```
 
 All on `vmbr0` (the LAN), so the appliance sees the company's hosts and the agents reach the
 manager. This mirrors how a customer's machines would report to a shipped appliance.
+
+## Staging inventory
+
+| Machine | Role | Local IP |
+|---|---|---|
+| appliance (grafana-influxdb) | the SIEM | 192.168.12.112 |
+| corp-fileserver | monitored server (agent 001) | 192.168.12.134 |
+| corp-workstation | monitored workstation (agent 002) | 192.168.12.173 |
+| attacker | threat generator (no agent) | 192.168.12.102 |
 
 ## Building it
 
