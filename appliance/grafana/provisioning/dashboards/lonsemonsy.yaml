@@ -1,0 +1,25 @@
+# Auto-load the dashboards that ship with the repo.
+#
+# Without this, appliance/grafana/dashboards/*.json is dead weight: the directory
+# was never mounted and no provider existed, so a fresh customer install came up
+# with ZERO dashboards and someone had to import them by hand. That is now fixed
+# -- `docker compose up` brings the dashboards with it.
+#
+# allowUiUpdates: true is deliberate. Provisioned dashboards are normally locked
+# read-only, and edits made in the browser would be silently reverted on every
+# restart. Keeping it true means the team can still tune panels live. To harden a
+# customer appliance so the dashboards genuinely cannot be altered by accident,
+# set this to false -- that is the "read-only customer" posture.
+apiVersion: 1
+
+providers:
+  - name: lonsemonsy
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

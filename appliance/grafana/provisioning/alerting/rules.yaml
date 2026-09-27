@@ -1,0 +1,192 @@
+# Alert rules.
+#
+# These are THRESHOLD rules, not severity lookups -- which is the point. Wazuh
+# gives every event a level 0-15; emailing on "level >= N" alone is a blunt
+# instrument. Two of the three rules below instead count events in a time
+# window, so a single stray packet is ignored and a sustained pattern alerts.
+#
+# Why the numbers are what they are (measured over 15 days of this appliance's
+# real alert history, 3171 alerts):
+#     level >= 7  -> ~121 alerts/day, almost entirely rootcheck / CIS benchmark
+#                    / dpkg package-install housekeeping. Not intrusions.
+#     level >= 8  -> ~0.5 alerts/day, and every single one in 15 days was real:
+#                    new user added, new group added, SSH brute force.
+# That 260x drop between 7 and 8 is the natural cut. Grafana's own default of
+# 12 was matching literally zero alerts -- an off switch, not a setting.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: security
+    folder: LoNSeMonSy Alerts
+    interval: 1m
+    rules:
+      # ------------------------------------------------------------------
+      # 1. A genuinely serious Wazuh alert. Fires on the first occurrence --
+      #    no window needed, because at level >= 8 the noise floor is zero.
+      # ------------------------------------------------------------------
+      - uid: lons-wazuh-critical
+        title: Critical security alert
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            A high-severity security alert fired on the LoNSeMonSy appliance
+            (Wazuh level 8 or above). Historically these are: a new user
+            account, a new group, or SSH brute force.
+        labels:
+          severity: critical
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.level:>=8"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      # ------------------------------------------------------------------
+      # 2. Port scan. Suricata logs each scan signature at Wazuh level 3, so
+      #    severity alone can never catch this. Instead: count scan hits in a
+      #    10-minute window and require several. One probe is background
+      #    internet noise; five in ten minutes is somebody enumerating you.
+      #
+      #    THIS IS THE MARGIN TO TUNE. Lower = more sensitive and noisier.
+      #    A single `nmap -sS --top-ports 200` against the appliance produces
+      #    about 5 alerts, so 5 is calibrated to "one real scan".
+      # ------------------------------------------------------------------
+      - uid: lons-portscan-burst
+        title: Port scan detected
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            Five or more Suricata port-scan signatures fired within 10 minutes,
+            which means a host is enumerating open ports on the appliance.
+            Check "Top attacker IPs" for the source.
+        labels:
+          severity: warning
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.id:86601"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gte
+                    params: [5]
+
+  - orgId: 1
+    name: capacity
+    folder: LoNSeMonSy Alerts
+    interval: 5m
+    rules:
+      # ------------------------------------------------------------------
+      # 3. Backup storage filling up. This is the "margin" case the other two
+      #    are not: it warns while there is still room to act, rather than
+      #    after backups have already started failing.
+      #    Currently ~12% used, so this sits well below the line.
+      # ------------------------------------------------------------------
+      - uid: lons-backup-storage
+        title: Backup storage running low
+        condition: C
+        for: 15m
+        annotations:
+          summary: >-
+            The PBS backup datastore is above 85% full. Backups are the rollback
+            mechanism for this appliance, so losing backup capacity means losing
+            the ability to undo a bad change.
+        labels:
+          severity: warning
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -1h)
+                  |> filter(fn: (r) => r._measurement == "pbs_storage_stats")
+                  |> filter(fn: (r) => r._field == "usage_pct")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [85]

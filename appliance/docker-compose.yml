@@ -32,6 +32,10 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # Dashboards that ship with the repo. Previously this directory existed but
+      # was never mounted and had no provider, so a fresh install had no
+      # dashboards at all until someone imported them by hand.
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       # Read-only view of the NetAlertX device DB so Grafana can show the device
       # inventory in the same pane (SQLite datasource). RO: Grafana never writes it.
       - netalertx-data:/var/lib/netalertx:ro
@@ -46,6 +50,21 @@ services:
       # Use a READ-ONLY indexer user here, never admin (see .env.example).
       - WAZUH_INDEXER_USER=${WAZUH_INDEXER_USER:-readall}
       - WAZUH_INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-}
+      # Outbound email for alert notifications. Grafana speaks EHLO+STARTTLS+AUTH
+      # so it reaches Gmail directly -- Wazuh's own wazuh-maild cannot (it is
+      # HELO-only plain SMTP with no AUTH), which is why alerting lives here.
+      # Values come from .env; never hardcode the app password.
+      - GF_SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com:587}
+      - GF_SMTP_USER=${SMTP_USER:-}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-}
+      - GF_SMTP_FROM_NAME=${SMTP_FROM_NAME:-LoNSeMonSy}
+      - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS
+      # Makes alert emails link back to the dashboard.
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://192.168.12.112:3000}
+      # Where alert email goes; read by the provisioned contact point.
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
     # Lets the container resolve the host, where the Wazuh indexer runs natively.
     extra_hosts:
       - "host.docker.internal:host-gateway"
