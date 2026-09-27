@@ -2,7 +2,7 @@
 #
 # These are THRESHOLD rules, not severity lookups -- which is the point. Wazuh
 # gives every event a level 0-15; emailing on "level >= N" alone is a blunt
-# instrument. Two of the three rules below instead count events in a time
+# instrument. The port-scan and backup rules below instead count events in a time
 # window, so a single stray packet is ignored and a sustained pattern alerts.
 #
 # Why the numbers are what they are (measured over 15 days of this appliance's
@@ -13,6 +13,18 @@
 #                    new user added, new group added, SSH brute force.
 # That 260x drop between 7 and 8 is the natural cut. Grafana's own default of
 # 12 was matching literally zero alerts -- an off switch, not a setting.
+#
+# Severity bands. Wazuh's 0-15 scale is collapsed into five plain-language
+# bands, used the same way in the dashboards and in the labels below:
+#     Info      0-3    normal activity, no action
+#     Low       4-7    routine housekeeping (the ~121/day above)
+#     Medium    8-10   a real security event, look at it today
+#     High     11-12   likely attack, act now
+#     Critical 13-15   severe, act immediately
+# The Medium boundary sits exactly on the measured 7/8 cut.
+#
+# The Active Alarms dashboard (lonsemonsy-noc.json) re-evaluates these same
+# thresholds for its status banner. Change a threshold here, change it there.
 apiVersion: 1
 
 groups:
@@ -22,32 +34,84 @@ groups:
     interval: 1m
     rules:
       # ------------------------------------------------------------------
-      # 1. A genuinely serious Wazuh alert. Fires on the first occurrence --
-      #    no window needed, because at level >= 8 the noise floor is zero.
+      # 1a/1b. A genuinely serious Wazuh alert, split by severity band (see
+      #    the band table at the top). Fires on the first occurrence -- no
+      #    count threshold, because at level >= 8 the noise floor is zero.
+      #    The 10-minute window keeps the alarm visible long enough to see
+      #    on the Active Alarms dashboard, which uses the same window.
       # ------------------------------------------------------------------
-      - uid: lons-wazuh-critical
-        title: Critical security alert
+      - uid: lons-wazuh-medium
+        title: Security alert (Medium)
         condition: C
         for: 0m
         annotations:
           summary: >-
-            A high-severity security alert fired on the LoNSeMonSy appliance
-            (Wazuh level 8 or above). Historically these are: a new user
-            account, a new group, or SSH brute force.
+            A Medium-band security alert (Wazuh level 8-10) fired on the
+            LoNSeMonSy appliance. Look at it today. Historically these are: a
+            new user account, a new group, or SSH brute force.
         labels:
-          severity: critical
+          severity: medium
         noDataState: OK
         execErrState: OK
         data:
           - refId: A
             relativeTimeRange:
-              from: 300
+              from: 600
               to: 0
             datasourceUid: P45A1D828630779A3
             model:
               refId: A
               timeField: timestamp
-              query: "rule.level:>=8"
+              query: "rule.level:[8 TO 10]"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      - uid: lons-wazuh-critical
+        title: Security alert (High or Critical)
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            A High or Critical security alert (Wazuh level 11 or above) fired
+            on the LoNSeMonSy appliance. Act now.
+        labels:
+          severity: high
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.level:>=11"
               metrics:
                 - id: "1"
                   type: count
@@ -95,7 +159,7 @@ groups:
             which means a host is enumerating open ports on the appliance.
             Check "Top attacker IPs" for the source.
         labels:
-          severity: warning
+          severity: medium
         noDataState: OK
         execErrState: OK
         data:
@@ -156,7 +220,7 @@ groups:
             mechanism for this appliance, so losing backup capacity means losing
             the ability to undo a bad change.
         labels:
-          severity: warning
+          severity: medium
         noDataState: OK
         execErrState: OK
         data:
