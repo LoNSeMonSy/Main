@@ -1,9 +1,33 @@
 # Staging Environment
 
-Staging is a **full deployment that mirrors a real customer site**, used to validate
-detection end-to-end before release. It is the **appliance VM** (Wazuh server + the Docker
-stack) plus a small **company test network** of monitored machines. Work here is on the
-**`staging`** branch; a real customer appliance would be production.
+Staging is where a change gets tried **before** it reaches the live appliance. It has
+two parts, and they are different things:
+
+- **Staging appliance**: a separate copy of the appliance running the `staging`
+  branch. Changes are installed here first.
+- **Test lab**: a small fake company network (`srv-files01`, `ws-reception`,
+  `kali-redteam`) that produces real attacks, so we can check that detection and
+  auto-block still work after a change.
+
+## How a change moves
+
+1. **dev**: build and try it (`docker compose up` on any machine, see `DEV.md`).
+2. **staging**: install it on the staging appliance, run the lab attacks, check Grafana.
+3. **main**: if it passes, merge to `main` and apply it to the live appliance with
+   `setup/update.sh`.
+
+## Where the staging appliance runs
+
+Today there is no hardware for a second full appliance: the Proxmox host has 16 GB
+and the live appliance alone uses 8 GB. So for now:
+
+- Before any change to the live appliance, take a PBS backup first. A full restore
+  was measured at about 5 minutes (see `docs/RECOVERY.md` on the `recovery-docs` branch).
+- The test lab below points at the live appliance.
+
+**Next:** a dedicated mini PC running the `staging` branch, so staging is fully
+isolated from the live appliance. It needs no Proxmox, only Ubuntu + Docker +
+`setup/setup.sh`.
 
 ## Topology
 
@@ -24,7 +48,7 @@ flowchart TB
 All on `vmbr0` (the LAN), so the appliance sees the company's hosts and the agents reach the
 manager. This mirrors how a customer's machines would report to a shipped appliance.
 
-## Staging inventory
+## Test lab inventory
 
 | Machine | Role | Local IP |
 |---|---|---|
@@ -56,9 +80,10 @@ appliance, and puts attack tools on the attacker. Footprint ≈ 1.3 GB RAM / ~12
 
 ## Scope (be honest in the demo)
 
-- **SSH brute-force: detected** — host-based, via the agent on `srv-files01`.
-- **Port scan: not yet** — needs a network traffic mirror the appliance doesn't have (see
-  `docs/DECISIONS.md`). The `nmap` step runs but isn't flagged. Present as a known, scoped
+- **SSH brute-force: detected and auto-blocked.** Wazuh rule 5712 fires and the
+  attacker's IP is dropped for 10 minutes (see `wazuh/TESTING.md`).
+- **Port scan of other machines: not yet.** It needs a network traffic mirror the
+  appliance doesn't have (see `docs/DECISIONS.md`). Present it as a known, scoped
   limitation, not a gap.
 
 ## Teardown
@@ -69,5 +94,5 @@ ssh mainserver 'for id in 8101 8102 8103; do pct stop $id; pct destroy $id; done
 
 ## Branch
 
-Changes validated here are promoted from `dev`; once they pass, they merge to `main`
-(release / a would-be production appliance).
+Work here is on the `staging` branch. Once a change passes, it merges to `main`,
+which is what the live appliance (and a future customer appliance) runs.

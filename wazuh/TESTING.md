@@ -28,7 +28,19 @@ Edit wazuh/local_rules.xml (fill in the TODOs), deploy and restart:
 Re-run step 1 and confirm rule **100100** now fires with YOUR level and wording.
 That before/after — stock behaviour vs your tuned rule — is the thing to demo.
 
+## 4. Auto-block (active response)
+Auto-block is on (see `wazuh/active-response.xml`). Once the brute-force rule trips,
+the attacker's IP is dropped on the attacked host for 10 minutes. To see it:
+
+    sudo tail -n 5 /var/ossec/logs/active-responses.log   # firewall-drop ran
+    sudo iptables -S | grep DROP                          # the attacker's IP
+    # rule 651 "Host Blocked by firewall-drop Active Response" appears in alerts
+
+To unblock early, remove both rules:
+`sudo iptables -D INPUT -s <ip> -j DROP; sudo iptables -D FORWARD -s <ip> -j DROP`.
+
 ## Safety
-No active-response (auto-ban) is configured, so this will not lock anyone out.
-Before you ever enable active-response, whitelist your admin IP and the Tailscale
-range first, or a demo can ban you from your own appliance.
+Only run the attack from a machine you don't need. It will be cut off from the
+target for 10 minutes. Trusted admin addresses (router, Proxmox host, admin PC,
+Tailscale range) are in the `<global><white_list>` entries and are never blocked.
+If your admin PC's IP changes, update that list, or a demo can lock you out.

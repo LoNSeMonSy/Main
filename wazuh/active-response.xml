@@ -1,0 +1,28 @@
+<!--
+  Auto-block for SSH brute force (Wazuh active response).
+
+  Goes inside <ossec_config> in /var/ossec/etc/ossec.conf on the appliance, then:
+      sudo /var/ossec/bin/wazuh-analysisd -t && sudo systemctl restart wazuh-manager
+
+  What it does: when a host sees 8 failed SSH logins in 2 minutes (stock rules
+  5712 / 5720 / 5763), Wazuh runs its built-in firewall-drop script on THAT host
+  and drops the attacker's IP for 10 minutes. A mistyped password never gets
+  close to the threshold.
+
+  Before enabling, add your own trusted addresses to the existing <global> block,
+  or a demo can lock you out of your own appliance. Examples:
+      <white_list>ROUTER_IP</white_list>
+      <white_list>PROXMOX_HOST_IP</white_list>
+      <white_list>ADMIN_PC_IP</white_list>
+      <white_list>100.64.0.0/10</white_list>   (Tailscale, if you use it)
+
+  Do not let this run on a Proxmox host: on those agents, turn it off locally with
+      <active-response><disabled>yes</disabled></active-response>
+-->
+<active-response>
+  <disabled>no</disabled>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <rules_id>5712,5720,5763</rules_id>
+  <timeout>600</timeout>
+</active-response>
