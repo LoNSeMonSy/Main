@@ -63,6 +63,8 @@ services:
       - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS
       # Makes alert emails link back to the dashboard.
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://192.168.12.112:3000}
+      # Land on the Active Alarms dashboard instead of Grafana's generic home page.
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/lonsemonsy-noc.json
       # Where alert email goes; read by the provisioned contact point.
       - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
     # Lets the container resolve the host, where the Wazuh indexer runs natively.

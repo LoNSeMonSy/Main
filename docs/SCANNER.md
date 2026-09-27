@@ -14,5 +14,6 @@ Network" (populates the `Device` class) and roadmap scenario 2 (new/unknown devi
   channels (email/webhook) are set in the UI if wanted.
 
 Scope: this is *active* discovery (who is on the network). *Passive* port-scan detection is
-separate and deferred — it needs a bridge traffic mirror (host networking, Tim's call). See
-`docs/DECISIONS.md`.
+separate — see `docs/PORTSCAN.md`. Scans **against the appliance** are detected today via
+Suricata; extending that to the whole network still needs a bridge traffic mirror (host
+networking, Tim's call). See `docs/DECISIONS.md`.

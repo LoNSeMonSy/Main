@@ -19,6 +19,7 @@
 - Wazuh agents
 - NetAlertX (network scanner / new-device detection)
 - nmap / arp-scan (bundled in NetAlertX)
+- Suricata (IDS — port-scan detection, ET Open scan ruleset)
 
 ## Network
 - Tailscale

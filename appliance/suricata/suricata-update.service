@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh Suricata rules (LoNSeMonSy)
+Documentation=man:suricata-update(1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# disable.conf/enable.conf are re-applied on every run, so the ruleset stays
+# scan-only (~367 rules) instead of ballooning back to the full ET Open set.
+ExecStart=/usr/bin/suricata-update --quiet
+ExecStartPost=-/usr/bin/suricatasc -c reload-rules
