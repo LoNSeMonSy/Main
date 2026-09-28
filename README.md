@@ -83,7 +83,7 @@ docs/          architecture, environments, class diagram, roadmap
 
 ## Team
 
-Tim Smith · Avery Schmoyer · Logan Herndon, CPSC 354 Software Engineering
+Tim Smith · Avery Schmoyer · Logan Herndon, CPSC 355 Software Engineering II
 
 ## License
 
