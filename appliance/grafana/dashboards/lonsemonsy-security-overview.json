@@ -1,0 +1,916 @@
+{
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total alerts (range)",
+      "description": "Every event Wazuh recorded in the selected time range, including routine ones.",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Needs attention",
+      "description": "Alerts in the Medium band or higher (Wazuh level 8+). Below that is routine housekeeping.",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:>=8",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Brute-force alerts",
+      "description": "Repeated failed logins from the same source (Wazuh group authentication_failures).",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.groups:authentication_failures",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Machines seen",
+      "description": "Distinct machines that reported at least one alert in the range.",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "agent.name",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "500",
+                "min_doc_count": "1"
+              },
+              "type": "terms"
+            }
+          ],
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "count"
+          ],
+          "fields": "/^Count$/",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Security alerts over time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "agent.name",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "20"
+              },
+              "type": "terms"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Alerts by machine",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "rule.description",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "20"
+              },
+              "type": "terms"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Top alert types",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "title": "Network Devices (NetAlertX)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT count(*) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT count(*) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Devices on network",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT sum(devIsNew) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT sum(devIsNew) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "New / unknown devices",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Online now",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "queryType": "table",
+          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Network device inventory",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "title": "Threat detail",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "data.srcip",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "15"
+              },
+              "type": "terms"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Top attacker IPs",
+      "type": "table"
+    },
+    {
+      "type": "bargauge",
+      "title": "Alerts by severity",
+      "description": "Wazuh scores events 0-15. We group them into five bands:\nInfo (0-3): normal activity, no action.\nLow (4-7): routine housekeeping such as config checks and package installs.\nMedium (8-10): a real security event, look at it today.\nHigh (11-12): likely attack, act now.\nCritical (13-15): severe, act immediately.",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:[0 TO 3]",
+          "timeField": "timestamp",
+          "alias": "Info"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:[4 TO 7]",
+          "timeField": "timestamp",
+          "alias": "Low"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:[8 TO 10]",
+          "timeField": "timestamp",
+          "alias": "Medium"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:[11 TO 12]",
+          "timeField": "timestamp",
+          "alias": "High"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "rule.level:[13 TO 15]",
+          "timeField": "timestamp",
+          "alias": "Critical"
+        }
+      ],
+      "options": {
+        "displayMode": "basic",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "fixed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Info"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Low"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Medium"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "High"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Critical"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "lonsemonsy",
+    "security"
+  ],
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "title": "LoNSeMonSy - Security Overview",
+  "uid": "lons-sec-overview",
+  "links": [
+    {
+      "title": "Active alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "bolt",
+      "targetBlank": false
+    }
+  ]
+}

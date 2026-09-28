@@ -1,0 +1,124 @@
+name: lonsemonsy
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    restart: unless-stopped
+    # Only reachable from the appliance itself. Grafana and the other containers
+    # use the Docker network (http://influxdb:8086), so nothing on the LAN needs it.
+    ports:
+      - "127.0.0.1:8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_ADMIN_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_ADMIN_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  grafana:
+    image: grafana/grafana-oss:13.0.2
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # Dashboards that ship with the repo. Previously this directory existed but
+      # was never mounted and had no provider, so a fresh install had no
+      # dashboards at all until someone imported them by hand.
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # Read-only view of the NetAlertX device DB so Grafana can show the device
+      # inventory in the same pane (SQLite datasource). RO: Grafana never writes it.
+      - netalertx-data:/var/lib/netalertx:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      # Button panel (backup trigger) + OpenSearch datasource so Grafana can read
+      # the Wazuh indexer. Comma-separated; do not split into two lines.
+      - GF_INSTALL_PLUGINS=volkovlabs-form-panel,grafana-opensearch-datasource,frser-sqlite-datasource
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      # Wazuh indexer login used by the provisioned OpenSearch datasource.
+      # Use a READ-ONLY indexer user here, never admin (see .env.example).
+      - WAZUH_INDEXER_USER=${WAZUH_INDEXER_USER:-readall}
+      - WAZUH_INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-}
+      # Outbound email for alert notifications. Grafana speaks EHLO+STARTTLS+AUTH
+      # so it reaches Gmail directly -- Wazuh's own wazuh-maild cannot (it is
+      # HELO-only plain SMTP with no AUTH), which is why alerting lives here.
+      # Values come from .env; never hardcode the app password.
+      - GF_SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com:587}
+      - GF_SMTP_USER=${SMTP_USER:-}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-}
+      - GF_SMTP_FROM_NAME=${SMTP_FROM_NAME:-LoNSeMonSy}
+      - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS
+      # Makes alert emails link back to the dashboard.
+      # Blank means Grafana works it out from the address you open it on.
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-}
+      # Land on the Active Alarms dashboard instead of Grafana's generic home page.
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/lonsemonsy-noc.json
+      # Where alert email goes; read by the provisioned contact point. Email is
+      # optional, but Grafana won't start with an empty address, so a placeholder is
+      # used until ALERT_EMAIL_TO is set (nothing is sent while SMTP is off).
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-alerts@example.com}
+    # Lets the container resolve the host, where the Wazuh indexer runs natively.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+
+  # --- Internal only: our team's Proxmox backups. Customers don't run these. ---
+  # Start them with:  docker compose --profile internal up -d
+  # Network device discovery + new-device alerts (SRS 3.2 "Scan the Network";
+  # roadmap scenario 2). Off-the-shelf: NetAlertX. host networking is REQUIRED for
+  # ARP/L2 scanning and only shares the appliance's existing LAN access -- it does
+  # NOT touch vmbr0 or change how the GUI is reached. UI 20211, GraphQL 20212.
+  netalertx:
+    image: ghcr.io/netalertx/netalertx:latest
+    container_name: netalertx
+    restart: unless-stopped
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+    environment:
+      - PORT=${NETALERTX_PORT:-20211}
+      - GRAPHQL_PORT=${NETALERTX_GRAPHQL_PORT:-20212}
+      - TZ=${TZ:-America/New_York}
+      # Which subnet(s) to scan, and on which interface. See .env.example.
+      - SCAN_SUBNETS=${SCAN_SUBNETS}
+    volumes:
+      - netalertx-data:/data
+
+networks:
+  # Pinned so the bridge gateway (172.20.0.1) is stable: the Wazuh indexer binds
+  # to it, and Grafana reaches the indexer over it. Not routable from the LAN.
+  default:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
+  netalertx-data:
