@@ -27,7 +27,7 @@ Security monitoring for small networks, on one Ubuntu machine you already own.
 
 ## How it fits on your network
 
-![How it fits in your network](./docs/how-it-fits-in-your-network.svg)
+![How it fits in your network](./docs/customer_site_architecture.png)
 
 More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
