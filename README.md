@@ -27,28 +27,7 @@ Security monitoring for small networks, on one Ubuntu machine you already own.
 
 ## How it fits on your network
 
-```mermaid
-flowchart TB
-    subgraph net["Internet"]
-      gh["GitHub<br/>install + updates"]
-      mail["Email<br/>alerts to the owner"]
-      cloud["Cloud backup<br/>(optional, planned)"]
-    end
-    router["Router / modem"]
-    switch["Network switch (optional)"]
-    pcs["Servers and PCs<br/>Wazuh agent"]
-    app["<b>LoNSeMonSy</b><br/>Ubuntu server, mini PC or VM"]
-    other["Other devices<br/>printers, phones, cameras"]
-    owner["Owner or IT person<br/>browser"]
-
-    net --- router --- switch
-    switch --- pcs & app & other & owner
-    router -.-> cloud
-
-    style app fill:#1D7F68,color:#fff,stroke:#1D7F68
-    style cloud stroke-dasharray: 5 5
-    style switch stroke-dasharray: 5 5
-```
+![How it fits in your network](./docs/customer_site_architecture.png)
 
 More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
@@ -104,7 +83,7 @@ docs/          architecture, environments, class diagram, roadmap
 
 ## Team
 
-Tim Smith · Avery Schmoyer · Logan Herndon, CPSC 354 Software Engineering
+Tim Smith · Avery Schmoyer · Logan Herndon, CPSC 355 Software Engineering II
 
 ## License
 
