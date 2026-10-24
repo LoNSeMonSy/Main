@@ -46,11 +46,10 @@ Sized for up to 25 monitored computers. No graphics card needed. Optional parts 
 
 ```bash
 git clone https://github.com/LoNSeMonSy/Main.git lonsemonsy && cd lonsemonsy
-cp appliance/.env.example appliance/.env && nano appliance/.env
 sudo ./setup/setup.sh
 ```
 
-Setup installs Docker and the [Wazuh server](https://documentation.wazuh.com/current/quickstart.html) for you (10-15 minutes). Then open **`http://<this-machine>:3000`**. Full steps: [setup/README.md](setup/README.md)
+Setup installs Docker and the [Wazuh server](https://documentation.wazuh.com/current/quickstart.html) for you (15-20 minutes), asks two optional questions (keep this machine's address fixed, and an email for alarms), and prints the Grafana address and password at the end. Full steps: [setup/README.md](setup/README.md)
 
 ## What's inside
 
@@ -74,7 +73,7 @@ setup/         setup.sh (install) and update.sh
 wazuh/         detection rules, auto-block config, adding a machine to monitor
 testlab/       our test lab: a fake company network used in staging
 systems/       every system we use and what it's for
-docs/          architecture, environments, class diagram, roadmap
+docs/          architecture, environments, class diagram, roadmap, backups
 ```
 
 ## Branches
