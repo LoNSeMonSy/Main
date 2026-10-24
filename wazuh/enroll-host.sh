@@ -16,7 +16,9 @@ command -v gpg >/dev/null || apt-get install -y -qq gnupg >/dev/null
 curl -fsS https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --batch --yes --dearmor -o /usr/share/keyrings/wazuh.gpg
 echo 'deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main' \
   > /etc/apt/sources.list.d/wazuh.list
-apt-get update -qq
+# Refresh only the Wazuh repository. Proxmox hosts often list paid "enterprise"
+# repositories that refuse access without a subscription and would stop a full update.
+apt-get update -qq -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/wazuh.list -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0
 WAZUH_MANAGER="$MANAGER" WAZUH_AGENT_NAME="$NAME" apt-get install -y -qq "wazuh-agent=$VER" >/dev/null
 apt-mark hold wazuh-agent >/dev/null   # upgrade together with the manager, never alone
 

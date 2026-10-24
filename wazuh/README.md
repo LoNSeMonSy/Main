@@ -5,6 +5,7 @@ LoNSeMonSy uses [Wazuh](https://documentation.wazuh.com/current/index.html) as i
 | File | What it is |
 |---|---|
 | `local_rules.xml` | our own detection rules |
+| `lonsemonsy_rules.xml` | rules every install gets (for example, ignoring routine Docker health checks) |
 | `active-response.xml` | automatic blocking of SSH brute-force attackers |
 | `ism-policy.json` | how long alerts are kept |
 | `enroll-host.sh` | adds a Linux machine to monitoring |
