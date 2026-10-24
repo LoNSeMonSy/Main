@@ -122,14 +122,19 @@ NET
   fi
 fi
 
-# Question 2 (optional): where to email alarms. Gmail needs an app password, not the real one.
+# Question 2 (optional): where to email alarms. They're sent from a Gmail account, which
+# needs an app password (a separate password Google makes for one program, not the real one).
 if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
   echo
-  read -r -p "  Email address for alarms (Enter to skip): " to
+  echo "  Email alarms (optional). They're sent from a Gmail account: use a separate one"
+  echo "  made just for this, not your own, because its app password is stored here."
+  read -r -p "  Send alarms TO which address? (Enter to skip): " to
   if [ -n "$to" ]; then
-    read -r -p "  Send from which Gmail address? [$to]: " from
-    from=${from:-$to}
-    echo "  Gmail needs an app password: https://myaccount.google.com/apppasswords"
+    read -r -p "  Send them FROM which Gmail account? (e.g. yourcompany.alarms@gmail.com): " from
+  fi
+  if [ -n "$to" ] && [ -n "$from" ]; then
+    echo "  That account needs an app password, not its normal password. Make one at"
+    echo "  https://myaccount.google.com/apppasswords (needs 2-Step Verification turned on)."
     read -r -s -p "  App password (hidden): " apw; echo
     apw=${apw// /}   # Google shows it with spaces; they aren't part of it
     set_env ALERT_EMAIL_TO "$to"
@@ -137,7 +142,7 @@ if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
     set_env SMTP_USER "$from"
     set_env SMTP_FROM_ADDRESS "$from"
     set_env SMTP_PASSWORD "$apw"
-    echo "  email alarms: on (sent to $to)"
+    echo "  email alarms: on (sent from $from to $to)"
   else
     echo "  email alarms: skipped (add them later in $ENV)"
   fi
