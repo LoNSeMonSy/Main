@@ -346,3 +346,56 @@ groups:
                 - evaluator:
                     type: gte
                     params: [3]
+
+  - orgId: 1
+    name: maintenance
+    folder: LoNSeMonSy Alerts
+    interval: 1h
+    rules:
+      # ------------------------------------------------------------------
+      # 5. A new LoNSeMonSy version has been waiting for a week. The daily
+      #    update check (setup/check-update.sh) writes update_available.
+      #    Low severity: a reminder, not a security event.
+      # ------------------------------------------------------------------
+      - uid: lons-update-waiting
+        title: LoNSeMonSy update waiting
+        condition: C
+        for: 168h
+        annotations:
+          summary: >-
+            A newer version of LoNSeMonSy has been available for a week. See the
+            Updates page for what's new, then run sudo ./setup/update.sh.
+        labels:
+          severity: low
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 172800
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -2d)
+                  |> filter(fn: (r) => r._measurement == "lonsemonsy_version" and r._field == "update_available")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]

@@ -2,6 +2,96 @@
   "panels": [
     {
       "type": "stat",
+      "title": "",
+      "description": "LoNSeMonSy version. Checked once a day. Click for what's new.",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: string(v: r._value)}))\n  |> group(columns: [\"_measurement\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n      _time: r._time,\n      banner: if r.check_ok == \"0\" then \"LoNSeMonSy \" + r.installed + \" \u00b7 couldn't check for updates\"\n              else if r.update_available == \"1\" then \"Update available: LoNSeMonSy \" + r.latest + \" (you have \" + r.installed + \") \u00b7 run sudo ./setup/update.sh\"\n              else \"LoNSeMonSy \" + r.installed + \" \u00b7 up to date\"\n  }))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^banner$/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "LoNSeMonSy \u00b7 update check hasn't run yet",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^Update available.*",
+                "result": {
+                  "color": "orange",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*up to date$",
+                "result": {
+                  "color": "transparent",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*couldn't check.*",
+                "result": {
+                  "color": "transparent",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "title": "What's new in LoNSeMonSy",
+              "url": "/d/lons-updates"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "_lonsemonsy": "update-banner"
+    },
+    {
+      "type": "stat",
       "title": "Total alerts (range)",
       "description": "Every event Wazuh recorded in the selected time range, including routine ones.",
       "datasource": {
@@ -55,7 +145,14 @@
             "mode": "fixed"
           },
           "unit": "short",
-          "noValue": "0"
+          "noValue": "0",
+          "links": [
+            {
+              "title": "See these alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'*'))",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -63,7 +160,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -121,7 +218,14 @@
             "mode": "fixed"
           },
           "unit": "short",
-          "noValue": "0"
+          "noValue": "0",
+          "links": [
+            {
+              "title": "See these alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -129,7 +233,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -187,7 +291,14 @@
             "mode": "fixed"
           },
           "unit": "short",
-          "noValue": "0"
+          "noValue": "0",
+          "links": [
+            {
+              "title": "See these alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.groups:authentication_failures'))",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -195,7 +306,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -255,7 +366,14 @@
             "mode": "fixed"
           },
           "unit": "short",
-          "noValue": "0"
+          "noValue": "0",
+          "links": [
+            {
+              "title": "See the machines in Wazuh",
+              "url": "${wazuh:raw}/app/endpoints-summary#/agents-preview/",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -263,7 +381,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -276,7 +394,14 @@
           "custom": {
             "drawStyle": "bars",
             "fillOpacity": 60
-          }
+          },
+          "links": [
+            {
+              "title": "See these alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'*'))",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -284,7 +409,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "targets": [
         {
@@ -327,7 +452,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "targets": [
         {
@@ -360,7 +485,69 @@
         }
       ],
       "title": "Alerts by machine",
-      "type": "table"
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "agent.name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this machine in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "rule.description"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "These alerts in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "data.srcip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this IP in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "datasource": {
@@ -371,7 +558,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 15
       },
       "targets": [
         {
@@ -404,7 +591,69 @@
         }
       ],
       "title": "Top alert types",
-      "type": "table"
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "agent.name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this machine in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "rule.description"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "These alerts in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "data.srcip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this IP in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "collapsed": false,
@@ -412,10 +661,14 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 25
       },
       "title": "Network Devices (NetAlertX)",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "datasource": {
@@ -427,7 +680,14 @@
           "color": {
             "fixedColor": "blue",
             "mode": "fixed"
-          }
+          },
+          "links": [
+            {
+              "title": "Open the device list (NetAlertX)",
+              "url": "http://${appliance}:20211/devices.php",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -435,7 +695,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -472,7 +732,14 @@
           "color": {
             "fixedColor": "orange",
             "mode": "fixed"
-          }
+          },
+          "links": [
+            {
+              "title": "Open the device list (NetAlertX)",
+              "url": "http://${appliance}:20211/devices.php",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -480,7 +747,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -517,7 +784,14 @@
           "color": {
             "fixedColor": "green",
             "mode": "fixed"
-          }
+          },
+          "links": [
+            {
+              "title": "Open the device list (NetAlertX)",
+              "url": "http://${appliance}:20211/devices.php",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -525,7 +799,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -561,7 +835,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 31
       },
       "targets": [
         {
@@ -577,7 +851,77 @@
         }
       ],
       "title": "Network device inventory",
-      "type": "table"
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open the device list (NetAlertX)",
+              "url": "http://${appliance}:20211/devices.php",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "agent.name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this machine in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "rule.description"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "These alerts in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "data.srcip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this IP in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "collapsed": false,
@@ -585,10 +929,14 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 41
       },
       "title": "Threat detail",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "datasource": {
@@ -599,7 +947,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 42
       },
       "targets": [
         {
@@ -632,7 +980,69 @@
         }
       ],
       "title": "Top attacker IPs",
-      "type": "table"
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "agent.name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this machine in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "rule.description"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "These alerts in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "data.srcip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this IP in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "type": "bargauge",
@@ -646,7 +1056,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 42
       },
       "targets": [
         {
@@ -810,7 +1220,14 @@
           "min": 0,
           "color": {
             "mode": "fixed"
-          }
+          },
+          "links": [
+            {
+              "title": "See these alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'*'))",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": [
           {
@@ -890,6 +1307,182 @@
           }
         ]
       }
+    },
+    {
+      "type": "table",
+      "title": "Container activity (Docker)",
+      "_lonsemonsy": "docker-activity",
+      "description": "What happened to the Docker containers on this appliance: started, stopped, crashed, commands run inside them. From Wazuh's Docker module. Routine health checks are left out.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:docker",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "50",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "data.docker.Actor.Attributes.name": true,
+              "rule.description": true,
+              "rule.level": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "data.docker.Actor.Attributes.name": 1,
+              "rule.description": 2,
+              "rule.level": 3
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "data.docker.Actor.Attributes.name": "Container",
+              "rule.description": "What happened",
+              "rule.level": "Wazuh level"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No container activity in this time range",
+          "links": [
+            {
+              "title": "Open Docker in Wazuh",
+              "url": "${wazuh:raw}/app/docker",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wazuh level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "agent.name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this machine in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "rule.description"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "These alerts in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "_lonsemonsy_link": true,
+            "matcher": {
+              "id": "byName",
+              "options": "data.srcip"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Alerts from this IP in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "refresh": "30s",
@@ -906,11 +1499,72 @@
   "uid": "lons-sec-overview",
   "links": [
     {
-      "title": "Active alarms",
-      "type": "link",
-      "url": "/d/lons-noc",
-      "icon": "bolt",
+      "title": "LoNSeMonSy",
+      "type": "dashboards",
+      "tags": [
+        "lonsemonsy"
+      ],
+      "asDropdown": false,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "apps",
       "targetBlank": false
+    },
+    {
+      "title": "Wazuh",
+      "type": "link",
+      "url": "${wazuh:raw}",
+      "targetBlank": true,
+      "icon": "external link",
+      "tooltip": "Wazuh dashboard: the advanced view for IT people"
+    },
+    {
+      "title": "Devices (NetAlertX)",
+      "type": "link",
+      "url": "http://${appliance}:20211/devices.php",
+      "targetBlank": true,
+      "icon": "external link",
+      "tooltip": "Every device on the network"
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "appliance",
+        "label": "Open links via",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "wazuh",
+        "label": "Wazuh address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      }
+    ]
+  }
 }

@@ -16,13 +16,125 @@
   "schemaVersion": 41,
   "links": [
     {
-      "title": "Security overview",
+      "title": "LoNSeMonSy",
+      "type": "dashboards",
+      "tags": [
+        "lonsemonsy"
+      ],
+      "asDropdown": false,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "apps",
+      "targetBlank": false
+    },
+    {
+      "title": "Wazuh",
       "type": "link",
-      "url": "/d/lons-sec-overview",
-      "icon": "dashboard"
+      "url": "${wazuh:raw}",
+      "targetBlank": true,
+      "icon": "external link",
+      "tooltip": "Wazuh dashboard: the advanced view for IT people"
+    },
+    {
+      "title": "Devices (NetAlertX)",
+      "type": "link",
+      "url": "http://${appliance}:20211/devices.php",
+      "targetBlank": true,
+      "icon": "external link",
+      "tooltip": "Every device on the network"
     }
   ],
   "panels": [
+    {
+      "type": "stat",
+      "title": "",
+      "description": "LoNSeMonSy version. Checked once a day. Click for what's new.",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: string(v: r._value)}))\n  |> group(columns: [\"_measurement\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n      _time: r._time,\n      banner: if r.check_ok == \"0\" then \"LoNSeMonSy \" + r.installed + \" \u00b7 couldn't check for updates\"\n              else if r.update_available == \"1\" then \"Update available: LoNSeMonSy \" + r.latest + \" (you have \" + r.installed + \") \u00b7 run sudo ./setup/update.sh\"\n              else \"LoNSeMonSy \" + r.installed + \" \u00b7 up to date\"\n  }))"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^banner$/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "LoNSeMonSy \u00b7 update check hasn't run yet",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^Update available.*",
+                "result": {
+                  "color": "orange",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*up to date$",
+                "result": {
+                  "color": "transparent",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*couldn't check.*",
+                "result": {
+                  "color": "transparent",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "title": "What's new in LoNSeMonSy",
+              "url": "/d/lons-updates"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "_lonsemonsy": "update-banner"
+    },
     {
       "type": "stat",
       "title": "",
@@ -209,7 +321,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "options": {
         "colorMode": "background",
@@ -257,6 +369,13 @@
                 }
               }
             }
+          ],
+          "links": [
+            {
+              "title": "See serious alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+              "targetBlank": true
+            }
           ]
         },
         "overrides": []
@@ -269,7 +388,7 @@
         "h": 11,
         "w": 16,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "description": "Live list of alarms that are firing or about to fire. Empty means everything is normal.",
       "options": {
@@ -291,6 +410,18 @@
           "error": true,
           "recovering": true
         }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "See serious alerts in Wazuh",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": []
       }
     },
     {
@@ -300,12 +431,56 @@
         "h": 11,
         "w": 8,
         "x": 16,
-        "y": 7
+        "y": 9
       },
       "options": {
         "mode": "markdown",
         "content": "| Band | Wazuh level | What to do |\n|---|---|---|\n| **Critical** | 13-15 | Act immediately |\n| **High** | 11-12 | Likely attack, act now |\n| **Medium** | 8-10 | Real event, look today |\n| **Low** | 4-7 | Routine housekeeping |\n| **Info** | 0-3 | Normal activity |\n\nAlarms fire at **Medium and above**, on a port scan, or when backup storage passes 85%.\n\n[Security overview](/d/lons-sec-overview) \u00b7 [Backups](/d/e01512b5-eef3-48f4-9c5e-f5f512b6bb7f)"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
       }
     }
-  ]
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "appliance",
+        "label": "Open links via",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "wazuh",
+        "label": "Wazuh address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      }
+    ]
+  }
 }
