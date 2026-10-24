@@ -16,14 +16,25 @@ Security monitoring for small networks, on one Ubuntu machine you already own.
 
 ---
 
-## What it does
+## Features
 
-| | |
-|---|---|
-| **Detect** | Wazuh agents on your servers and PCs report attacks, like SSH brute force. Suricata flags port scans. |
-| **Discover** | NetAlertX finds every device on the network and flags new ones. |
-| **Respond** | An attacker who keeps failing to log in is blocked automatically for 10 minutes. |
-| **See it** | One Grafana dashboard for everything, plus email alerts when something needs attention. |
+- **Firewall on by default:** only the ports LoNSeMonSy needs are open, and only to your network
+- **Attack detection** on every computer with a Wazuh agent (Windows, Linux, macOS): suspicious logins, attacks, changed system files, software with known vulnerabilities, crashes
+- **Auto-block:** an address that keeps failing to log in over SSH is blocked for 10 minutes (your router and this machine never are)
+- **New device alarm:** NetAlertX spots unknown devices joining the network
+- **Port scan alarm:** Suricata flags scans of this machine (optional)
+- **One dashboard:** Grafana's Active Alarms page, with five severity levels from Info to Critical
+- **Email alarms** (optional, see below)
+- **Update banner:** Grafana tells you when a new version is out
+
+LoNSeMonSy is the *detection* layer: it finds problems and tells you within minutes. It doesn't replace your router's firewall, antivirus, strong passwords or updates.
+
+### Email alarms
+
+Setup asks where to send alarms, and which Gmail account sends them.
+
+- **Send from a separate Gmail account made just for this** (for example `yourcompany.alarms@gmail.com`), not your own. Its password is stored on this machine. Alarms can still go to any address you read.
+- That account needs an **app password**: a separate 16-character password Google makes for one program. It is *not* the account's normal password and can't be used to log in to Google. Make one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) (the page only shows once 2-Step Verification is on), and delete it there any time to cut access.
 
 ## How it fits on your network
 
