@@ -11,7 +11,6 @@ Customers install on plain Ubuntu with one script. Our own servers and backups (
 - Firewall on by default, open ports named in setup's output
 - One-command install with two optional questions, and the `lonsemonsy` command
 - Lint checks on every push
-- Test lab for staging: server, workstation and attacker
 
 ## Next
 
