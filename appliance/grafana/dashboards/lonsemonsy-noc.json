@@ -38,7 +38,7 @@
     {
       "title": "Devices (NetAlertX)",
       "type": "link",
-      "url": "http://${appliance}:20211/devices.php",
+      "url": "${netalertx:raw}/devices.php",
       "targetBlank": true,
       "icon": "external link",
       "tooltip": "Every device on the network"
@@ -289,7 +289,9 @@
           ]
         },
         "overrides": []
-      }
+      },
+      "timeFrom": "10m",
+      "hideTimeOverride": true
     },
     {
       "type": "alertlist",
@@ -383,6 +385,24 @@
         },
         "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "netalertx",
+        "label": "NetAlertX address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "refresh": 1,
         "hide": 2,
         "includeAll": false,

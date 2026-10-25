@@ -5,11 +5,14 @@
 #   lonsemonsy status      is everything running?
 #   lonsemonsy firewall    which ports are open
 #   lonsemonsy update      update to the newest version
+#   lonsemonsy backup      make a cloud backup now      lonsemonsy restore   put it back
 dir=$(dirname "$(dirname "$(readlink -f "$0")")")   # the LoNSeMonSy folder
 
 case "${1:-}" in
   passwords) sudo "$dir/setup/show-passwords.sh" ;;
   update)    sudo "$dir/setup/update.sh" ;;
+  backup)    sudo "$dir/setup/backup.sh" ;;
+  restore)   sudo "$dir/setup/restore.sh" ;;
   firewall)  sudo ufw status verbose ;;
   status)
     sudo docker ps --format '{{.Names}}: {{.Status}}' | sed 's/^/  /'
@@ -34,6 +37,8 @@ case "${1:-}" in
     echo "  lonsemonsy passwords   show the Grafana and Wazuh passwords"
     echo "  lonsemonsy status      is everything running?"
     echo "  lonsemonsy firewall    which ports are open"
-    echo "  lonsemonsy update      update to the newest version" ;;
+    echo "  lonsemonsy update      update to the newest version"
+    echo "  lonsemonsy backup      make a cloud backup now (if set up)"
+    echo "  lonsemonsy restore     put the newest cloud backup back" ;;
   *) echo "Unknown command: $1. Type lonsemonsy to see the commands."; exit 1 ;;
 esac

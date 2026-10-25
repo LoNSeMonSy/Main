@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Step 9: daily update check, the lonsemonsy command, and the summary.
+# Step 10: daily update check, the lonsemonsy command, and the summary.
 
 # Check GitHub for a new version once a day (shown on Grafana's Updates page).
 cat > /etc/systemd/system/lonsemonsy-update-check.service <<UNIT
@@ -23,6 +23,9 @@ echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN
 echo "  NetAlertX:  http://$ip:20211    no login"
 if [ -s "$WPASS" ]; then
   echo "  Wazuh:      https://$ip         user admin, password $(wazuh_password admin)"
+fi
+if [ -n "$(get BACKUP_REPO)" ]; then
+  echo "  Backup:     password $(get BACKUP_PASSWORD)   save it somewhere else: without it a backup can't be restored"
 fi
 echo
 echo "  Change the Grafana password: click your profile picture > Change password."

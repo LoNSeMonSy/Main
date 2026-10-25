@@ -14,14 +14,15 @@ Requirements are in the [main README](../README.md#requirements).
 | Step | Script | What it does |
 |---|---|---|
 | 1 | [`1-basics.sh`](steps/1-basics.sh) | makes the settings file (`appliance/.env`), installs curl and the firewall tool, finds this machine's network |
-| 2 | [`2-questions.sh`](steps/2-questions.sh) | asks: static IP or DHCP? Which email gets the alarms? |
+| 2 | [`2-questions.sh`](steps/2-questions.sh) | asks: static IP or DHCP? Which email gets the alarms? Which bucket for cloud backup? |
 | 3 | [`3-docker.sh`](steps/3-docker.sh) | installs Docker |
 | 4 | [`4-settings.sh`](steps/4-settings.sh) | makes random passwords, sets the time zone and the network to scan |
 | 5 | [`5-wazuh.sh`](steps/5-wazuh.sh) | installs Wazuh with Wazuh's own installer |
 | 6 | [`6-firewall.sh`](steps/6-firewall.sh) | blocks everything except SSH and the ports below |
 | 7 | [`7-start.sh`](steps/7-start.sh) | starts Grafana, InfluxDB and NetAlertX, connects Grafana to Wazuh |
 | 8 | [`8-protect.sh`](steps/8-protect.sh) | turns on auto-block, Docker monitoring and Suricata |
-| 9 | [`9-finish.sh`](steps/9-finish.sh) | daily update check, the `lonsemonsy` command, prints the addresses and passwords |
+| 9 | [`9-backup.sh`](steps/9-backup.sh) | cloud backup, if you gave a bucket: nightly at 1 AM, plus the first one now |
+| 10 | [`10-finish.sh`](steps/10-finish.sh) | daily update check, the `lonsemonsy` command, prints the addresses and passwords |
 
 Small shared functions are in [`helpers.sh`](steps/helpers.sh).
 
@@ -48,6 +49,12 @@ Put them in front: `sudo SKIP_QUESTIONS=1 ./setup/setup.sh`
 | `SKIP_FIREWALL=1` | leaves the firewall alone |
 
 Settings live in `appliance/.env`.
+
+## Cloud backup
+
+Encrypted with [Restic](https://restic.net), kept in your bucket: the settings, Grafana, NetAlertX, InfluxDB and Wazuh's settings (with the agents' keys). 7 daily, 4 weekly and 6 monthly copies. Setup prints a backup password once: save it somewhere else, because a backup can't be restored without it (`lonsemonsy passwords` shows it again).
+
+On a new machine: run setup, put the same `BACKUP_*` lines into `appliance/.env`, then `lonsemonsy restore`.
 
 
 ## Updating
