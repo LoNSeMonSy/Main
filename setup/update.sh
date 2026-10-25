@@ -32,8 +32,4 @@ as_owner ./setup/check-update.sh >/dev/null 2>&1 || true
 cat <<DONE
 
 LoNSeMonSy updated: ${before} -> ${after}. What changed: docs/CHANGELOG.md
-
-Not updated by this script (on purpose): the Wazuh server and agents. Update those with
-Wazuh's own upgrade guide, keeping versions matching:
-  https://documentation.wazuh.com/current/upgrade-guide/index.html
 DONE
