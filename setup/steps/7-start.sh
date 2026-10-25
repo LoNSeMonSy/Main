@@ -8,6 +8,7 @@ if ! (cd appliance && docker compose up -d --quiet-pull > /tmp/lonsemonsy-start.
   exit 1
 fi
 
+
 # Grafana runs in Docker, so the Wazuh indexer also listens on Docker's own network
 # (172.20.0.1, set in docker-compose.yml), never on the LAN.
 OSD=/etc/wazuh-indexer/opensearch.yml
