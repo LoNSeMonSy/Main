@@ -85,7 +85,7 @@ systemctl daemon-reload
 systemctl enable --now suricata-update.timer >/dev/null
 systemctl enable suricata >/dev/null
 systemctl restart suricata
-systemctl restart wazuh-manager
+if [ "${NO_WAZUH_RESTART:-0}" != 1 ]; then systemctl restart wazuh-manager; fi   # setup.sh restarts it once itself
 
 echo
 echo "HOME_NET   : [$(/usr/local/sbin/lonsemonsy-homenet)]  (policy: derived, not hardcoded)"

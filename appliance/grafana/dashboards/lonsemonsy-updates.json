@@ -1,6 +1,6 @@
 {
   "uid": "lons-updates",
-  "title": "LoNSeMonSy - Updates",
+  "title": "Updates",
   "tags": [
     "lonsemonsy"
   ],
@@ -44,102 +44,12 @@
   "panels": [
     {
       "type": "stat",
-      "title": "",
-      "description": "LoNSeMonSy version. Checked once a day. Click for what's new.",
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: string(v: r._value)}))\n  |> group(columns: [\"_measurement\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n      _time: r._time,\n      banner: if r.check_ok == \"0\" then \"LoNSeMonSy \" + r.installed + \" \u00b7 couldn't check for updates\"\n              else if r.update_available == \"1\" then \"Update available: LoNSeMonSy \" + r.latest + \" (you have \" + r.installed + \") \u00b7 run sudo ./setup/update.sh\"\n              else \"LoNSeMonSy \" + r.installed + \" \u00b7 up to date\"\n  }))"
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^banner$/",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "LoNSeMonSy \u00b7 update check hasn't run yet",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          },
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "^Update available.*",
-                "result": {
-                  "color": "orange",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*up to date$",
-                "result": {
-                  "color": "transparent",
-                  "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*couldn't check.*",
-                "result": {
-                  "color": "transparent",
-                  "index": 2
-                }
-              }
-            }
-          ],
-          "links": [
-            {
-              "title": "What's new in LoNSeMonSy",
-              "url": "/d/lons-updates"
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "_lonsemonsy": "update-banner"
-    },
-    {
-      "type": "stat",
       "title": "Installed version",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 2
+        "y": 0
       },
       "datasource": {
         "type": "influxdb",
@@ -182,7 +92,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 2
+        "y": 0
       },
       "datasource": {
         "type": "influxdb",
@@ -225,7 +135,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 2
+        "y": 0
       },
       "datasource": {
         "type": "influxdb",
@@ -268,7 +178,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 2
+        "y": 0
       },
       "options": {
         "mode": "markdown",
@@ -286,7 +196,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 4
       },
       "datasource": {
         "type": "influxdb",
@@ -384,7 +294,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 14
       },
       "options": {
         "mode": "markdown",
