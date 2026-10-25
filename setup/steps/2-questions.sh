@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Step 2: the two questions, asked first so the rest runs on its own.
+# Step 2: the questions, asked first so the rest runs on its own.
 # Skipped when nobody is at the keyboard, or with SKIP_QUESTIONS=1.
 
 ask=0
@@ -64,6 +64,23 @@ if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
     echo "  email alarms: on (from $from to $to)"
   else
     echo "  email alarms: skipped"
+  fi
+  echo
+fi
+
+# Question 3: cloud backup, encrypted nightly copies in a bucket (Restic).
+if [ "$ask" = 1 ] && [ -z "$(get BACKUP_REPO)" ]; then
+  echo "  Cloud backup (optional)"
+  read -r -p "  Bucket address, e.g. s3:s3.us-east-1.amazonaws.com/my-bucket (Enter to skip): " repo
+  if [ -n "$repo" ]; then
+    read -r -p "  Access key ID: " key_id
+    read -r -s -p "  Secret access key (hidden): " secret; echo
+    set_env BACKUP_REPO "$repo"
+    set_env BACKUP_KEY_ID "$key_id"
+    set_env BACKUP_SECRET "$secret"
+    echo "  cloud backup: on"
+  else
+    echo "  cloud backup: skipped"
   fi
   echo
 fi

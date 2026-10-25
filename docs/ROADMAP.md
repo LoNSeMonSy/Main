@@ -11,6 +11,7 @@ Customers install on plain Ubuntu with one script. Our own servers and backups (
 - Firewall on by default, open ports named in setup's output
 - One-command install with two optional questions, and the `lonsemonsy` command
 - Lint checks on every push
+- Optional encrypted cloud backup (Restic), with restore and a backup alarm
 
 ## Next
 
@@ -19,6 +20,5 @@ Customers install on plain Ubuntu with one script. Our own servers and backups (
 
 ## Later
 
-- Encrypted cloud backup for customers (Backblaze or S3)
 - Local AI that explains alarms in plain English (optional add-on)
 - Whole-network port-scan detection (needs a mirrored switch port)

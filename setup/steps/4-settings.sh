@@ -2,7 +2,7 @@
 # Step 4: fill in the settings nobody should have to type.
 
 # Random passwords and keys, only where they're still blank.
-for key in INFLUXDB_ADMIN_PASSWORD INFLUXDB_ADMIN_TOKEN GRAFANA_ADMIN_PASSWORD; do
+for key in INFLUXDB_ADMIN_PASSWORD INFLUXDB_ADMIN_TOKEN GRAFANA_ADMIN_PASSWORD BACKUP_PASSWORD; do
   if [ -z "$(get $key)" ]; then
     set_env "$key" "$(openssl rand -hex 24)"
     echo "  generated $key"

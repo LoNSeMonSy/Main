@@ -17,7 +17,9 @@ set_env() {
 need() {
   if ! command -v "$1" >/dev/null; then
     echo "  installing $2..."
-    apt-get install -y -qq "$2" >/dev/null
+    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$2" >/dev/null 2>&1; then
+      echo "  couldn't install $2. Check the internet connection and run setup again."; exit 1
+    fi
   fi
 }
 
