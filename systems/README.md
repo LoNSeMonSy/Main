@@ -16,4 +16,4 @@ Everything LoNSeMonSy uses, and what for.
 | [Ubuntu Server](https://ubuntu.com/server/docs) | the operating system |
 | [GitHub](https://docs.github.com/) | where the code lives; installs and updates come from here |
 
-Our own servers also use [Proxmox VE](https://pve.proxmox.com/pve-docs/), [Proxmox Backup Server](https://pbs.proxmox.com/docs/) with [AWS S3](https://docs.aws.amazon.com/s3/), [Tailscale](https://tailscale.com/kb/) and [Kali Linux](https://www.kali.org/docs/) for the test lab. Customers don't need them.
+Our own servers also use [Proxmox VE](https://pve.proxmox.com/pve-docs/), [Proxmox Backup Server](https://pbs.proxmox.com/docs/) with [AWS S3](https://docs.aws.amazon.com/s3/), [Tailscale](https://tailscale.com/kb/) and [Kali Linux](https://www.kali.org/docs/) for attack tests. Customers don't need them.
