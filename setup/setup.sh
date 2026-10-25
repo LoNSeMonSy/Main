@@ -11,7 +11,15 @@ set -euo pipefail               # stop at the first error
 cd "$(dirname "$0")/.." || exit 1   # work from the main folder
 
 cat setup/banner.txt
-echo "  setup, version $(cat VERSION 2>/dev/null || echo unknown)"
+# Which branch this copy came from: main = production, staging, dev = development.
+branch=$(git -c safe.directory="$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+case "$branch" in
+  main)    environment=Production ;;
+  staging) environment=Staging ;;
+  dev)     environment=Development ;;
+  *)       environment="" ;;
+esac
+echo "  ${environment:+$environment · }setup, version $(cat setup/VERSION 2>/dev/null || echo unknown)"
 echo
 if [ "$(id -u)" != 0 ]; then echo "  Run it with sudo:  sudo ./setup/setup.sh"; exit 1; fi
 

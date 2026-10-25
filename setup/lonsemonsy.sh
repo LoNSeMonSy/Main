@@ -18,13 +18,18 @@ case "${1:-}" in
     done ;;
   "")
     ip=$(ip -o -4 route get 1.1.1.1 | grep -oP 'src \K[0-9.]+')
+    branch=$(git -c safe.directory="$dir" -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+    case "$branch" in
+      main) environment=Production ;; staging) environment=Staging ;; dev) environment=Development ;; *) environment="" ;;
+    esac
     cat "$dir/setup/banner.txt"
+    echo "  ${environment:+$environment · }version $(cat "$dir/setup/VERSION" 2>/dev/null || echo unknown)"
     echo
     echo "  Grafana:    http://$ip:3000"
     echo "  Wazuh:      https://$ip"
     echo "  NetAlertX:  http://$ip:20211"
     echo
-    echo "  Version $(cat "$dir/VERSION" 2>/dev/null || echo unknown), installed in $dir"
+    echo "  Installed in $dir"
     echo
     echo "  lonsemonsy passwords   show the Grafana and Wazuh passwords"
     echo "  lonsemonsy status      is everything running?"

@@ -7,7 +7,7 @@ if [ "${SKIP_WAZUH:-0}" = 1 ]; then
 elif [ -d /var/ossec ]; then
   echo "  wazuh: already installed"
 else
-  ver=$(grep '^WAZUH=' PINNED_VERSIONS | cut -d= -f2 | cut -d. -f1,2)   # e.g. 4.14
+  ver=$(grep '^WAZUH=' setup/PINNED_VERSIONS | cut -d= -f2 | cut -d. -f1,2)   # e.g. 4.14
   ignore=""
   if [ "$(free -g | awk '/Mem/{print $2}')" -lt 7 ]; then
     echo "  note: Wazuh wants 8 GB of memory. It will run on less, but slowly."

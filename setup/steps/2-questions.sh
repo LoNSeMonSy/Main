@@ -39,8 +39,7 @@ fi
 
 # Question 2: email alarms, sent from a Gmail account with an app password.
 if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
-  echo "  Email alarms (optional). They're sent from a Gmail account: use a separate one"
-  echo "  made just for this, because its app password is stored on this machine."
+  echo "  Email alarms (optional)"
   to=""
   while true; do
     read -r -p "  Send alarms TO which address? (Enter to skip): " to
@@ -48,8 +47,7 @@ if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
     read -r -p "  Send them FROM which Gmail account? " from
     read -r -p "  Send from $from to $to? [Y/n]: " ok
     if [ "$ok" = n ] || [ "$ok" = N ]; then continue; fi
-    echo "  Make an app password at https://myaccount.google.com/apppasswords (needs 2-Step Verification)."
-    read -r -s -p "  App password (hidden): " apw; echo
+    read -r -s -p "  Gmail app password (myaccount.google.com/apppasswords): " apw; echo
     apw=${apw// /}                    # Google shows it with spaces; they aren't part of it
     # Log in to Gmail once to check it (nothing is sent).
     if curl -s --max-time 20 --ssl-reqd --url smtp://smtp.gmail.com:587 --user "$from:$apw" -X NOOP -o /dev/null; then
