@@ -1,11 +1,11 @@
-# Runs lint/lint.sh (ShellCheck, yamllint, JSON) on every push and pull request.
+# Runs lint/lint.sh (ShellCheck, yamllint, JSON) on each push and pull request.
 # Results: the Actions tab on GitHub, and the Lint badge in the README.
 name: Lint
 
 on:
   push:
   pull_request:
-  workflow_dispatch:   # adds a "Run workflow" button in the Actions tab (pick any branch)
+  workflow_dispatch:   # adds a "Run workflow" button in the Actions tab
 
 jobs:
   lint:
