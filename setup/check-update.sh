@@ -63,6 +63,8 @@ lan=$(ip -o -4 addr show dev "$lanif" 2>/dev/null | awk '{print $4; exit}' | cut
 # instead of an IP, which Okta sign-in needs (it only returns to the address it knows).
 wazuh=$(get WAZUH_URL); first=${ts:-$lan}; wazuh=${wazuh:-${first:+https://$first}}
 [ -n "$wazuh" ] && lines+=$'\n'"lonsemonsy_link,name=wazuh value=$(q "${wazuh%/}")"
+netalertx=$(get NETALERTX_URL); netalertx=${netalertx:-${first:+http://$first:20211}}
+[ -n "$netalertx" ] && lines+=$'\n'"lonsemonsy_link,name=netalertx value=$(q "${netalertx%/}")"
 
 curl -sf -X POST "http://127.0.0.1:8086/api/v2/write" \
   --url-query "org=$(get INFLUXDB_ORG)" --url-query "bucket=$(get INFLUXDB_BUCKET)" --url-query precision=s \

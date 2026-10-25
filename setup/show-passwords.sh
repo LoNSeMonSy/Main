@@ -10,3 +10,7 @@ if [ -f /root/wazuh-install-files.tar ]; then
        | grep -A1 "indexer_username: 'admin'" | grep -oP "indexer_password: '\K[^']+")
   echo "Wazuh:    user admin, password ${pw}"
 fi
+backup=$(grep -E '^BACKUP_PASSWORD=' appliance/.env | cut -d= -f2-)
+if grep -qE '^BACKUP_REPO=.' appliance/.env; then
+  echo "Backup:   password $backup  (keep a copy somewhere else: backups can't be restored without it)"
+fi

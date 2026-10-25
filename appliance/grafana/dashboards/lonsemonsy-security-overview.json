@@ -594,7 +594,7 @@
           "links": [
             {
               "title": "Open the device list (NetAlertX)",
-              "url": "http://${appliance}:20211/devices.php",
+              "url": "${netalertx:raw}/devices.php",
               "targetBlank": true
             }
           ]
@@ -646,7 +646,7 @@
           "links": [
             {
               "title": "Open the device list (NetAlertX)",
-              "url": "http://${appliance}:20211/devices.php",
+              "url": "${netalertx:raw}/devices.php",
               "targetBlank": true
             }
           ]
@@ -698,7 +698,7 @@
           "links": [
             {
               "title": "Open the device list (NetAlertX)",
-              "url": "http://${appliance}:20211/devices.php",
+              "url": "${netalertx:raw}/devices.php",
               "targetBlank": true
             }
           ]
@@ -753,11 +753,14 @@
             "type": "frser-sqlite-datasource",
             "uid": "P341AFF9E5CCA0B9F"
           },
-          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, datetime(devFirstConnection) as 'First Seen', datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
           "queryType": "table",
-          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, devIsNew as New, datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, datetime(devFirstConnection) as 'First Seen', datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
           "refId": "A",
-          "timeColumns": []
+          "timeColumns": [
+            "Last Seen",
+            "First Seen"
+          ]
         }
       ],
       "title": "Network device inventory",
@@ -767,7 +770,7 @@
           "links": [
             {
               "title": "Open the device list (NetAlertX)",
-              "url": "http://${appliance}:20211/devices.php",
+              "url": "${netalertx:raw}/devices.php",
               "targetBlank": true
             }
           ]
@@ -1392,7 +1395,8 @@
             ]
           }
         ]
-      }
+      },
+      "timeFrom": "7d"
     }
   ],
   "refresh": "30s",
@@ -1431,7 +1435,7 @@
     {
       "title": "Devices (NetAlertX)",
       "type": "link",
-      "url": "http://${appliance}:20211/devices.php",
+      "url": "${netalertx:raw}/devices.php",
       "targetBlank": true,
       "icon": "external link",
       "tooltip": "Every device on the network"
@@ -1467,6 +1471,24 @@
         },
         "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "netalertx",
+        "label": "NetAlertX address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "refresh": 1,
         "hide": 2,
         "includeAll": false,

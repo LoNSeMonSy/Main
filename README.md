@@ -26,6 +26,7 @@ Security monitoring for small networks, on one Ubuntu machine.
 - **Firewall on by default:** only the ports LoNSeMonSy needs, only from your network
 - **One dashboard:** Grafana's Active Alarms page, with email alarms
 - **Update check:** Grafana shows when a new version is out
+- **Cloud backup (optional):** encrypted nightly copies to an S3 or Backblaze bucket, with an alarm if they stop
 
 LoNSeMonSy finds problems and tells you within minutes. It doesn't replace your router's firewall, antivirus or updates.
 
@@ -50,7 +51,7 @@ git clone https://github.com/LoNSeMonSy/Main.git lonsemonsy && cd lonsemonsy
 sudo ./setup/setup.sh
 ```
 
-Setup asks two optional questions (static IP or DHCP, and an email for alarms), installs everything, and prints the addresses and passwords at the end. It takes about 20 minutes, mostly the Wazuh install. Step by step: [setup/README.md](setup/README.md)
+Setup asks three optional questions (static IP or DHCP, an email for alarms, and a cloud backup bucket), installs everything, and prints the addresses and passwords at the end. It takes about 20 minutes, mostly the Wazuh install. Step by step: [setup/README.md](setup/README.md)
 
 ## Using it
 
@@ -61,6 +62,8 @@ Setup asks two optional questions (static IP or DHCP, and an email for alarms), 
 | `lonsemonsy status` | shows whether everything is running |
 | `lonsemonsy firewall` | shows which ports are open |
 | `lonsemonsy update` | updates to the newest version |
+| `lonsemonsy backup` | makes a cloud backup now |
+| `lonsemonsy restore` | puts the newest cloud backup back |
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 

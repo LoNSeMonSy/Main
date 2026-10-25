@@ -399,3 +399,50 @@ groups:
                 - evaluator:
                     type: gt
                     params: [0]
+
+      # ------------------------------------------------------------------
+      # Cloud backup hasn't worked for 2 days (setup/backup.sh writes
+      # lonsemonsy_backup after each good backup). Silent if not set up.
+      # ------------------------------------------------------------------
+      - uid: lons-backup-old
+        title: Cloud backup is out of date
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            No cloud backup has worked for over 2 days. Run lonsemonsy backup to see why.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 7776000
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -90d)
+                  |> filter(fn: (r) => r._measurement == "lonsemonsy_backup" and r._field == "ok")
+                  |> last()
+                  |> map(fn: (r) => ({_time: r._time, _value: float(v: int(v: now()) - int(v: r._time)) / 3600000000000.0}))
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [48]
