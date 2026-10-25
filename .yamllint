@@ -1,8 +1,0 @@
-# yamllint rules for LoNSeMonSy: the defaults, with three relaxed on purpose.
-# https://yamllint.readthedocs.io/en/stable/configuration.html
-extends: default
-rules:
-  line-length: disable      # Grafana queries and URLs read better on one line
-  document-start: disable   # docker-compose and Grafana files don't start with ---
-  truthy:
-    check-keys: false       # GitHub workflows use "on:" as a key
