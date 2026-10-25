@@ -83,16 +83,14 @@ Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMo
 appliance/   Docker Compose, Grafana dashboards and alarms, Suricata
 setup/       setup.sh and its steps, update.sh, the lonsemonsy command
 wazuh/       detection rules, auto-block, adding a computer
-testlab/     our fake company network for testing
 systems/     every system we use
-lint/        the lint checks (ShellCheck, yamllint, JSON)
+lint/        code checks
 docs/        architecture, environments, roadmap, class diagram, changelog
 ```
 
 ## Development
 
-- **Branches:** `dev` → `staging` → `main` ([docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md))
-- **Linting:** `./lint/lint.sh` runs ShellCheck, yamllint and a JSON check; GitHub runs it on every push ([lint/README.md](lint/README.md))
+Branches: `dev` → `staging` → `main` ([docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md))
 
 ## Team
 
