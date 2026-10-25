@@ -1,0 +1,22 @@
+# Where alert email goes.
+#
+# Grafana reaches Gmail directly (EHLO + STARTTLS + AUTH) using the GF_SMTP_*
+# values from .env. Wazuh's own wazuh-maild cannot do this -- it is HELO-only
+# plain SMTP with no AUTH -- which is why notification lives here and not in
+# ossec.conf.
+#
+# The address comes from ALERT_EMAIL_TO in .env.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: lonsemonsy-email
+    receivers:
+      - uid: lonsemonsy-email-primary
+        type: email
+        settings:
+          addresses: ${ALERT_EMAIL_TO}
+          # One email per alert group rather than one per series, so a burst of
+          # scan hits arrives as a single readable message.
+          singleEmail: true
+        disableResolveMessage: false

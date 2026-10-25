@@ -1,0 +1,19 @@
+# Notification routing.
+#
+# NOTE: this REPLACES Grafana's default notification policy tree for org 1.
+#
+# Timings are tuned so a live demo shows mail quickly without a flood:
+#   group_wait      30s  -- brief pause so a burst batches into one email
+#   group_interval   5m  -- how soon a NEW alert in an existing group can mail
+#   repeat_interval  4h  -- re-nag cadence for something still firing
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: lonsemonsy-email
+    group_by:
+      - alertname
+      - grafana_folder
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h

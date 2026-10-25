@@ -1,0 +1,20 @@
+#!/bin/sh
+# Print Suricata's HOME_NET for THIS appliance, derived from its own interface.
+# No site-specific literal is ever stored, so the same image works at any customer.
+#   policy "self" -> the appliance's own address (correct while Suricata only sees
+#                    traffic addressed to this host; vmbr0 is a switching bridge)
+#   policy "lan"  -> the appliance's whole subnet (correct once a mirror/SPAN feeds it)
+# Settings come from /etc/default/lonsemonsy-suricata; the environment overrides it.
+_p=$SURICATA_HOME_NET_POLICY; _n=$SURICATA_HOME_NET; _i=$SURICATA_IFACE
+[ -r /etc/default/lonsemonsy-suricata ] && . /etc/default/lonsemonsy-suricata
+[ -n "$_p" ] && SURICATA_HOME_NET_POLICY=$_p
+[ -n "$_n" ] && SURICATA_HOME_NET=$_n
+[ -n "$_i" ] && SURICATA_IFACE=$_i
+[ -n "$SURICATA_HOME_NET" ] && { echo "$SURICATA_HOME_NET"; exit 0; }
+IFACE=${SURICATA_IFACE:-$(ip -4 route show default | awk '{print $5; exit}')}
+CIDR=$(ip -4 -o addr show dev "$IFACE" | awk '{print $4; exit}')
+[ -n "$CIDR" ] || { echo "lonsemonsy-homenet: no IPv4 on ${IFACE:-?}" >&2; exit 1; }
+case "${SURICATA_HOME_NET_POLICY:-self}" in
+  lan) exec python3 -c 'import ipaddress,sys; print(ipaddress.ip_network(sys.argv[1],strict=False))' "$CIDR" ;;
+  *)   echo "${CIDR%/*}/32" ;;
+esac

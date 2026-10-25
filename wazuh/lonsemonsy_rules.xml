@@ -1,0 +1,90 @@
+<!--
+  LoNSeMonSy rules that ship with every install (setup.sh copies this file to
+  /var/ossec/etc/rules/). Your own tuning goes in local_rules.xml instead.
+-->
+<group name="lonsemonsy,docker,">
+
+  <!-- Docker runs each container's health check every few seconds (InfluxDB:
+       "influx ping", NetAlertX: its healthcheck script). Wazuh's stock rule 87907
+       logs every one as "Command launched in container", about 17,000 a day.
+       They're normal, so they're not recorded. Any other command still is. -->
+  <rule id="100900" level="0">
+    <if_sid>87907</if_sid>
+    <field name="docker.Action" type="pcre2">^exec_start: (influx ping|/bin/sh -c /services/healthcheck\.sh)$</field>
+    <description>Docker: routine container health check (ignored)</description>
+  </rule>
+
+  <!-- Vulnerable software (Wazuh's vulnerability scanner). These are "needs an update"
+       findings, not something happening right now, so they sit in the Low band, ordered
+       by the CVE's own severity. They stay visible on Wazuh's Vulnerability Detection
+       page; they just don't set off security alarms. Same IDs and matching as stock. -->
+  <rule id="23503" level="4" overwrite="yes">
+    <if_sid>23501</if_sid>
+    <options>no_full_log</options>
+    <field name="vulnerability.status">Active</field>
+    <field name="vulnerability.severity">Low</field>
+    <description>Vulnerable software: $(vulnerability.cve) affects $(vulnerability.package.name) (CVE severity: Low)</description>
+  </rule>
+  <rule id="23504" level="5" overwrite="yes">
+    <if_sid>23501</if_sid>
+    <options>no_full_log</options>
+    <field name="vulnerability.status">Active</field>
+    <field name="vulnerability.severity">Medium|Untriaged</field>
+    <description>Vulnerable software: $(vulnerability.cve) affects $(vulnerability.package.name) (CVE severity: $(vulnerability.severity))</description>
+  </rule>
+  <rule id="23505" level="6" overwrite="yes">
+    <if_sid>23501</if_sid>
+    <options>no_full_log</options>
+    <field name="vulnerability.status">Active</field>
+    <field name="vulnerability.severity">High</field>
+    <description>Vulnerable software: $(vulnerability.cve) affects $(vulnerability.package.name) (CVE severity: High)</description>
+  </rule>
+  <rule id="23506" level="7" overwrite="yes">
+    <if_sid>23501</if_sid>
+    <options>no_full_log</options>
+    <field name="vulnerability.status">Active</field>
+    <field name="vulnerability.severity">Critical</field>
+    <description>Vulnerable software: $(vulnerability.cve) affects $(vulnerability.package.name) (CVE severity: Critical)</description>
+  </rule>
+
+  <!-- An agent had more to send than its queue holds, usually right after it first
+       connects and uploads its software list. Worth knowing, not a security event. -->
+  <rule id="202" level="4" overwrite="yes">
+    <if_sid>201</if_sid>
+    <field name="level">%</field>
+    <description>Agent event queue is $(level) full.</description>
+    <group>agent_flooding,pci_dss_10.6.1,gdpr_IV_35.7.d,</group>
+  </rule>
+  <rule id="203" level="5" overwrite="yes">
+    <if_sid>201</if_sid>
+    <field name="level">full</field>
+    <description>Agent event queue is full. Events may be lost.</description>
+    <group>agent_flooding,pci_dss_10.6.1,gdpr_IV_35.7.d,</group>
+  </rule>
+  <rule id="204" level="5" overwrite="yes">
+    <if_sid>201</if_sid>
+    <field name="level">flooded</field>
+    <description>Agent event queue is flooded (usually right after the agent first connects).</description>
+    <group>agent_flooding,pci_dss_10.6.1,gdpr_IV_35.7.d,</group>
+  </rule>
+
+</group>
+
+<group name="lonsemonsy,windows,">
+
+  <!-- Windows programs reporting errors or crashing. Useful to see, but not attacks,
+       so they're Low instead of Medium (Medium sends an alarm email). -->
+  <rule id="60602" level="5" overwrite="yes">
+    <if_sid>60003</if_sid>
+    <field name="win.system.severityValue">^ERROR$</field>
+    <options>no_full_log</options>
+    <description>Windows application error event.</description>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,system_error,</group>
+  </rule>
+  <rule id="61110" level="6" frequency="8" timeframe="240" overwrite="yes">
+    <if_matched_sid>61102</if_matched_sid>
+    <description>Multiple System error events</description>
+    <options>no_full_log</options>
+  </rule>
+
+</group>

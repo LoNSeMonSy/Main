@@ -1,0 +1,7 @@
+# The only copy of this site's credentials, never commit it — nor timestamped
+# backups of it (.env.bak.<date>). An .env.example template stays tracked.
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc

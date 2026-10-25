@@ -1,0 +1,401 @@
+# Alert rules.
+#
+# These are THRESHOLD rules, not severity lookups -- which is the point. Wazuh
+# gives every event a level 0-15; emailing on "level >= N" alone is a blunt
+# instrument. The port-scan and backup rules below instead count events in a time
+# window, so a single stray packet is ignored and a sustained pattern alerts.
+#
+# Why the numbers are what they are (measured over 15 days of this appliance's
+# real alert history, 3171 alerts):
+#     level >= 7  -> ~121 alerts/day, almost entirely rootcheck / CIS benchmark
+#                    / dpkg package-install housekeeping. Not intrusions.
+#     level >= 8  -> ~0.5 alerts/day, and every single one in 15 days was real:
+#                    new user added, new group added, SSH brute force.
+# That 260x drop between 7 and 8 is the natural cut. Grafana's own default of
+# 12 was matching literally zero alerts -- an off switch, not a setting.
+#
+# Severity bands. Wazuh's 0-15 scale is collapsed into five plain-language
+# bands, used the same way in the dashboards and in the labels below:
+#     Info      0-3    normal activity, no action
+#     Low       4-7    routine housekeeping (the ~121/day above)
+#     Medium    8-10   a real security event, look at it today
+#     High     11-12   likely attack, act now
+#     Critical 13-15   severe, act immediately
+# The Medium boundary sits exactly on the measured 7/8 cut.
+#
+# The Active Alarms dashboard (lonsemonsy-noc.json) re-evaluates these same
+# thresholds for its status banner. Change a threshold here, change it there.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: security
+    folder: LoNSeMonSy Alerts
+    interval: 1m
+    rules:
+      # ------------------------------------------------------------------
+      # 1a/1b. A genuinely serious Wazuh alert, split by severity band (see
+      #    the band table at the top). Fires on the first occurrence -- no
+      #    count threshold, because at level >= 8 the noise floor is zero.
+      #    The 10-minute window keeps the alarm visible long enough to see
+      #    on the Active Alarms dashboard, which uses the same window.
+      # ------------------------------------------------------------------
+      - uid: lons-wazuh-medium
+        title: Security alert (Medium)
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            A Medium-band security alert (Wazuh level 8-10) fired on the
+            LoNSeMonSy appliance. Look at it today. Historically these are: a
+            new user account, a new group, or SSH brute force.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.level:[8 TO 10]"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      - uid: lons-wazuh-critical
+        title: Security alert (High or Critical)
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            A High or Critical security alert (Wazuh level 11 or above) fired
+            on the LoNSeMonSy appliance. Act now.
+        labels:
+          severity: high
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.level:>=11"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      # ------------------------------------------------------------------
+      # 2. Port scan. Suricata logs each scan signature at Wazuh level 3, so
+      #    severity alone can never catch this. Instead: count scan hits in a
+      #    10-minute window and require several. One probe is background
+      #    internet noise; five in ten minutes is somebody enumerating you.
+      #
+      #    THIS IS THE MARGIN TO TUNE. Lower = more sensitive and noisier.
+      #    A single `nmap -sS --top-ports 200` against the appliance produces
+      #    about 5 alerts, so 5 is calibrated to "one real scan".
+      # ------------------------------------------------------------------
+      - uid: lons-portscan-burst
+        title: Port scan detected
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            Five or more Suricata port-scan signatures fired within 10 minutes,
+            which means a host is enumerating open ports on the appliance.
+            Check "Top attacker IPs" for the source.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.id:86601"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gte
+                    params: [5]
+
+  - orgId: 1
+    name: capacity
+    folder: LoNSeMonSy Alerts
+    interval: 5m
+    rules:
+      # ------------------------------------------------------------------
+      # 3. Backup storage filling up. This is the "margin" case the other two
+      #    are not: it warns while there is still room to act, rather than
+      #    after backups have already started failing.
+      #    Currently ~12% used, so this sits well below the line.
+      # ------------------------------------------------------------------
+      - uid: lons-backup-storage
+        title: Backup storage running low
+        condition: C
+        for: 15m
+        annotations:
+          summary: >-
+            The PBS backup datastore is above 85% full. Backups are the rollback
+            mechanism for this appliance, so losing backup capacity means losing
+            the ability to undo a bad change.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -1h)
+                  |> filter(fn: (r) => r._measurement == "pbs_storage_stats")
+                  |> filter(fn: (r) => r._field == "usage_pct")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [85]
+
+  - orgId: 1
+    name: network
+    folder: LoNSeMonSy Alerts
+    interval: 5m
+    rules:
+      # ------------------------------------------------------------------
+      # 4a/4b. New devices on the network (NetAlertX).
+      #    Counts devices whose FIRST sighting was in the last hour, so the
+      #    alarm clears by itself an hour later. NetAlertX's own "new" flag is
+      #    not used: it stays set until someone acknowledges the device, so on
+      #    a fresh install every device would count as new forever.
+      #    172.20.0.x is LoNSeMonSy's own Docker network (docker-compose.yml);
+      #    containers get new MACs when recreated, so they're excluded.
+      #    1-2 new devices is normal life (a new phone, a guest laptop): Medium.
+      #    3+ in one hour is unusual for a small office and could be someone
+      #    plugging in rogue equipment: High.
+      # ------------------------------------------------------------------
+      - uid: lons-new-device
+        title: New device on the network
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            One or two devices joined the network for the first time in the last
+            hour. Check "Network device inventory" and confirm you recognise them.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: P341AFF9E5CCA0B9F
+            model:
+              refId: A
+              queryType: table
+              timeColumns: []
+              queryText: &newdevsql >-
+                SELECT COUNT(*) AS new_devices FROM Devices
+                WHERE devIsArchived = 0
+                AND devLastIP NOT LIKE '172.20.0.%'
+                AND devFirstConnection >= datetime('now', '-60 minutes')
+              rawQueryText: *newdevsql
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: within_range
+                    params: [0.5, 2.5]
+
+      - uid: lons-new-device-burst
+        title: Several new devices at once
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            Three or more devices joined the network for the first time within an
+            hour. That is unusual for a small office. Check "Network device
+            inventory" for devices you don't recognise.
+        labels:
+          severity: high
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: P341AFF9E5CCA0B9F
+            model:
+              refId: A
+              queryType: table
+              timeColumns: []
+              queryText: *newdevsql
+              rawQueryText: *newdevsql
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gte
+                    params: [3]
+
+  - orgId: 1
+    name: maintenance
+    folder: LoNSeMonSy Alerts
+    interval: 1h
+    rules:
+      # ------------------------------------------------------------------
+      # 5. A new LoNSeMonSy version has been waiting for a week. The daily
+      #    update check (setup/check-update.sh) writes update_available.
+      #    Low severity: a reminder, not a security event.
+      # ------------------------------------------------------------------
+      - uid: lons-update-waiting
+        title: LoNSeMonSy update waiting
+        condition: C
+        for: 168h
+        annotations:
+          summary: >-
+            A newer version of LoNSeMonSy has been available for a week. See the
+            Updates page for what's new, then run sudo ./setup/update.sh.
+        labels:
+          severity: low
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 172800
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -2d)
+                  |> filter(fn: (r) => r._measurement == "lonsemonsy_version" and r._field == "update_available")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]

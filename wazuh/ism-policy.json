@@ -1,0 +1,19 @@
+{
+  "policy": {
+    "description": "LoNSeMonSy alert retention: delete wazuh-alerts indices older than the window. Default 90d -- the DB owner adjusts this for disk size / any retention requirement, then re-runs apply-retention.sh.",
+    "default_state": "hot",
+    "states": [
+      {
+        "name": "hot",
+        "actions": [],
+        "transitions": [
+          { "state_name": "delete", "conditions": { "min_index_age": "90d" } }
+        ]
+      },
+      { "name": "delete", "actions": [ { "delete": {} } ], "transitions": [] }
+    ],
+    "ism_template": [
+      { "index_patterns": ["wazuh-alerts-*"], "priority": 100 }
+    ]
+  }
+}

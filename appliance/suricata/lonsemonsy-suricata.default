@@ -1,0 +1,7 @@
+# LoNSeMonSy / Suricata site settings. Values are DERIVED, not hardcoded --
+# this file only chooses the policy, so it ships unchanged to every customer.
+#   self = detect scans aimed at the appliance   (default, correct today)
+#   lan  = detect scans anywhere on the LAN      (requires a vmbr0 mirror/SPAN)
+SURICATA_HOME_NET_POLICY=self
+# Optional hard override, e.g. SURICATA_HOME_NET="[10.4.0.0/16,10.9.0.0/16]"
+#SURICATA_HOME_NET=
