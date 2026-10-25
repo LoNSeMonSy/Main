@@ -65,6 +65,12 @@ services:
       - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS
       # Makes alert emails link back to the dashboard.
       # Blank means Grafana works it out from the address you open it on.
+      # 12-hour time everywhere in Grafana.
+      - GF_DATE_FORMATS_FULL_DATE=MM/DD/YYYY h:mm:ss a
+      - GF_DATE_FORMATS_INTERVAL_SECOND=h:mm:ss a
+      - GF_DATE_FORMATS_INTERVAL_MINUTE=h:mm a
+      - GF_DATE_FORMATS_INTERVAL_HOUR=MM/DD h:mm a
+      - GF_DATE_FORMATS_INTERVAL_DAY=MM/DD
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-}
       # Optional sign in with Okta (password + phone code). Turns on when
       # OKTA_GRAFANA_CLIENT_ID is set in .env; the local admin login keeps working.
@@ -125,6 +131,8 @@ services:
       - PORT=${NETALERTX_PORT:-20211}
       - GRAPHQL_PORT=${NETALERTX_GRAPHQL_PORT:-20212}
       - TZ=${TZ:-America/New_York}
+      # NetAlertX keeps its own time zone setting; use the machine's.
+      - 'APP_CONF_OVERRIDE={"TIMEZONE":"${TZ:-America/New_York}"}'
       # Which subnet(s) to scan, and on which interface. See .env.example.
       - SCAN_SUBNETS=${SCAN_SUBNETS}
     volumes:
