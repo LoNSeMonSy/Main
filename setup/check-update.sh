@@ -7,9 +7,9 @@ cd "$(dirname "$0")/.." || exit 1
 ENV="appliance/.env"
 get() { grep -E "^$1=" "$ENV" | cut -d= -f2-; }
 
-branch=$(get UPDATE_BRANCH); branch=${branch:-main}
+branch=$(get UPDATE_BRANCH); branch=${branch:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null)}; branch=${branch:-main}   # follow this copy's own branch
 repo=$(get UPDATE_REPO); repo=${repo:-$(git remote get-url origin 2>/dev/null)}
-installed=$(cat VERSION 2>/dev/null || echo unknown)
+installed=$(cat setup/VERSION 2>/dev/null || cat VERSION 2>/dev/null || echo unknown)
 
 # Download only the newest commit of the release branch into a small cache repo.
 cache="${HOME:-/tmp}/.cache/lonsemonsy-updates"
@@ -17,9 +17,9 @@ mkdir -p "$cache" && git init -q --bare "$cache" 2>/dev/null
 latest=unknown; ok=0; notes=""; reached=0
 if git -C "$cache" fetch -q --depth 1 "$repo" "$branch" 2>/dev/null; then
   reached=1
-  latest=$(git -C "$cache" show FETCH_HEAD:VERSION 2>/dev/null || echo unknown)
-  # The bullet points of the newest section of CHANGELOG.md
-  notes=$(git -C "$cache" show FETCH_HEAD:CHANGELOG.md 2>/dev/null | awk '/^## /{n++; next} n==1 && /^- /{sub(/^- /,""); print}')
+  latest=$(git -C "$cache" show FETCH_HEAD:setup/VERSION 2>/dev/null || git -C "$cache" show FETCH_HEAD:VERSION 2>/dev/null || echo unknown)
+  # The bullet points of the newest section of docs/CHANGELOG.md
+  notes=$( (git -C "$cache" show FETCH_HEAD:docs/CHANGELOG.md || git -C "$cache" show FETCH_HEAD:CHANGELOG.md) 2>/dev/null | awk '/^## /{n++; next} n==1 && /^- /{sub(/^- /,""); print}')
   [ "$latest" != unknown ] && ok=1
 fi
 
