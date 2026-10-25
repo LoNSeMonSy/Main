@@ -1,10 +1,11 @@
-# Runs ./lint.sh (ShellCheck, yamllint, JSON) on every push and pull request.
+# Runs lint/lint.sh (ShellCheck, yamllint, JSON) on every push and pull request.
 # Results: the Actions tab on GitHub, and the Lint badge in the README.
 name: Lint
 
 on:
   push:
   pull_request:
+  workflow_dispatch:   # adds a "Run workflow" button in the Actions tab (pick any branch)
 
 jobs:
   lint:
@@ -13,5 +14,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install ShellCheck and yamllint
         run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck yamllint
-      - name: Run ./lint.sh
-        run: ./lint.sh
+      - name: Run lint/lint.sh
+        run: ./lint/lint.sh

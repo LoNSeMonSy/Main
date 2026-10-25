@@ -11,21 +11,21 @@ LoNSeMonSy is mostly **Bash** (the installer and helper scripts) plus YAML and J
 | Files | Checker | What it catches |
 |---|---|---|
 | `*.sh` (the setup steps and helper scripts) | [ShellCheck](https://www.shellcheck.net) | unquoted variables, `cd` without a fallback, unused variables, logic that doesn't do what it looks like |
-| `*.yml`, `*.yaml` (Docker Compose, Grafana, the workflow) | [yamllint](https://yamllint.readthedocs.io) | broken indentation, duplicate keys, bad syntax. Rules in [`.yamllint`](../.yamllint) |
+| `*.yml`, `*.yaml` (Docker Compose, Grafana, the workflow) | [yamllint](https://yamllint.readthedocs.io) | broken indentation, duplicate keys, bad syntax. Rules in [`yamllint.yml`](yamllint.yml) |
 | `*.json` (Grafana dashboards) | `python3 -m json.tool` | invalid JSON that would stop a dashboard from loading |
 
 ## 2. Script to run locally
 
 ```bash
 sudo apt install shellcheck yamllint   # once
-./lint.sh
+./lint/lint.sh
 ```
 
-[`lint.sh`](../lint.sh) runs all three checks on every file in the repo and exits with an error if any fail.
+[`lint.sh`](lint.sh) runs all three checks on every file in the repo and exits with an error if any fail.
 
 ## 3. Workflow action on GitHub
 
-[`.github/workflows/lint.yml`](../.github/workflows/lint.yml) runs the same `./lint.sh` on GitHub's servers on every push and pull request. Each commit then shows a green check or a red X, and the details are under the repo's **Actions** tab.
+[`.github/workflows/lint.yml`](../.github/workflows/lint.yml) runs the same `lint/lint.sh` on GitHub's servers on every push and pull request, and from the **Run workflow** button in the Actions tab (pick a branch, e.g. staging). Each commit then shows a green check or a red X, and the details are under the repo's **Actions** tab.
 
 ## 4. Results
 
