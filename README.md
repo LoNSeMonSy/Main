@@ -77,7 +77,7 @@ To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/READ
 | [InfluxDB](https://docs.influxdata.com/influxdb/v2/) | stores measurements over time |
 | [ufw](https://documentation.ubuntu.com/server/how-to/security/firewalls/) | the firewall |
 
-Versions are pinned in [`PINNED_VERSIONS`](PINNED_VERSIONS). LoNSeMonSy's own version is in `VERSION`.
+Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMonSy's own version is in `setup/VERSION`, and what changed in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
 ```
 appliance/   Docker Compose, Grafana dashboards and alarms, Suricata
@@ -85,13 +85,14 @@ setup/       setup.sh and its steps, update.sh, the lonsemonsy command
 wazuh/       detection rules, auto-block, adding a computer
 testlab/     our fake company network for testing
 systems/     every system we use
-docs/        architecture, environments, roadmap, class diagram, linting
+lint/        the lint checks (ShellCheck, yamllint, JSON)
+docs/        architecture, environments, roadmap, class diagram, changelog
 ```
 
 ## Development
 
 - **Branches:** `dev` → `staging` → `main` ([docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md))
-- **Linting:** `./lint.sh` runs ShellCheck, yamllint and a JSON check; GitHub runs it on every push ([docs/LINT.md](docs/LINT.md))
+- **Linting:** `./lint/lint.sh` runs ShellCheck, yamllint and a JSON check; GitHub runs it on every push ([lint/README.md](lint/README.md))
 
 ## Team
 
