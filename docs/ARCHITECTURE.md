@@ -2,7 +2,7 @@
 
 ## On the customer's network
 
-LoNSeMonSy is one Ubuntu machine on the local network. Nothing else is required. A switch and cloud backup are optional.
+LoNSeMonSy is one Ubuntu machine on the local network. Nothing else is required.
 
 ![How it fits in your network](./customer_site_architecture.png)
 

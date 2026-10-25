@@ -5,27 +5,35 @@ LoNSeMonSy uses [Wazuh](https://documentation.wazuh.com/current/index.html) as i
 | File | What it is |
 |---|---|
 | `local_rules.xml` | our own detection rules |
-| `lonsemonsy_rules.xml` | rules every install gets (for example, ignoring routine Docker health checks) |
-| `active-response.xml` | automatic blocking of SSH brute-force attackers |
-| `ism-policy.json` | how long alerts are kept |
-| `enroll-host.sh` | adds a Linux machine to monitoring |
+| `lonsemonsy_rules.xml` | rules every install gets (for example, ignore routine Docker health checks) |
+| `active-response.xml` | auto-block for SSH brute force |
+| `ism-policy.json` | keeps 90 days of alerts |
+| `enroll-host.sh` | adds a Linux computer |
 
-## Monitor another machine
+## Protect a computer
 
-Copy `enroll-host.sh` to the machine and run it as root, with the appliance's IP and the name the machine should show in the dashboard:
+Install a Wazuh agent on it, pointed at the LoNSeMonSy machine's IP address.
 
-```bash
-sudo WAZUH_MANAGER=<appliance-ip> bash enroll-host.sh <machine-name>
+**Windows** (PowerShell as administrator):
+
+```powershell
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.8-1.msi -OutFile $env:tmp\wazuh-agent.msi; msiexec.exe /i $env:tmp\wazuh-agent.msi /q WAZUH_MANAGER='<lonsemonsy-ip>' WAZUH_AGENT_NAME='<pc-name>'; Start-Sleep 20; NET START WazuhSvc
 ```
 
-For Windows and macOS, use Wazuh's [agent install guide](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/index.html).
-
-## Test detection
-
-From another machine on the network, fail to log in over SSH ten times:
+**Linux** (copy `enroll-host.sh` to it first):
 
 ```bash
-for i in $(seq 1 10); do ssh -o BatchMode=yes baduser@<appliance-ip> true; done
+sudo WAZUH_MANAGER=<lonsemonsy-ip> bash enroll-host.sh <pc-name>
 ```
 
-The alert shows up in Grafana, and that machine is blocked for 10 minutes.
+**macOS:** follow Wazuh's [agent guide](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/index.html), or use *Agents > Deploy new agent* in the Wazuh dashboard.
+
+## Test it
+
+From another computer, fail to log in over SSH ten times:
+
+```bash
+for i in $(seq 1 10); do ssh -o BatchMode=yes baduser@<lonsemonsy-ip> true; done
+```
+
+An alarm shows up in Grafana, and that computer is blocked for 10 minutes.

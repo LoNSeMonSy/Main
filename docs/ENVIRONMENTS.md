@@ -10,7 +10,7 @@
 
 1. Commit to **dev** and try it locally.
 2. Merge into **staging**, install it on the staging appliance, run the test lab attacks, check Grafana.
-3. If it passes, merge into **main**. Appliances update with `./setup/update.sh`.
+3. If it passes, merge into **main**. Appliances update with `lonsemonsy update`.
 
 ## Staging today
 

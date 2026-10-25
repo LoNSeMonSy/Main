@@ -1,0 +1,17 @@
+# Runs ./lint.sh (ShellCheck, yamllint, JSON) on every push and pull request.
+# Results: the Actions tab on GitHub, and the Lint badge in the README.
+name: Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck and yamllint
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck yamllint
+      - name: Run ./lint.sh
+        run: ./lint.sh

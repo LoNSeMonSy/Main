@@ -3,7 +3,7 @@
 # Grafana can show the update banner and the Updates page. Runs once a day from the
 # lonsemonsy-update-check timer (installed by setup.sh). Safe to run by hand.
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 ENV="appliance/.env"
 get() { grep -E "^$1=" "$ENV" | cut -d= -f2-; }
 
@@ -29,6 +29,16 @@ if [ "$ok" = 1 ] && [ "$latest" != "$installed" ]; then
   if [ "$installed" = unknown ] || \
      [ "$(printf '%s\n%s\n' "$installed" "$latest" | sort -V | tail -1)" = "$latest" ]; then
     newer=1
+  fi
+fi
+
+# Same version number but newer changes on GitHub (for example a fix edited on the
+# website)? That counts as an update too, but only when this folder is a clone of that
+# repo, so we can tell "behind" from "different".
+if [ "$ok" = 1 ] && [ "$newer" = 0 ] && git fetch -q "$repo" "$branch" 2>/dev/null; then
+  here=$(git rev-parse HEAD); there=$(git rev-parse FETCH_HEAD)
+  if [ "$here" != "$there" ] && git merge-base --is-ancestor "$here" "$there" 2>/dev/null; then
+    newer=1; latest="$latest (+$(git rev-list --count "$here..$there") changes)"
   fi
 fi
 

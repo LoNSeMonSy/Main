@@ -1,27 +1,25 @@
 # Roadmap
 
-## Scope
-
-- Customers install on **plain Ubuntu** from this repo with one script. No special hardware and no hypervisor required.
-- The machine's own firewall (**ufw**) is turned on during setup.
-- Our own servers and backups (Proxmox, Proxmox Backup Server, AWS) are how the team runs its systems. They are not part of the product.
+Customers install on plain Ubuntu with one script. Our own servers and backups (Proxmox, Proxmox Backup Server, AWS) are how the team runs its systems, not part of the product.
 
 ## Done
 
-- Wazuh detection with SSH brute-force alerts and automatic IP blocking
-- Suricata port-scan detection (scans aimed at the appliance)
-- NetAlertX device discovery, with an alarm when new devices join the network
-- Grafana: Security Overview, Active Alarms home page, email alerts, five severity levels
+- Wazuh detection, with automatic blocking of SSH brute force
+- Suricata port-scan detection, on by default
+- NetAlertX device discovery, with a new-device alarm
+- Grafana: Active Alarms, Security Overview, Updates page, email alarms, five severity levels
+- Firewall on by default, open ports named in setup's output
+- One-command install with two optional questions, and the `lonsemonsy` command
+- Lint checks on every push
 - Test lab for staging: server, workstation and attacker
 
 ## Next
 
-- Firewall locked down by default on every install
+- Optional company name in setup (shown in Grafana and alarm emails)
 - Dedicated staging machine
-- Add more machines to monitor with one command ([wazuh/README.md](../wazuh/README.md))
 
 ## Later
 
-- Cloud backup for customers (S3 or Backblaze), with an optional local backup server
+- Encrypted cloud backup for customers (Backblaze or S3)
+- Local AI that explains alarms in plain English (optional add-on)
 - Whole-network port-scan detection (needs a mirrored switch port)
-- Ready-to-import VM image
