@@ -51,8 +51,6 @@ git clone https://github.com/LoNSeMonSy/Main.git lonsemonsy && cd lonsemonsy
 sudo ./setup/setup.sh
 ```
 
-Setup asks three optional questions (static IP or DHCP, an email for alarms, and a cloud backup bucket), installs everything, and prints the addresses and passwords at the end. It takes about 20 minutes, mostly the Wazuh install. Step by step: [setup/README.md](setup/README.md)
-
 ## Using it
 
 | Command | What it does |
