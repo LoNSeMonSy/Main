@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/logo.png" alt="LoNSeMonSy logo" width="220">
+<img src="images/logo.png" alt="LoNSeMonSy logo" width="220">
 
 # LoNSeMonSy
 
@@ -30,7 +30,7 @@ Security monitoring for small networks, on one Ubuntu machine.
 
 LoNSeMonSy finds problems and tells you within minutes. It doesn't replace your router's firewall, antivirus or updates.
 
-![How it fits in your network](./docs/customer_site_architecture.png)
+![How it fits in your network](./images/customer_site_architecture.png)
 
 ## Requirements
 
@@ -80,7 +80,7 @@ To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/READ
 | [InfluxDB](https://docs.influxdata.com/influxdb/v2/) | stores measurements over time |
 | [ufw](https://documentation.ubuntu.com/server/how-to/security/firewalls/) | the firewall |
 
-Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMonSy's own version is in `setup/VERSION`, and what changed in [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMonSy's own version is in `setup/VERSION`, and what changed in [`setup/CHANGELOG.md`](setup/CHANGELOG.md).
 
 ```
 appliance/   Docker Compose, Grafana dashboards and alarms, Suricata
@@ -88,12 +88,12 @@ setup/       setup.sh and its steps, update.sh, the lonsemonsy command
 wazuh/       detection rules, auto-block, adding a computer
 systems/     every system we use
 lint/        code checks
-docs/        architecture, environments, roadmap, class diagram, changelog
+images/      logo and diagram
 ```
 
 ## Development
 
-Branches: `dev` → `staging` → `main` ([docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md))
+Branches: `dev` → `staging` → `main`. Code checks: [lint/](lint/)
 
 ## Team
 
