@@ -18,8 +18,8 @@ latest=unknown; ok=0; notes=""; reached=0
 if git -C "$cache" fetch -q --depth 1 "$repo" "$branch" 2>/dev/null; then
   reached=1
   latest=$(git -C "$cache" show FETCH_HEAD:setup/VERSION 2>/dev/null || git -C "$cache" show FETCH_HEAD:VERSION 2>/dev/null || echo unknown)
-  # The bullet points of the newest section of docs/CHANGELOG.md
-  notes=$( (git -C "$cache" show FETCH_HEAD:docs/CHANGELOG.md || git -C "$cache" show FETCH_HEAD:CHANGELOG.md) 2>/dev/null | awk '/^## /{n++; next} n==1 && /^- /{sub(/^- /,""); print}')
+  # The bullet points of the newest section of setup/CHANGELOG.md
+  notes=$( (git -C "$cache" show FETCH_HEAD:setup/CHANGELOG.md || git -C "$cache" show FETCH_HEAD:docs/CHANGELOG.md) 2>/dev/null | awk '/^## /{n++; next} n==1 && /^- /{sub(/^- /,""); print}')
   [ "$latest" != unknown ] && ok=1
 fi
 
