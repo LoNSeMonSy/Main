@@ -31,5 +31,5 @@ as_owner ./setup/check-update.sh >/dev/null 2>&1 || true
 
 cat <<DONE
 
-LoNSeMonSy updated: ${before} -> ${after}. What changed: docs/CHANGELOG.md
+LoNSeMonSy updated: ${before} -> ${after}. What changed: setup/CHANGELOG.md
 DONE

@@ -23,7 +23,7 @@ case "${1:-}" in
     ip=$(ip -o -4 route get 1.1.1.1 | grep -oP 'src \K[0-9.]+')
     branch=$(git -c safe.directory="$dir" -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
     case "$branch" in
-      main) environment=Production ;; staging) environment=Staging ;; dev) environment=Development ;; *) environment="" ;;
+      staging) environment=Staging ;; dev) environment=Development ;; *) environment="" ;;
     esac
     cat "$dir/setup/banner.txt"
     echo "  ${environment:+$environment · }version $(cat "$dir/setup/VERSION" 2>/dev/null || echo unknown)"
