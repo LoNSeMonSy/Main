@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="How it fits in your network diagram">
+  <defs>
+    <style>
+      .label { font: 700 26px 'Segoe UI', Arial, sans-serif; fill: #1a1a1a; }
+      .small { font: 400 20px 'Segoe UI', Arial, sans-serif; fill: #1a1a1a; }
+      .small-italic { font: 400 italic 20px 'Segoe UI', Arial, sans-serif; fill: #1a1a1a; }
+      .box { fill: #edf1f3; stroke: #b8bcc3; stroke-width: 2; }
+      .dashed { fill: none; stroke: #3a3a3a; stroke-width: 2; stroke-dasharray: 8 8; }
+      .solid { stroke: #3a3a3a; stroke-width: 3; fill: none; }
+      .green { stroke: #0d8f7c; stroke-width: 4; fill: none; }
+      .green-text { fill: #0d8f7c; }
+      .server { fill: #0f7f6d; stroke: #0a6158; stroke-width: 2; }
+      .iot { fill: #9099a1; stroke: #535d64; stroke-width: 2; }
+      .white { fill: #ffffff; }
+      .thin { stroke: #2d2d2d; stroke-width: 2; fill: none; }
+      .arrow-head { fill: #2d2d2d; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#f5f5f5"/>
+
+  <!-- Top internet / WAN box -->
+  <rect x="30" y="30" width="1540" height="220" rx="10" class="box"/>
+  <text x="70" y="70" class="label">INTERNET / WAN</text>
+
+  <!-- Cloud backup box -->
+  <rect x="70" y="110" width="300" height="90" rx="10" class="box"/>
+  <rect x="84" y="126" width="272" height="60" rx="8" class="dashed"/>
+  <text x="165" y="165" text-anchor="middle" class="label" style="font-size:30px;">Cloud backup</text>
+
+  <!-- Email box -->
+  <rect x="490" y="110" width="350" height="90" rx="10" class="box"/>
+  <text x="665" y="165" text-anchor="middle" class="label" style="font-size:34px;">Email</text>
+  <text x="665" y="195" text-anchor="middle" class="small" style="font-size:18px;">Alert emails to the owner</text>
+
+  <!-- GitHub box -->
+  <rect x="920" y="110" width="560" height="90" rx="10" class="box"/>
+  <text x="1190" y="165" text-anchor="middle" class="label" style="font-size:34px;">GitHub</text>
+  <text x="1190" y="195" text-anchor="middle" class="small" style="font-size:18px;">Install and updates</text>
+
+  <!-- Network lines top row -->
+  <line x1="430" y1="155" x2="490" y2="155" class="solid"/>
+  <line x1="840" y1="155" x2="920" y2="155" class="solid"/>
+
+  <!-- Router / modem -->
+  <rect x="620" y="310" width="360" height="100" rx="10" class="box"/>
+  <text x="800" y="355" text-anchor="middle" class="label" style="font-size:34px;">Router / modem</text>
+  <text x="800" y="388" text-anchor="middle" class="small-italic" style="font-size:22px;">Customer's own, with its firewall</text>
+
+  <!-- Switch box -->
+  <rect x="620" y="475" width="360" height="90" rx="10" class="box"/>
+  <rect x="640" y="490" width="320" height="60" rx="8" class="dashed"/>
+  <text x="800" y="530" text-anchor="middle" class="label" style="font-size:30px;">Network switch optional</text>
+
+  <!-- vertical line from cloud backup -->
+  <line x1="220" y1="200" x2="220" y2="320" class="green" stroke-dasharray="8 8"/>
+  <line x1="220" y1="320" x2="220" y2="390" class="green"/>
+  <polygon points="220,390 210,370 230,370" class="arrow-head" style="fill:#0d8f7c;"/>
+  <text x="136" y="400" text-anchor="middle" class="small" style="font-size:20px; fill:#0d8f7c; font-style:italic;">backups (optional)</text>
+
+  <!-- Main server box -->
+  <rect x="180" y="525" width="640" height="230" rx="18" class="server"/>
+  <rect x="225" y="535" width="125" height="70" rx="30" fill="#0d8f7c"/>
+  <text x="287" y="580" text-anchor="middle" class="label" style="font-size:28px; fill:#ffffff;">ufw firewall</text>
+
+  <text x="390" y="620" text-anchor="middle" class="label" style="font-size:46px; fill:#ffffff;">Customer's server</text>
+  <text x="390" y="670" text-anchor="middle" class="small" style="font-size:26px; fill:#ffffff;">Runs LoNSeMonSy via Linux Ubuntu</text>
+  <text x="390" y="710" text-anchor="middle" class="small" style="font-size:26px; fill:#ffffff;">Wazuh • Suricata • NetAlertX • Grafana</text>
+  <text x="390" y="750" text-anchor="middle" class="small" style="font-size:26px; fill:#ffffff;">InfluxDB • Grafana SNMP</text>
+
+  <!-- IoT device badge -->
+  <circle cx="1020" cy="615" r="50" class="iot"/>
+  <text x="1020" y="635" text-anchor="middle" class="label" style="font-size:34px; fill:#ffffff;">IoT</text>
+
+  <!-- Other devices box -->
+  <rect x="855" y="525" width="580" height="230" rx="18" class="box"/>
+  <text x="1145" y="610" text-anchor="middle" class="label" style="font-size:42px;">Other devices</text>
+  <text x="1145" y="660" text-anchor="middle" class="small" style="font-size:24px;">Computers, printers, phones, cameras, smart TVs</text>
+  <text x="1145" y="705" text-anchor="middle" class="small-italic" style="font-size:22px;">Found and listed by NetAlertX network scans</text>
+
+  <!-- Connectors -->
+  <line x1="800" y1="410" x2="800" y2="475" class="solid"/>
+  <line x1="800" y1="565" x2="800" y2="620" class="solid"/>
+  <polygon points="800,620 790,600 810,600" class="arrow-head"/>
+
+  <line x1="800" y1="565" x2="980" y2="620" class="solid"/>
+  <line x1="980" y1="620" x2="1010" y2="615" class="solid"/>
+  <polygon points="1010,615 990,603 990,627" class="arrow-head"/>
+
+  <line x1="820" y1="565" x2="520" y2="620" class="solid"/>
+  <line x1="520" y1="620" x2="505" y2="615" class="solid"/>
+  <polygon points="505,615 525,603 525,627" class="arrow-head"/>
+
+  <!-- Dashed connection from router to internet clouds -->
+  <path d="M 600 155 L 520 155 L 520 155" class="dashed"/>
+  <path d="M 520 155 L 520 250 L 470 250" class="dashed"/>
+  <path d="M 470 250 L 470 155" class="dashed"/>
+
+  <!-- Lower network links -->
+  <path d="M 180 620 C 150 620, 120 540, 120 440 L 120 200" class="green" stroke-dasharray="8 8"/>
+  <polygon points="120,200 110,220 130,220" class="arrow-head" style="fill:#0d8f7c;"/>
+
+  <!-- small labels on top horizontal -->
+  <text x="1080" y="90" class="small" style="font-size:18px; fill:#2d2d2d;">Install and updates</text>
+  <text x="665" y="90" class="small" style="font-size:18px; fill:#2d2d2d;">Alert emails to the owner</text>
+</svg>
