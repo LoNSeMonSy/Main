@@ -298,7 +298,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "Full history: `docs/CHANGELOG.md` in the LoNSeMonSy repository on GitHub. The appliance checks for a new version once a day."
+        "content": "Full history: `setup/CHANGELOG.md` in the LoNSeMonSy repository on GitHub. The appliance checks for a new version once a day."
       },
       "fieldConfig": {
         "defaults": {},

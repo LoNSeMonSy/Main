@@ -12,10 +12,9 @@ set -euo pipefail               # stop at the first error
 cd "$(dirname "$0")/.." || exit 1   # work from the main folder
 
 cat setup/banner.txt
-# Which branch this copy came from: main = production, staging, dev = development.
+# Which branch this copy came from. Customers (main) see no label.
 branch=$(git -c safe.directory="$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 case "$branch" in
-  main)    environment=Production ;;
   staging) environment=Staging ;;
   dev)     environment=Development ;;
   *)       environment="" ;;
