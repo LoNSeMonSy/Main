@@ -33,6 +33,10 @@ if [ -f "$OSC" ] && [ "${SKIP_SURICATA:-0}" != 1 ] && ! grep -q suricata/eve.jso
   NO_WAZUH_RESTART=1 bash appliance/suricata/install-suricata.sh > /root/suricata-install.log 2>&1
   restart=1
   echo "  suricata: on"
+elif [ -f /etc/systemd/system/suricata-update.service ]; then
+  # Older installs reloaded rules after the weekly refresh, which stopped scan detection.
+  install -m 644 appliance/suricata/suricata-update.service /etc/systemd/system/
+  systemctl daemon-reload
 fi
 
 if [ "$restart" = 1 ]; then
