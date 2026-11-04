@@ -37,6 +37,7 @@ elif [ -f /etc/systemd/system/suricata-update.service ]; then
   # Older installs reloaded rules after the weekly refresh, which stopped scan detection.
   install -m 644 appliance/suricata/suricata-update.service /etc/systemd/system/
   systemctl daemon-reload
+  sed -i '/copytruncate/d' /etc/logrotate.d/suricata   # see install-suricata.sh
 fi
 
 if [ "$restart" = 1 ]; then
