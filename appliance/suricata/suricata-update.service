@@ -9,4 +9,6 @@ Type=oneshot
 # disable.conf/enable.conf are re-applied on every run, so the ruleset stays
 # scan-only (~367 rules) instead of ballooning back to the full ET Open set.
 ExecStart=/usr/bin/suricata-update --quiet
-ExecStartPost=-/usr/bin/suricatasc -c reload-rules
+# Restart, not reload-rules: a live reload forgets the HOME_NET set at start
+# (10-lonsemonsy-homenet.conf) and scan detection silently stops.
+ExecStartPost=-/usr/bin/systemctl restart suricata
