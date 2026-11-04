@@ -58,6 +58,9 @@ echo "==> log rotation (packaged file ships no frequency, so it inherited weekly
 if ! grep -q '^[[:space:]]*daily' /etc/logrotate.d/suricata; then
   sed -i '0,/^{$/s/^{$/{\n\tdaily\n\tmaxsize 50M/' /etc/logrotate.d/suricata
 fi
+# Rename and reopen (the HUP in postrotate) instead of copytruncate: after a truncate
+# Wazuh keeps reading from the old position and misses new alerts.
+sed -i '/copytruncate/d' /etc/logrotate.d/suricata
 
 echo "==> wazuh: ingest eve.json (native json decoder, stock rules 86600/86601)"
 if ! grep -qi suricata /var/ossec/etc/ossec.conf; then

@@ -114,7 +114,7 @@ services:
   # ARP/L2 scanning and only shares the appliance's existing LAN access -- it does
   # NOT touch vmbr0 or change how the GUI is reached. UI 20211, GraphQL 20212.
   netalertx:
-    image: ghcr.io/netalertx/netalertx:latest
+    image: ghcr.io/netalertx/netalertx:26.10.24
     container_name: netalertx
     restart: unless-stopped
     network_mode: host
