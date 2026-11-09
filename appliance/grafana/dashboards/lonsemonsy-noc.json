@@ -1,6 +1,6 @@
 {
   "uid": "lons-noc",
-  "title": "Active Alarms",
+  "title": "Alarms",
   "tags": [
     "lonsemonsy"
   ],
@@ -295,7 +295,7 @@
     },
     {
       "type": "alertlist",
-      "title": "What is firing",
+      "title": "Alarms going off now",
       "gridPos": {
         "h": 11,
         "w": 16,
@@ -316,11 +316,11 @@
         "showInactiveAlerts": false,
         "stateFilter": {
           "firing": true,
-          "pending": true,
+          "pending": false,
           "noData": false,
           "normal": false,
           "error": true,
-          "recovering": true
+          "recovering": false
         }
       },
       "fieldConfig": {

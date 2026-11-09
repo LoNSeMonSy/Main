@@ -55,13 +55,13 @@ sudo ./setup/setup.sh
 
 | Command | What it does |
 |---|---|
-| `lonsemonsy` | shows the addresses, the version and these commands |
-| `lonsemonsy passwords` | shows the Grafana and Wazuh passwords |
-| `lonsemonsy status` | shows whether everything is running |
-| `lonsemonsy firewall` | shows which ports are open |
-| `lonsemonsy update` | updates to the newest version |
-| `lonsemonsy backup` | makes a cloud backup now |
-| `lonsemonsy restore` | puts the newest cloud backup back |
+| `lsmsy` | shows the addresses, the version and these commands |
+| `lsmsy passwords` | shows the Grafana and Wazuh passwords |
+| `lsmsy status` | shows whether everything is running |
+| `lsmsy firewall` | shows which ports are open |
+| `lsmsy update` | updates to the newest version |
+| `lsmsy backup` | makes a cloud backup now (`lsmsy backup setup` chooses the bucket) |
+| `lsmsy restore` | puts the newest cloud backup back |
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 
