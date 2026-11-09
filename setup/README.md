@@ -22,7 +22,7 @@ Requirements are in the [main README](../README.md#requirements).
 | 7 | [`7-start.sh`](steps/7-start.sh) | starts Grafana, InfluxDB and NetAlertX, connects Grafana to Wazuh |
 | 8 | [`8-protect.sh`](steps/8-protect.sh) | turns on auto-block, Docker monitoring and Suricata |
 | 9 | [`9-backup.sh`](steps/9-backup.sh) | cloud backup, if you gave a bucket: nightly at 1 AM, plus the first one now |
-| 10 | [`10-finish.sh`](steps/10-finish.sh) | daily update check, the `lonsemonsy` command, prints the addresses and passwords |
+| 10 | [`10-finish.sh`](steps/10-finish.sh) | daily update check, the `lsmsy` command, prints the addresses and passwords |
 
 Small shared functions are in [`helpers.sh`](steps/helpers.sh).
 
@@ -52,13 +52,15 @@ Settings live in `appliance/.env`.
 
 ## Cloud backup
 
-Encrypted with [Restic](https://restic.net), kept in your bucket: the settings, Grafana, NetAlertX, InfluxDB and Wazuh's settings (with the agents' keys). 7 daily, 4 weekly and 6 monthly copies. Setup prints a backup password once: save it somewhere else, because a backup can't be restored without it (`lonsemonsy passwords` shows it again).
+Encrypted with [Restic](https://restic.net), kept in your bucket: the settings, Grafana, NetAlertX, InfluxDB and Wazuh's settings (with the agents' keys). 7 daily, 4 weekly and 6 monthly copies. Setup prints a backup password once: save it somewhere else, because a backup can't be restored without it (`lsmsy passwords` shows it again).
 
-On a new machine: run setup, put the same `BACKUP_*` lines into `appliance/.env`, then `lonsemonsy restore`.
+Bucket: Backblaze B2 or Amazon S3. Setup asks for its endpoint (e.g. `s3.us-east-005.backblazeb2.com`), name and key. Change it later with `lsmsy backup setup`.
+
+On a new machine: run setup, then `lsmsy restore`. It asks for the bucket, its keys and the backup password.
 
 
 ## Updating
 
 ```bash
-lonsemonsy update
+lsmsy update
 ```

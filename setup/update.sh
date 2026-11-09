@@ -26,6 +26,9 @@ after=$(cat setup/VERSION 2>/dev/null || echo unknown)
 echo "  pulling new images and restarting (data and .env kept)..."
 ( cd appliance && docker compose pull -q && docker compose up -d && docker compose restart grafana >/dev/null )  # grafana reloads new dashboards and alarms
 
+# The lsmsy command (older installs only had "lonsemonsy").
+ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lsmsy
+
 # Refresh the update banner in Grafana straight away.
 as_owner ./setup/check-update.sh >/dev/null 2>&1 || true
 

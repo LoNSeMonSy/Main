@@ -54,9 +54,9 @@ done <<< "$notes"
 
 # This machine's addresses, so Grafana's links to Wazuh and NetAlertX work from anywhere:
 # Tailscale first (works away from home), then the local network address.
-ts=$(ip -o -4 addr show dev tailscale0 2>/dev/null | awk '{print $4; exit}' | cut -d/ -f1)
-lanif=$(ip -o -4 route show default | awk '{print $5; exit}')
-lan=$(ip -o -4 addr show dev "$lanif" 2>/dev/null | awk '{print $4; exit}' | cut -d/ -f1)
+ts=$(ip -o -4 addr show dev tailscale0 2>/dev/null | awk 'NR==1{print $4}' | cut -d/ -f1)
+lanif=$(ip -o -4 route show default | awk 'NR==1{print $5}')
+lan=$(ip -o -4 addr show dev "$lanif" 2>/dev/null | awk 'NR==1{print $4}' | cut -d/ -f1)
 [ -n "$ts" ]  && lines+=$'\n'"lonsemonsy_address,rank=1 value=$(q "$ts")"
 [ -n "$lan" ] && lines+=$'\n'"lonsemonsy_address,rank=2 value=$(q "$lan")"
 # Where Grafana's Wazuh links point. WAZUH_URL in .env overrides it, e.g. a name

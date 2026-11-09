@@ -23,7 +23,7 @@
 #     Critical 13-15   severe, act immediately
 # The Medium boundary sits exactly on the measured 7/8 cut.
 #
-# The Active Alarms dashboard (lonsemonsy-noc.json) re-evaluates these same
+# The Alarms dashboard (lonsemonsy-noc.json) re-evaluates these same
 # thresholds for its status banner. Change a threshold here, change it there.
 apiVersion: 1
 
@@ -38,7 +38,7 @@ groups:
       #    the band table at the top). Fires on the first occurrence -- no
       #    count threshold, because at level >= 8 the noise floor is zero.
       #    The 10-minute window keeps the alarm visible long enough to see
-      #    on the Active Alarms dashboard, which uses the same window.
+      #    on the Alarms dashboard, which uses the same window.
       # ------------------------------------------------------------------
       - uid: lons-wazuh-medium
         title: Security alert (Medium)

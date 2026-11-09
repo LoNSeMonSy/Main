@@ -132,7 +132,8 @@ services:
       - GRAPHQL_PORT=${NETALERTX_GRAPHQL_PORT:-20212}
       - TZ=${TZ:-America/New_York}
       # NetAlertX keeps its own time zone setting; use the machine's.
-      - 'APP_CONF_OVERRIDE={"TIMEZONE":"${TZ:-America/New_York}"}'
+      # Only report brand-new devices (not every connect/disconnect): the real alarms come from Grafana.
+      - 'APP_CONF_OVERRIDE={"TIMEZONE":"${TZ:-America/New_York}","NTFPRCS_INCLUDED_SECTIONS":"[\"new_devices\"]","NEWDEV_devAlertEvents":"False"}'
       # Which subnet(s) to scan, and on which interface. See .env.example.
       - SCAN_SUBNETS=${SCAN_SUBNETS}
     volumes:
