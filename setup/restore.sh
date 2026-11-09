@@ -1,16 +1,29 @@
 #!/usr/bin/env bash
-# Puts the newest cloud backup back:  lonsemonsy restore
-# On a new machine: run setup first, then put the same BACKUP_REPO, BACKUP_KEY_ID,
-# BACKUP_SECRET and BACKUP_PASSWORD into appliance/.env, then run this.
+# Puts the newest cloud backup back:  lsmsy restore
+# On a new machine: run setup first, then this. It asks for the bucket and the backup password.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
-get() { grep -E "^$1=" appliance/.env | cut -d= -f2- || true; }
+# shellcheck source-path=SCRIPTDIR/..
+source setup/steps/helpers.sh   # get, set_env, ask_bucket
 
-export RESTIC_REPOSITORY RESTIC_PASSWORD AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+# A new machine has no bucket in its settings yet: ask (the same answers as on the old machine).
+if [ -z "$(get BACKUP_REPO)" ]; then
+  ask_bucket
+  if [ -z "$repo" ]; then echo "Nothing changed."; exit 0; fi
+  read -r -s -p "  Backup password (lsmsy passwords shows it on the old machine): " password; echo
+  set_env BACKUP_REPO "$repo"
+  set_env BACKUP_KEY_ID "$key_id"
+  set_env BACKUP_SECRET "$secret"
+  set_env BACKUP_PASSWORD "$password"
+fi
+
+export RESTIC_REPOSITORY RESTIC_PASSWORD AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY B2_ACCOUNT_ID B2_ACCOUNT_KEY
 RESTIC_REPOSITORY=$(get BACKUP_REPO)
 RESTIC_PASSWORD=$(get BACKUP_PASSWORD)
 AWS_ACCESS_KEY_ID=$(get BACKUP_KEY_ID)
 AWS_SECRET_ACCESS_KEY=$(get BACKUP_SECRET)
+B2_ACCOUNT_ID=$AWS_ACCESS_KEY_ID          # the same key, under Backblaze's names
+B2_ACCOUNT_KEY=$AWS_SECRET_ACCESS_KEY
 
 restic snapshots --compact
 read -r -p "Put the newest backup back? This replaces the current settings and data. [y/N] " ok
@@ -29,9 +42,9 @@ tmp=/var/tmp/lonsemonsy-restore
 rm -rf "$tmp"
 restic restore latest --target "$tmp" >/dev/null
 # Each piece goes to where THIS machine keeps it (the backup may come from another folder).
-cp "$(find "$tmp" -path '*/appliance/.env' | head -1)" appliance/.env
+cp "$(find "$tmp" -path '*/appliance/.env' -print -quit)" appliance/.env
 for volume in grafana-data netalertx-data; do
-  from=$(find "$tmp" -type d -path "*/lonsemonsy_$volume/_data" | head -1)
+  from=$(find "$tmp" -type d -path "*/lonsemonsy_$volume/_data" -print -quit)
   to=$(docker volume inspect -f '{{.Mountpoint}}' "lonsemonsy_$volume")
   if [ -n "$from" ]; then cp -a "$from/." "$to/"; fi
 done
@@ -52,4 +65,4 @@ echo "starting LoNSeMonSy..."
 (cd appliance && docker compose up -d >/dev/null 2>&1)
 systemctl start wazuh-manager || true
 rm -rf "$tmp"
-echo "Restored. Give it a minute, then type lonsemonsy status"
+echo "Restored. Give it a minute, then type lsmsy status"

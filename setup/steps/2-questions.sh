@@ -7,13 +7,14 @@ if [ -t 0 ] && [ "${SKIP_QUESTIONS:-0}" != 1 ]; then ask=1; fi
 
 # Question 1: static IP or DHCP. Only asked when the router gave the address (DHCP).
 NETPLAN=/etc/netplan/60-lonsemonsy-static.yaml
-if ip -o -4 addr show dev "$iface" | grep -q dynamic && [ ! -f "$NETPLAN" ]; then
+if [[ $(ip -o -4 addr show dev "$iface") == *dynamic* ]] && [ ! -f "$NETPLAN" ]; then
   answer=${STATIC_IP:-2}
   if [ "$ask" = 1 ] && [ "$answer" != 1 ]; then
     echo "  How should this machine get its IP address?"
-    echo "    1) Static: always use $ip"
-    echo "    2) DHCP: obtain an IP address from the router ($gw) (default)"
-    read -r -p "  Choose 1 or 2 [2]: " answer
+    echo "    1) Static: always use $ip (recommended: the logins and agents use this address)"
+    echo "    2) DHCP: obtain an IP address from the router ($gw)"
+    read -r -p "  Choose 1 or 2 [1]: " answer
+    answer=${answer:-1}
   fi
   if [ "$answer" = 1 ]; then
     dns=$(resolvectl dns "$iface" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
@@ -30,11 +31,10 @@ network:
 NET
     chmod 600 "$NETPLAN"
     netplan apply
-    echo "  IP address: static ($ip)"
+    echo "  IP address: static ($ip). Also reserve it on the router so no other device gets it."
   else
     echo "  IP address: DHCP. Reserve $ip on the router ($gw) so it stays the same."
   fi
-  echo
 fi
 
 # Question 2: email alarms, sent from a Gmail account with an app password.
@@ -65,16 +65,13 @@ if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
   else
     echo "  email alarms: skipped"
   fi
-  echo
 fi
 
 # Question 3: cloud backup, encrypted nightly copies in a bucket (Restic).
 if [ "$ask" = 1 ] && [ -z "$(get BACKUP_REPO)" ]; then
   echo "  Cloud backup (optional)"
-  read -r -p "  Bucket address, e.g. s3:s3.us-east-1.amazonaws.com/my-bucket (Enter to skip): " repo
+  ask_bucket
   if [ -n "$repo" ]; then
-    read -r -p "  Access key ID: " key_id
-    read -r -s -p "  Secret access key (hidden): " secret; echo
     set_env BACKUP_REPO "$repo"
     set_env BACKUP_KEY_ID "$key_id"
     set_env BACKUP_SECRET "$secret"
@@ -82,5 +79,4 @@ if [ "$ask" = 1 ] && [ -z "$(get BACKUP_REPO)" ]; then
   else
     echo "  cloud backup: skipped"
   fi
-  echo
 fi
