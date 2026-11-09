@@ -674,14 +674,14 @@
             "type": "frser-sqlite-datasource",
             "uid": "P341AFF9E5CCA0B9F"
           },
-          "queryText": "SELECT sum(devIsNew) FROM Devices",
+          "queryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
           "queryType": "table",
-          "rawQueryText": "SELECT sum(devIsNew) FROM Devices",
+          "rawQueryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
           "refId": "A",
           "timeColumns": []
         }
       ],
-      "title": "New / unknown devices",
+      "title": "New devices (last 24 h)",
       "type": "stat"
     },
     {
@@ -753,9 +753,9 @@
             "type": "frser-sqlite-datasource",
             "uid": "P341AFF9E5CCA0B9F"
           },
-          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, datetime(devFirstConnection) as 'First Seen', datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
           "queryType": "table",
-          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, datetime(devFirstConnection) as 'First Seen', datetime(devLastConnection) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
           "refId": "A",
           "timeColumns": [
             "Last Seen",
@@ -830,6 +830,30 @@
                     "targetBlank": true
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "First Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:MM/DD/YYYY h:mm A"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:MM/DD/YYYY h:mm A"
               }
             ]
           }

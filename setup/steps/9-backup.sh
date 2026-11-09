@@ -19,4 +19,6 @@ UNIT
   else
     echo "  cloud backup: the first backup failed, see /root/lonsemonsy-backup.log"
   fi
+else
+  echo "  cloud backup: off"
 fi
