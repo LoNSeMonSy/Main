@@ -62,7 +62,7 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and r._field == \"installed\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])"
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and r._field == \"installed\")\n  |> last()\n  |> keep(columns: [\"_value\"])"
         }
       ],
       "options": {
@@ -70,7 +70,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/.*/",
+          "fields": "/^_value$/",
           "values": false
         },
         "colorMode": "none",
@@ -105,7 +105,7 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and r._field == \"latest\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])"
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and (r._field == \"latest\" or r._field == \"update_available\"))\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _field: r._field, _value: string(v: r._value)}))\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_value: if r.update_available == \"1\" then r.latest + \" (update available)\" else r.latest}))"
         }
       ],
       "options": {
@@ -113,24 +113,40 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/.*/",
+          "fields": "/^_value$/",
           "values": false
         },
-        "colorMode": "none",
+        "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
         "justifyMode": "center"
       },
       "fieldConfig": {
         "defaults": {
-          "noValue": "unknown"
+          "noValue": "unknown",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "transparent"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*update available.*",
+                "result": {
+                  "color": "red",
+                  "index": 0
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       }
     },
     {
       "type": "stat",
-      "title": "Last checked (UTC)",
+      "title": "Last checked",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -148,7 +164,7 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and r._field == \"installed\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: string(v: r._time)}))"
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_version\" and r._field == \"installed\")\n  |> last()\n  |> map(fn: (r) => ({_value: int(v: r._time) / 1000000}))"
         }
       ],
       "options": {
@@ -156,7 +172,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/.*/",
+          "fields": "/^_value$/",
           "values": false
         },
         "colorMode": "none",
@@ -166,7 +182,8 @@
       },
       "fieldConfig": {
         "defaults": {
-          "noValue": "unknown"
+          "noValue": "unknown",
+          "unit": "dateTimeAsSystem"
         },
         "overrides": []
       }
@@ -325,7 +342,7 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and r._field == \"ok\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: int(v: r._time) / 1000000}))"
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and r._field == \"ok\")\n  |> last()\n  |> map(fn: (r) => ({_value: int(v: r._time) / 1000000}))"
         }
       ],
       "fieldConfig": {
@@ -344,7 +361,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/^_value$/",
           "values": false
         },
         "colorMode": "value",
