@@ -13,7 +13,7 @@ if [ "${1:-}" = --apply ]; then
     tail -15 /var/log/lonsemonsy-update.log
     echo "  The update didn't finish. The whole log: /var/log/lonsemonsy-update.log"; exit 1
   fi
-  (cd appliance && docker compose up -d --remove-orphans >/dev/null 2>&1 && docker compose restart grafana >/dev/null)  # grafana reloads new dashboards and alarms
+  (cd appliance && docker compose up -d --remove-orphans >/dev/null 2>&1 && docker compose restart grafana >/dev/null 2>&1)  # grafana reloads new dashboards and alarms
   echo
   echo "LoNSeMonSy updated: ${2:-unknown} -> ${after} ($(git -c safe.directory="$PWD" log -1 --format=%cd --date=format:'%b %-d')). What changed: setup/CHANGELOG.md"
   exit 0

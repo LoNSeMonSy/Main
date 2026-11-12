@@ -218,13 +218,61 @@
           }
         },
         {
+          "refId": "F",
+          "hide": true,
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"disk\" and r._field == \"used_percent\" and r.path == \"/\")\n  |> last()"
+        },
+        {
+          "refId": "SF",
+          "hide": true,
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "reduce",
+          "expression": "F",
+          "reducer": "last",
+          "settings": {
+            "mode": "replaceNN",
+            "replaceWithValue": 0
+          }
+        },
+        {
+          "refId": "G",
+          "hide": true,
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"mem\" and r._field == \"used_percent\")\n  |> mean()"
+        },
+        {
+          "refId": "SG",
+          "hide": true,
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "reduce",
+          "expression": "G",
+          "reducer": "last",
+          "settings": {
+            "mode": "replaceNN",
+            "replaceWithValue": 0
+          }
+        },
+        {
           "refId": "Active alarms",
           "datasource": {
             "type": "__expr__",
             "uid": "__expr__"
           },
           "type": "math",
-          "expression": "($SA > 0) + ($SB > 0) + ($SC >= 5) + ($SD > 85) + ($E > 0)"
+          "expression": "($SA > 0) + ($SB > 0) + ($SC >= 5) + ($SD > 85) + ($E > 0) + ($SF > 90) + ($SG > 95)"
         }
       ],
       "gridPos": {
@@ -347,7 +395,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "| Band | Wazuh level | What to do |\n|---|---|---|\n| **Critical** | 13-15 | Act immediately |\n| **High** | 11-12 | Likely attack, act now |\n| **Medium** | 8-10 | Real event, look today |\n| **Low** | 4-7 | Routine housekeeping |\n| **Info** | 0-3 | Normal activity |\n\nAlarms fire at **Medium and above**, on a port scan, or when backup storage passes 85%.\n\n[Security overview](/d/lons-sec-overview) \u00b7 [Backups](/d/e01512b5-eef3-48f4-9c5e-f5f512b6bb7f)"
+        "content": "| Band | Wazuh level | What to do |\n|---|---|---|\n| **Critical** | 13-15 | Act immediately |\n| **High** | 11-12 | Likely attack, act now |\n| **Medium** | 8-10 | Real event, look today |\n| **Low** | 4-7 | Routine housekeeping |\n| **Info** | 0-3 | Normal activity |\n\nAlarms fire at **Medium and above**, on a port scan, a new device, or when the disk or memory fills up."
       },
       "fieldConfig": {
         "defaults": {},
