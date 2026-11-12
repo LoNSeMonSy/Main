@@ -26,25 +26,25 @@
       "keepTime": true,
       "icon": "apps",
       "targetBlank": false
-    },
-    {
-      "title": "Wazuh",
-      "type": "link",
-      "url": "${wazuh:raw}",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Wazuh dashboard: the advanced view for IT people"
-    },
-    {
-      "title": "Devices (NetAlertX)",
-      "type": "link",
-      "url": "${netalertx:raw}/devices.php",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Every device on the network"
     }
   ],
   "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
     {
       "type": "stat",
       "title": "",
@@ -228,10 +228,10 @@
         }
       ],
       "gridPos": {
-        "h": 7,
+        "h": 4,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "options": {
         "colorMode": "background",
@@ -300,7 +300,7 @@
         "h": 11,
         "w": 16,
         "x": 0,
-        "y": 7
+        "y": 6
       },
       "description": "Live list of alarms that are firing or about to fire. Empty means everything is normal.",
       "options": {
@@ -343,7 +343,7 @@
         "h": 11,
         "w": 8,
         "x": 16,
-        "y": 7
+        "y": 6
       },
       "options": {
         "mode": "markdown",

@@ -1,0 +1,1001 @@
+{
+  "title": "Audit",
+  "uid": "lons-audit",
+  "tags": [
+    "lonsemonsy"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "links": [
+    {
+      "title": "LoNSeMonSy",
+      "type": "dashboards",
+      "tags": [
+        "lonsemonsy"
+      ],
+      "asDropdown": false,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "apps",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "appliance",
+        "label": "Open links via",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "wazuh",
+        "label": "Wazuh address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "netalertx",
+        "label": "NetAlertX address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Logins",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 2
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:authentication_success AND NOT rule.id:5501",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-green",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Failed logins",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 2
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:(authentication_failed OR authentication_failures OR invalid_login)",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-orange",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Admin commands",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 2
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:sudo",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-blue",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "description": "Commands run with sudo."
+    },
+    {
+      "type": "stat",
+      "title": "Account changes",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 2
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:(adduser OR account_changed OR userdel)",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "bucketAggs": [
+            {
+              "field": "timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
+          "format": "time_series",
+          "timeField": "timestamp"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-purple",
+            "mode": "fixed"
+          },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "description": "Users added, removed or changed."
+    },
+    {
+      "type": "table",
+      "title": "Who logged in",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:authentication_success AND NOT rule.id:5501",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "agent.name": true,
+              "data.dstuser": true,
+              "data.win.eventdata.targetUserName": true,
+              "data.srcip": true,
+              "rule.description": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "agent.name": 1,
+              "data.dstuser": 2,
+              "data.win.eventdata.targetUserName": 3,
+              "data.srcip": 4,
+              "rule.description": 5
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "agent.name": "Device",
+              "data.dstuser": "User",
+              "data.win.eventdata.targetUserName": "Windows user",
+              "data.srcip": "From",
+              "rule.description": "How"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Device"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Windows user"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "From"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "table",
+      "title": "Failed logins",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:(authentication_failed OR authentication_failures OR invalid_login)",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "agent.name": true,
+              "data.dstuser": true,
+              "data.srcip": true,
+              "rule.description": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "agent.name": 1,
+              "data.dstuser": 2,
+              "data.srcip": 3,
+              "rule.description": 4
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "agent.name": "Device",
+              "data.dstuser": "User",
+              "data.srcip": "From",
+              "rule.description": "What happened"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Device"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "From"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "table",
+      "title": "Admin commands",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:sudo",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "agent.name": true,
+              "data.srcuser": true,
+              "data.command": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "agent.name": 1,
+              "data.srcuser": 2,
+              "data.command": 3
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "agent.name": "Device",
+              "data.srcuser": "User",
+              "data.command": "Command"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Device"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          }
+        ]
+      },
+      "description": "Commands run with sudo."
+    },
+    {
+      "type": "table",
+      "title": "Account changes",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:(adduser OR account_changed OR userdel)",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "agent.name": true,
+              "rule.description": true,
+              "data.dstuser": true,
+              "data.win.eventdata.targetUserName": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "agent.name": 1,
+              "rule.description": 2,
+              "data.dstuser": 3,
+              "data.win.eventdata.targetUserName": 4
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "agent.name": "Device",
+              "rule.description": "What happened",
+              "data.dstuser": "Account",
+              "data.win.eventdata.targetUserName": "Windows account"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Device"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Account"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Windows account"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "table",
+      "title": "Files and settings changed",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "query": "rule.groups:syscheck",
+          "queryType": "lucene",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc",
+                "useTimeRange": true
+              }
+            }
+          ],
+          "bucketAggs": [],
+          "timeField": "timestamp"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "agent.name": true,
+              "syscheck.path": true,
+              "syscheck.event": true,
+              "rule.description": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "agent.name": 1,
+              "syscheck.path": 2,
+              "syscheck.event": 3,
+              "rule.description": 4
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "agent.name": "Device",
+              "syscheck.path": "File or setting",
+              "syscheck.event": "Change",
+              "rule.description": "What happened"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Device"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "description": "Changes to system files and Windows registry keys that Wazuh watches."
+    }
+  ]
+}

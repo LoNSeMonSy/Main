@@ -446,3 +446,94 @@ groups:
                 - evaluator:
                     type: gt
                     params: [48]
+
+      # ------------------------------------------------------------------
+      # The server's disk is almost full (numbers from Telegraf, see the
+      # System Health page). A full disk stops Wazuh and Grafana.
+      # ------------------------------------------------------------------
+      - uid: lons-disk-full
+        title: Disk almost full
+        condition: C
+        for: 5m
+        annotations:
+          summary: >-
+            The server's disk is over 90% full. Free up space or add a bigger disk.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "disk" and r._field == "used_percent" and r.path == "/")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [90]
+
+      # ------------------------------------------------------------------
+      # Memory has been almost all used for 10 minutes.
+      # ------------------------------------------------------------------
+      - uid: lons-memory-full
+        title: Server low on memory
+        condition: C
+        for: 10m
+        annotations:
+          summary: >-
+            The server has used over 95% of its memory for 10 minutes. It needs more memory.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "mem" and r._field == "used_percent")
+                  |> mean()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [95]
