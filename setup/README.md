@@ -13,8 +13,8 @@ Requirements are in the [main README](../README.md#requirements).
 
 | Step | Script | What it does |
 |---|---|---|
-| 1 | [`1-basics.sh`](steps/1-basics.sh) | makes the settings file (`appliance/.env`), installs curl and the firewall tool, finds this machine's network |
-| 2 | [`2-questions.sh`](steps/2-questions.sh) | asks: static IP or DHCP? Which email gets the alarms? Which bucket for cloud backup? |
+| 1 | [`1-basics.sh`](steps/1-basics.sh) | makes the settings file (`appliance/.env`), installs curl and the firewall tool, adds swap on machines with under 8 GB of memory, finds this machine's network |
+| 2 | [`2-questions.sh`](steps/2-questions.sh) | asks: static IP or DHCP? Company or site name? Which email gets the alarms? Which bucket for cloud backup? |
 | 3 | [`3-docker.sh`](steps/3-docker.sh) | installs Docker |
 | 4 | [`4-settings.sh`](steps/4-settings.sh) | makes random passwords, sets the time zone and the network to scan |
 | 5 | [`5-wazuh.sh`](steps/5-wazuh.sh) | installs Wazuh with Wazuh's own installer |

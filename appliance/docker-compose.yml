@@ -139,6 +139,28 @@ services:
     volumes:
       - netalertx-data:/data
 
+  # Server health numbers (CPU, memory, disk, network) for the System Health page.
+  # Host network + the read-only /hostfs mount let it see the real server, not the container.
+  telegraf:
+    image: telegraf:1.30
+    container_name: telegraf
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - HOST_MOUNT_PREFIX=/hostfs
+      - HOST_PROC=/hostfs/proc
+      - HOST_SYS=/hostfs/sys
+      - HOST_ETC=/hostfs/etc
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+    volumes:
+      - /:/hostfs:ro
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      influxdb:
+        condition: service_healthy
+
 networks:
   # Pinned so the bridge gateway (172.20.0.1) is stable: the Wazuh indexer binds
   # to it, and Grafana reaches the indexer over it. Not routable from the LAN.

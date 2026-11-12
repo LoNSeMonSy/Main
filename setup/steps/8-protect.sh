@@ -22,9 +22,12 @@ fi
 # Watch this machine's Docker containers, and add our rules (wazuh/lonsemonsy_rules.xml).
 if [ -f "$OSC" ] && ! grep -q 'docker-listener' "$OSC"; then
   printf '<ossec_config>\n  <wodle name="docker-listener"><disabled>no</disabled></wodle>\n</ossec_config>\n' >> "$OSC"
-  install -o wazuh -g wazuh -m 660 wazuh/lonsemonsy_rules.xml /var/ossec/etc/rules/
   restart=1
   echo "  wazuh: watching Docker containers"
+fi
+if [ -f "$OSC" ] && ! cmp -s wazuh/lonsemonsy_rules.xml /var/ossec/etc/rules/lonsemonsy_rules.xml; then
+  install -o wazuh -g wazuh -m 660 wazuh/lonsemonsy_rules.xml /var/ossec/etc/rules/
+  restart=1
 fi
 
 # Port-scan detection with Suricata (appliance/suricata/install-suricata.sh).
