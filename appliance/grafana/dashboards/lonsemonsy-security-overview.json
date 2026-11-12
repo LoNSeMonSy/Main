@@ -1,8 +1,24 @@
 {
   "panels": [
     {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
+    {
       "type": "stat",
-      "title": "Total alerts (range)",
+      "title": "Total alerts",
       "description": "Every event Wazuh recorded in the selected time range, including routine ones.",
       "datasource": {
         "type": "grafana-opensearch-datasource",
@@ -70,7 +86,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -143,7 +159,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -216,7 +232,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -291,7 +307,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 2
       }
     },
     {
@@ -319,7 +335,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "targets": [
         {
@@ -362,7 +378,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "targets": [
         {
@@ -403,7 +419,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "agent.name"
+              "options": "Machine"
             },
             "properties": [
               {
@@ -422,7 +438,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "rule.description"
+              "options": "Alert"
             },
             "properties": [
               {
@@ -441,7 +457,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "data.srcip"
+              "options": "Address"
             },
             "properties": [
               {
@@ -457,7 +473,18 @@
             ]
           }
         ]
-      }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "agent.name": "Machine",
+              "Count": "Alerts"
+            }
+          }
+        }
+      ]
     },
     {
       "datasource": {
@@ -468,7 +495,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 15
       },
       "targets": [
         {
@@ -509,7 +536,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "agent.name"
+              "options": "Machine"
             },
             "properties": [
               {
@@ -528,7 +555,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "rule.description"
+              "options": "Alert"
             },
             "properties": [
               {
@@ -547,7 +574,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "data.srcip"
+              "options": "Address"
             },
             "properties": [
               {
@@ -563,7 +590,18 @@
             ]
           }
         ]
-      }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "rule.description": "Alert",
+              "Count": "Alerts"
+            }
+          }
+        }
+      ]
     },
     {
       "collapsed": false,
@@ -571,7 +609,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 25
       },
       "title": "Network Devices (NetAlertX)",
       "type": "row",
@@ -605,7 +643,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -657,7 +695,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -709,7 +747,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 24
+        "y": 26
       },
       "options": {
         "colorMode": "background",
@@ -745,7 +783,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 31
       },
       "targets": [
         {
@@ -866,7 +904,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 41
       },
       "title": "Threat detail",
       "type": "row",
@@ -882,9 +920,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
-        "y": 40
+        "y": 42
       },
       "targets": [
         {
@@ -925,7 +963,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "agent.name"
+              "options": "Machine"
             },
             "properties": [
               {
@@ -944,7 +982,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "rule.description"
+              "options": "Alert"
             },
             "properties": [
               {
@@ -963,7 +1001,7 @@
             "_lonsemonsy_link": true,
             "matcher": {
               "id": "byName",
-              "options": "data.srcip"
+              "options": "Address"
             },
             "properties": [
               {
@@ -979,6 +1017,92 @@
             ]
           }
         ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "data.srcip": "Address",
+              "Count": "Alerts"
+            }
+          }
+        }
+      ],
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Alerts",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 42
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "data.src_ip",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "15"
+              },
+              "type": "terms"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Port scan sources",
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "data.src_ip": "Address",
+              "Count": "Alerts"
+            }
+          }
+        }
+      ],
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Alerts",
+            "desc": true
+          }
+        ]
       }
     },
     {
@@ -991,9 +1115,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 40
+        "w": 8,
+        "x": 16,
+        "y": 42
       },
       "targets": [
         {
@@ -1254,7 +1378,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 50
       },
       "datasource": {
         "type": "grafana-opensearch-datasource",
@@ -1447,22 +1571,6 @@
       "keepTime": true,
       "icon": "apps",
       "targetBlank": false
-    },
-    {
-      "title": "Wazuh",
-      "type": "link",
-      "url": "${wazuh:raw}",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Wazuh dashboard: the advanced view for IT people"
-    },
-    {
-      "title": "Devices (NetAlertX)",
-      "type": "link",
-      "url": "${netalertx:raw}/devices.php",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Every device on the network"
     }
   ],
   "templating": {

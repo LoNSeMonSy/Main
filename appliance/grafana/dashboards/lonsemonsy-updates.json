@@ -23,25 +23,25 @@
       "keepTime": true,
       "icon": "apps",
       "targetBlank": false
-    },
-    {
-      "title": "Wazuh",
-      "type": "link",
-      "url": "${wazuh:raw}",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Wazuh dashboard: the advanced view for IT people"
-    },
-    {
-      "title": "Devices (NetAlertX)",
-      "type": "link",
-      "url": "${netalertx:raw}/devices.php",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Every device on the network"
     }
   ],
   "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
     {
       "type": "stat",
       "title": "Installed version",
@@ -49,7 +49,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -92,7 +92,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -151,7 +151,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -195,11 +195,11 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 2
       },
       "options": {
         "mode": "markdown",
-        "content": "On the appliance, in the LoNSeMonSy folder:\n\n`sudo ./setup/update.sh`\n\nYour settings and data are kept. Back up the machine first."
+        "content": "Run `lsmsy update` on the server.\n\nSettings and data are kept."
       },
       "fieldConfig": {
         "defaults": {},
@@ -210,10 +210,10 @@
       "type": "table",
       "title": "What's new in the newest version",
       "gridPos": {
-        "h": 10,
+        "h": 5,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 6
       },
       "datasource": {
         "type": "influxdb",
@@ -305,31 +305,13 @@
       }
     },
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "Full history: `setup/CHANGELOG.md` in the LoNSeMonSy repository on GitHub. The appliance checks for a new version once a day."
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
-    },
-    {
       "type": "stat",
       "title": "Last cloud backup",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 16
+        "y": 11
       },
       "datasource": {
         "type": "influxdb",
@@ -368,6 +350,25 @@
         "graphMode": "none",
         "textMode": "value"
       }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Checked once a day. Full history: `setup/CHANGELOG.md` on GitHub."
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "transparent": true
     }
   ],
   "templating": {
