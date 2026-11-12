@@ -6,7 +6,7 @@
 #   SKIP_QUESTIONS=1   don't ask anything        SKIP_WAZUH=1      use a Wazuh server you already have
 #   STATIC_IP=1        make the IP address static SKIP_SURICATA=1   no port-scan detection
 #   SKIP_FIREWALL=1    leave the firewall alone
-#   Cloud backup: answer question 3, or fill in BACKUP_REPO, BACKUP_KEY_ID, BACKUP_SECRET in appliance/.env
+#   Cloud backup: answer question 4, or fill in BACKUP_REPO, BACKUP_KEY_ID, BACKUP_SECRET in appliance/.env
 # shellcheck source-path=SCRIPTDIR/..
 set -euo pipefail               # stop at the first error
 cd "$(dirname "$0")/.." || exit 1   # work from the main folder
@@ -24,7 +24,7 @@ if [ "$(id -u)" != 0 ]; then echo "  Run it with sudo:  sudo ./setup/setup.sh"; 
 
 source setup/steps/helpers.sh     # small functions the steps use
 step 1 "Getting ready";        source setup/steps/1-basics.sh    # settings file, curl and the firewall tool
-step 2 "Questions";            source setup/steps/2-questions.sh # static IP or DHCP, email for alarms, cloud backup
+step 2 "Questions";            source setup/steps/2-questions.sh # static IP or DHCP, site name, email for alarms, cloud backup
 step 3 "Docker";               source setup/steps/3-docker.sh    # runs Grafana, InfluxDB and NetAlertX
 step 4 "Settings";             source setup/steps/4-settings.sh  # passwords, time zone, network to scan
 step 5 "Wazuh";                source setup/steps/5-wazuh.sh     # the detection engine
