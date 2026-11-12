@@ -6,9 +6,9 @@ Newest first.
 
 - New Grafana pages: Vulnerabilities, Audit and System Health
 - New alarms: disk almost full, server low on memory
-- `lsmsy update` now also applies new setup steps, rules and commands
+- lsmsy update now also applies new setup steps, rules and commands
 - Setup adds a swap file on machines with under 8 GB of memory, and asks for a company or site name
-- Port-scan sources now show under Top attacker IPs
+- Port scan sources now show on the Security Overview page
 - Links to Wazuh and NetAlertX moved to their own row on every page
 
 ## 0.5.5 - 2026-11-04

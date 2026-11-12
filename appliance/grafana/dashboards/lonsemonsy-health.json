@@ -136,7 +136,7 @@
         "valueMode": "color",
         "showUnfilled": true,
         "minVizHeight": 16,
-        "namePlacement": "left",
+        "namePlacement": "hidden",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -206,7 +206,7 @@
         "valueMode": "color",
         "showUnfilled": true,
         "minVizHeight": 16,
-        "namePlacement": "left",
+        "namePlacement": "hidden",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -276,7 +276,7 @@
         "valueMode": "color",
         "showUnfilled": true,
         "minVizHeight": 16,
-        "namePlacement": "left",
+        "namePlacement": "hidden",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"

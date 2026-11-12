@@ -920,7 +920,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 42
       },
@@ -1052,14 +1052,9 @@
           "options": {
             "renameByName": {
               "data.srcip": "Address",
-              "data.src_ip": "Address",
               "Count": "Alerts"
             }
           }
-        },
-        {
-          "id": "merge",
-          "options": {}
         }
       ],
       "options": {
@@ -1069,8 +1064,74 @@
             "desc": true
           }
         ]
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
       },
-      "description": "Addresses that caused the most alerts, port scans included."
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 42
+      },
+      "targets": [
+        {
+          "bucketAggs": [
+            {
+              "field": "data.src_ip",
+              "id": "2",
+              "settings": {
+                "order": "desc",
+                "orderBy": "_count",
+                "size": "15"
+              },
+              "type": "terms"
+            }
+          ],
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "format": "table",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "count"
+            }
+          ],
+          "query": "",
+          "refId": "A",
+          "timeField": "timestamp"
+        }
+      ],
+      "title": "Port scan sources",
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "data.src_ip": "Address",
+              "Count": "Alerts"
+            }
+          }
+        }
+      ],
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Alerts",
+            "desc": true
+          }
+        ]
+      }
     },
     {
       "type": "bargauge",
@@ -1082,8 +1143,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 16,
         "y": 42
       },
       "targets": [
