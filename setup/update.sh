@@ -5,6 +5,20 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Second half, run by the new copy after the download (see the end of this file).
+if [ "${1:-}" = --apply ]; then
+  after=$(cat setup/VERSION 2>/dev/null || echo unknown)
+  echo "  applying the update (a minute or two)..."
+  if ! SKIP_QUESTIONS=1 ./setup/setup.sh > /var/log/lonsemonsy-update.log 2>&1; then
+    tail -15 /var/log/lonsemonsy-update.log
+    echo "  The update didn't finish. The whole log: /var/log/lonsemonsy-update.log"; exit 1
+  fi
+  (cd appliance && docker compose up -d --remove-orphans >/dev/null 2>&1 && docker compose restart grafana >/dev/null)  # grafana reloads new dashboards and alarms
+  echo
+  echo "LoNSeMonSy updated: ${2:-unknown} -> ${after} ($(git -c safe.directory="$PWD" log -1 --format=%cd --date=format:'%b %-d')). What changed: setup/CHANGELOG.md"
+  exit 0
+fi
+
 # Run git as the folder's owner. Git refuses to work as root in a folder another
 # user owns, and the owner is the one with access to GitHub.
 owner=$(stat -c %U .)
@@ -21,18 +35,7 @@ echo "  Reminder: back up this machine first (that's your rollback)."
 echo "  downloading the newest release from GitHub (${branch})..."
 as_owner git fetch -q "$repo" "$branch"
 as_owner git reset -q --hard FETCH_HEAD      # appliance/.env isn't tracked by git, so it's kept
-after=$(cat setup/VERSION 2>/dev/null || echo unknown)
 
-echo "  pulling new images and restarting (data and .env kept)..."
-( cd appliance && docker compose pull -q && docker compose up -d && docker compose restart grafana >/dev/null )  # grafana reloads new dashboards and alarms
-
-# The lsmsy command (older installs only had "lonsemonsy").
-ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lsmsy
-
-# Refresh the update banner in Grafana straight away.
-as_owner ./setup/check-update.sh >/dev/null 2>&1 || true
-
-cat <<DONE
-
-LoNSeMonSy updated: ${before} -> ${after}. What changed: setup/CHANGELOG.md
-DONE
+# Run setup again from the new copy (no questions). It only does what's missing:
+# new services, rules and commands. --apply is the new copy taking over.
+exec setup/update.sh --apply "$before"

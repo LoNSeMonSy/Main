@@ -19,6 +19,12 @@ ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lonsemonsy
 ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lsmsy
 rm -f /usr/local/bin/lm   # old name
 
+# The company or site name becomes Grafana's organization name.
+if [ -n "$(get SITE_NAME)" ]; then
+  curl -s -m 15 -u "admin:$(get GRAFANA_ADMIN_PASSWORD)" -X PUT -H 'Content-Type: application/json' \
+    -d "{\"name\":\"$(get SITE_NAME)\"}" http://localhost:3000/api/org -o /dev/null || true
+fi
+
 echo "Done."
 echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
 echo "  NetAlertX:  http://$ip:20211    no login"

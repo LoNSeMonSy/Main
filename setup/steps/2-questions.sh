@@ -37,7 +37,17 @@ NET
   fi
 fi
 
-# Question 2: email alarms, sent from a Gmail account with an app password.
+# Question 2: company or site name, shown as the sender of alarm emails and in Grafana.
+if [ "$ask" = 1 ] && [ -z "$(get SITE_NAME)" ]; then
+  read -r -p "  Company or site name (Enter to skip): " site
+  site=${site//[\"\\]/}                 # no quotes or backslashes
+  if [ -n "$site" ]; then
+    set_env SITE_NAME "$site"
+    set_env SMTP_FROM_NAME "$site LoNSeMonSy"
+  fi
+fi
+
+# Question 3: email alarms, sent from a Gmail account with an app password.
 if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
   echo "  Email alarms (optional)"
   to=""
@@ -67,7 +77,7 @@ if [ "$ask" = 1 ] && [ -z "$(get ALERT_EMAIL_TO)" ]; then
   fi
 fi
 
-# Question 3: cloud backup, encrypted nightly copies in a bucket (Restic).
+# Question 4: cloud backup, encrypted nightly copies in a bucket (Restic).
 if [ "$ask" = 1 ] && [ -z "$(get BACKUP_REPO)" ]; then
   echo "  Cloud backup (optional)"
   ask_bucket

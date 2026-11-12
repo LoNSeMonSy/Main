@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Step 9: cloud backup, only if a bucket was given (question 3). setup/backup.sh does the work.
+# Step 9: cloud backup, only if a bucket was given (question 4). setup/backup.sh does the work.
 
 if [ -n "$(get BACKUP_REPO)" ]; then
   need restic restic
