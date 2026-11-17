@@ -29,7 +29,7 @@ case "${1:-}" in
     pw=$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-14)
     id=$(gapi -X POST $G/api/admin/users -d "{\"name\":\"$name\",\"login\":\"$name\",\"password\":\"$pw\"}" | jq -r '.id // empty')
     [ -n "$id" ] || { echo "  could not add $name (does it already exist?)"; exit 1; }
-    gapi -X PATCH $G/api/org/users/$id -d "{\"role\":\"$role\"}" >/dev/null
+    gapi -X PATCH $G/api/org/users/"$id" -d "{\"role\":\"$role\"}" >/dev/null
     echo "  added $name as $role"
     echo "  password: $pw   (they can change it in Grafana under Profile)" ;;
   deluser)
@@ -38,7 +38,7 @@ case "${1:-}" in
     [ "$name" != admin ] || { echo "  the admin account can't be removed"; exit 1; }
     id=$(gapi "$G/api/users/lookup?loginOrEmail=$name" | jq -r '.id // empty')
     [ -n "$id" ] || { echo "  no account called $name"; exit 1; }
-    gapi -X DELETE $G/api/admin/users/$id | jq -r '"  " + .message' ;;
+    gapi -X DELETE $G/api/admin/users/"$id" | jq -r '"  " + .message' ;;
   status)
     sudo docker ps --format '{{.Names}}: {{.Status}}' | sed 's/^/  /'
     for s in wazuh-manager wazuh-indexer wazuh-dashboard suricata; do
