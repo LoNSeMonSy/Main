@@ -200,62 +200,6 @@ groups:
                     params: [5]
 
   - orgId: 1
-    name: capacity
-    folder: LoNSeMonSy Alerts
-    interval: 5m
-    rules:
-      # ------------------------------------------------------------------
-      # 3. Backup storage filling up. This is the "margin" case the other two
-      #    are not: it warns while there is still room to act, rather than
-      #    after backups have already started failing.
-      #    Currently ~12% used, so this sits well below the line.
-      # ------------------------------------------------------------------
-      - uid: lons-backup-storage
-        title: Backup storage running low
-        condition: C
-        for: 15m
-        annotations:
-          summary: >-
-            The PBS backup datastore is above 85% full. Backups are the rollback
-            mechanism for this appliance, so losing backup capacity means losing
-            the ability to undo a bad change.
-        labels:
-          severity: medium
-        noDataState: OK
-        execErrState: OK
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 3600
-              to: 0
-            datasourceUid: P951FEA4DE68E13C5
-            model:
-              refId: A
-              query: |
-                from(bucket: "monitoring")
-                  |> range(start: -1h)
-                  |> filter(fn: (r) => r._measurement == "pbs_storage_stats")
-                  |> filter(fn: (r) => r._field == "usage_pct")
-                  |> last()
-          - refId: B
-            datasourceUid: __expr__
-            model:
-              refId: B
-              type: reduce
-              expression: A
-              reducer: last
-          - refId: C
-            datasourceUid: __expr__
-            model:
-              refId: C
-              type: threshold
-              expression: B
-              conditions:
-                - evaluator:
-                    type: gt
-                    params: [85]
-
-  - orgId: 1
     name: network
     folder: LoNSeMonSy Alerts
     interval: 5m
@@ -537,3 +481,8 @@ groups:
                 - evaluator:
                     type: gt
                     params: [95]
+
+# Rules that used to ship and are removed on update.
+deleteRules:
+  - orgId: 1
+    uid: lons-backup-storage
