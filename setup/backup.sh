@@ -29,6 +29,16 @@ if [ -z "$RESTIC_REPOSITORY" ]; then
   exit 1
 fi
 
+# Emails the result, when email alarms are set up.
+report() {
+  if [ "$(get SMTP_ENABLED)" != true ]; then return 0; fi
+  printf 'From: %s <%s>\nTo: %s\nSubject: %s\n\n%s\n' \
+    "$(get SMTP_FROM_NAME)" "$(get SMTP_FROM_ADDRESS)" "$(get ALERT_EMAIL_TO)" "$1" "$2" |
+    curl -s --max-time 30 --ssl-reqd --url "smtp://$(get SMTP_HOST)" --user "$(get SMTP_USER):$(get SMTP_PASSWORD)" \
+      --mail-from "$(get SMTP_FROM_ADDRESS)" --mail-rcpt "$(get ALERT_EMAIL_TO)" --upload-file - || true
+}
+trap 'report "Backup FAILED" "The cloud backup did not finish. To see why, run on the server: sudo lsmsy backup"' ERR
+
 # The first time, create the backup store in the bucket.
 if ! restic cat config >/dev/null 2>&1; then restic init; fi
 
@@ -55,4 +65,8 @@ restic forget --quiet --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 6
 curl -sf -X POST "http://127.0.0.1:8086/api/v2/write" \
   --url-query "org=$(get INFLUXDB_ORG)" --url-query "bucket=$(get INFLUXDB_BUCKET)" --url-query precision=s \
   -H "Authorization: Token $(get INFLUXDB_ADMIN_TOKEN)" --data-binary "lonsemonsy_backup ok=1i" >/dev/null
-echo "Cloud backup done. Copies kept: $(restic snapshots --json | grep -o '"short_id"' | wc -l)"
+copies=$(restic snapshots --json | grep -o '"short_id"' | wc -l)
+echo "Cloud backup done. Copies kept: $copies"
+report "Backup OK" "Cloud backup finished $(date '+%A %b %-d at %-I:%M %p').
+Saved: settings, Grafana, InfluxDB, NetAlertX and Wazuh settings.
+Copies kept: $copies"
