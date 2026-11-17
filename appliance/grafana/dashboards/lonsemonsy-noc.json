@@ -16,16 +16,76 @@
   "schemaVersion": 41,
   "links": [
     {
-      "title": "LoNSeMonSy",
-      "type": "dashboards",
-      "tags": [
-        "lonsemonsy"
-      ],
+      "title": "\ud83d\udd14 Alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
       "asDropdown": false,
-      "includeVars": true,
-      "keepTime": true,
-      "icon": "apps",
-      "targetBlank": false
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udee1\ufe0f Security Overview",
+      "type": "link",
+      "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcc8 System Health",
+      "type": "link",
+      "url": "/d/lons-health",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u26a0\ufe0f Vulnerabilities",
+      "type": "link",
+      "url": "/d/lons-vulns",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udccb Audit",
+      "type": "link",
+      "url": "/d/lons-audit",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u2b06\ufe0f Updates",
+      "type": "link",
+      "url": "/d/lons-updates",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
     }
   ],
   "panels": [
@@ -137,15 +197,6 @@
           "timeField": "timestamp"
         },
         {
-          "refId": "D",
-          "hide": true,
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"pbs_storage_stats\" and r._field == \"usage_pct\")\n  |> last()"
-        },
-        {
           "refId": "E",
           "hide": true,
           "datasource": {
@@ -197,21 +248,6 @@
           "type": "reduce",
           "expression": "C",
           "reducer": "sum",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "SD",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "D",
-          "reducer": "last",
           "settings": {
             "mode": "replaceNN",
             "replaceWithValue": 0
@@ -272,7 +308,7 @@
             "uid": "__expr__"
           },
           "type": "math",
-          "expression": "($SA > 0) + ($SB > 0) + ($SC >= 5) + ($SD > 85) + ($E > 0) + ($SF > 90) + ($SG > 95)"
+          "expression": "($SA > 0) + ($SB > 0) + ($SC >= 5) + ($E > 0) + ($SF > 90) + ($SG > 95)"
         }
       ],
       "gridPos": {

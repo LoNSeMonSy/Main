@@ -13,16 +13,76 @@
   },
   "links": [
     {
-      "title": "LoNSeMonSy",
-      "type": "dashboards",
-      "tags": [
-        "lonsemonsy"
-      ],
+      "title": "\ud83d\udd14 Alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
       "asDropdown": false,
-      "includeVars": true,
-      "keepTime": true,
-      "icon": "apps",
-      "targetBlank": false
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udee1\ufe0f Security Overview",
+      "type": "link",
+      "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcc8 System Health",
+      "type": "link",
+      "url": "/d/lons-health",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u26a0\ufe0f Vulnerabilities",
+      "type": "link",
+      "url": "/d/lons-vulns",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udccb Audit",
+      "type": "link",
+      "url": "/d/lons-audit",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u2b06\ufe0f Updates",
+      "type": "link",
+      "url": "/d/lons-updates",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
     }
   ],
   "panels": [
