@@ -18,6 +18,11 @@ if [ -f "$OSC" ] && ! grep -q 'LoNSeMonSy auto-block' "$OSC"; then
   restart=1
   echo "  wazuh: auto-block on"
 fi
+# Older installs: also block for the "lsmsy test" rule, so the test shows an auto-block.
+if [ -f "$OSC" ] && grep -q '<rules_id>5712,5720,5763</rules_id>' "$OSC"; then
+  sed -i 's#<rules_id>5712,5720,5763</rules_id>#<rules_id>5712,5720,5763,100910</rules_id>#' "$OSC"
+  restart=1
+fi
 
 # Watch this machine's Docker containers, and add our rules (wazuh/lonsemonsy_rules.xml).
 if [ -f "$OSC" ] && ! grep -q 'docker-listener' "$OSC"; then
