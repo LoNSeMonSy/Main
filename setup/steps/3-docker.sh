@@ -8,6 +8,6 @@ if ! command -v docker >/dev/null; then
 fi
 if ! docker compose version >/dev/null 2>&1; then
   echo "  installing Docker Compose..."
-  apt-get install -y -qq docker-compose-v2 >/dev/null
+  apt-get -o DPkg::Lock::Timeout=1800 install -y -qq docker-compose-v2 >/dev/null
 fi
 systemctl enable --now docker >/dev/null 2>&1

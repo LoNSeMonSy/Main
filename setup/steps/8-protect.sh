@@ -37,8 +37,11 @@ fi
 
 # Port-scan detection with Suricata (appliance/suricata/install-suricata.sh).
 if [ -f "$OSC" ] && [ "${SKIP_SURICATA:-0}" != 1 ] && ! grep -q suricata/eve.json "$OSC"; then
+  wait_for_updates
   echo "  installing Suricata (port-scan detection)..."
-  NO_WAZUH_RESTART=1 bash appliance/suricata/install-suricata.sh > /root/suricata-install.log 2>&1
+  if ! NO_WAZUH_RESTART=1 bash appliance/suricata/install-suricata.sh > /root/suricata-install.log 2>&1; then
+    echo "  Suricata didn't install. See /root/suricata-install.log, then run setup again."; exit 1
+  fi
   restart=1
   echo "  suricata: on"
 elif [ -f /etc/systemd/system/suricata-update.service ]; then

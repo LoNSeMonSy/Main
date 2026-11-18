@@ -8,7 +8,8 @@ if [ ! -f "$ENV" ]; then
   echo "  created $ENV"
 fi
 
-apt-get update -qq
+wait_for_updates
+apt-get -o DPkg::Lock::Timeout=1800 update -qq
 need curl curl
 need openssl openssl
 need jq jq

@@ -18,11 +18,21 @@ set_env() {
   echo "$1=$2" >> "$ENV"
 }
 
+# wait_for_updates: after a reboot Ubuntu installs its own updates in the background,
+# and nothing else can install packages until they finish.
+updating() { pgrep -f '/usr/bin/unattended-upgrade$' >/dev/null || pgrep -x dpkg >/dev/null; }
+wait_for_updates() {
+  if updating; then
+    echo "  waiting for Ubuntu's automatic updates to finish (can take 10-20 minutes)..."
+    while updating; do sleep 10; done
+  fi
+}
+
 # need PROGRAM PACKAGE: install PACKAGE with apt if PROGRAM is missing.
 need() {
   if ! command -v "$1" >/dev/null; then
     echo "  installing $2..."
-    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$2" >/dev/null 2>&1; then
+    if ! DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=1800 install -y -qq "$2" >/dev/null 2>&1; then
       echo "  couldn't install $2. Check the internet connection and run setup again."; exit 1
     fi
   fi
