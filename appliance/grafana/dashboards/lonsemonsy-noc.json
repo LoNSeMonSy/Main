@@ -393,12 +393,12 @@
       "type": "alertlist",
       "title": "Alarms going off now",
       "gridPos": {
-        "h": 5,
+        "h": 4,
         "w": 24,
         "x": 0,
         "y": 6
       },
-      "description": "Alarms fire for Medium or worse security alerts (Wazuh level 8+), port scans, new devices, and a full disk or memory.",
+      "description": "Which alarm types are on. Each alert behind them is listed below.",
       "options": {
         "viewMode": "list",
         "groupMode": "default",
@@ -434,8 +434,8 @@
     },
     {
       "type": "table",
-      "title": "What set them off (last 24 hours)",
-      "description": "Medium or worse security alerts, port scans and auto-blocks. Click an alert to open it in Wazuh.",
+      "title": "Each alert (last 24 hours)",
+      "description": "Medium or worse security alerts, port scans and auto-blocks, newest first.",
       "datasource": {
         "type": "grafana-opensearch-datasource",
         "uid": "P45A1D828630779A3"
@@ -443,10 +443,10 @@
       "timeFrom": "24h",
       "hideTimeOverride": true,
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 10
       },
       "targets": [
         {
@@ -472,28 +472,45 @@
       ],
       "transformations": [
         {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "alias": "Account",
+            "reduce": {
+              "include": [
+                "data.win.eventdata.targetUserName",
+                "data.dstuser",
+                "data.srcuser"
+              ],
+              "reducer": "firstNotNull"
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "includeByName": {
               "timestamp": true,
               "rule.description": true,
+              "Account": true,
               "agent.name": true,
               "data.srcip": true,
-              "rule.id": true
+              "_id": true
             },
             "indexByName": {
               "timestamp": 0,
               "rule.description": 1,
-              "agent.name": 2,
-              "data.srcip": 3,
-              "rule.id": 4
+              "Account": 2,
+              "agent.name": 3,
+              "data.srcip": 4,
+              "_id": 5
             },
             "renameByName": {
               "timestamp": "Time",
-              "rule.description": "What happened",
+              "rule.description": "Alert",
               "agent.name": "Machine",
               "data.srcip": "From IP",
-              "rule.id": "What LoNSeMonSy did"
+              "_id": "Wazuh"
             }
           }
         }
@@ -510,7 +527,7 @@
           "custom": {
             "align": "left"
           },
-          "noValue": "Nothing in the last 24 hours"
+          "links": []
         },
         "overrides": [
           {
@@ -528,7 +545,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "What happened"
+              "options": "Alert"
             },
             "properties": [
               {
@@ -538,22 +555,25 @@
                     "type": "value",
                     "options": {
                       "Host Blocked by firewall-drop Active Response": {
-                        "text": "Attacker IP blocked",
+                        "text": "Attacker IP blocked for 10 minutes",
+                        "color": "green",
                         "index": 0
                       }
                     }
                   }
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Account"
+            },
+            "properties": [
               {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "See this in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__data.fields[\"What happened\"]}\"'))",
-                    "targetBlank": true
-                  }
-                ]
+                "id": "custom.width",
+                "value": 140
               }
             ]
           },
@@ -584,47 +604,35 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "What LoNSeMonSy did"
+              "options": "Wazuh"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 260
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
+                "value": 90
               },
               {
                 "id": "mappings",
                 "value": [
                   {
-                    "type": "value",
-                    "options": {
-                      "651": {
-                        "text": "Blocked the IP for 10 minutes",
-                        "color": "green",
-                        "index": 0
-                      },
-                      "86601": {
-                        "text": "Alarm raised (port scan)",
-                        "color": "orange",
-                        "index": 1
-                      }
-                    }
-                  },
-                  {
                     "type": "regex",
                     "options": {
                       "pattern": ".*",
                       "result": {
-                        "text": "Alarm raised, not blocked",
-                        "color": "orange",
-                        "index": 2
+                        "text": "Open \u2197",
+                        "index": 0
                       }
                     }
+                  }
+                ]
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open this alert in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))&_q=(filters:!(),query:(language:kuery,query:'_id:\"${__value.raw}\"'))",
+                    "targetBlank": true
                   }
                 ]
               }

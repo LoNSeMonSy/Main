@@ -182,14 +182,7 @@
           "color": {
             "fixedColor": "blue",
             "mode": "fixed"
-          },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -234,13 +227,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -298,14 +284,7 @@
           "color": {
             "fixedColor": "green",
             "mode": "fixed"
-          },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -370,73 +349,8 @@
       "title": "Network device inventory",
       "type": "table",
       "fieldConfig": {
-        "defaults": {
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
-        },
+        "defaults": {},
         "overrides": [
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "agent.name"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Alerts from this machine in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "rule.description"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "These alerts in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "data.srcip"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Alerts from this IP in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
           {
             "matcher": {
               "id": "byName",

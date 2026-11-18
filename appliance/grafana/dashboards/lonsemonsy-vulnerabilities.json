@@ -730,28 +730,25 @@
               "agent.name": true,
               "package.name": true,
               "package.version": true,
-              "vulnerability.id": true,
               "vulnerability.severity": true,
-              "vulnerability.score.base": true,
-              "vulnerability.description": true
+              "vulnerability.scanner.condition": true,
+              "vulnerability.id": true
             },
             "indexByName": {
               "agent.name": 0,
               "package.name": 1,
               "package.version": 2,
-              "vulnerability.id": 3,
-              "vulnerability.severity": 4,
-              "vulnerability.score.base": 5,
-              "vulnerability.description": 6
+              "vulnerability.severity": 3,
+              "vulnerability.scanner.condition": 4,
+              "vulnerability.id": 5
             },
             "renameByName": {
               "agent.name": "Device",
               "package.name": "Software",
               "package.version": "Installed version",
-              "vulnerability.id": "Issue",
               "vulnerability.severity": "Severity",
-              "vulnerability.score.base": "Score",
-              "vulnerability.description": "What is wrong"
+              "vulnerability.scanner.condition": "What to do",
+              "vulnerability.id": "Details"
             }
           }
         }
@@ -812,36 +809,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Issue"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 160
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "Severity"
             },
             "properties": [
               {
                 "id": "custom.width",
                 "value": 100
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Score"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 80
               }
             ]
           },
@@ -889,9 +862,66 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Issue"
+              "options": "What to do"
             },
             "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "Package less than or equal to (.*)",
+                      "result": {
+                        "text": "Update to a version newer than $1",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "Package less than (.*)",
+                      "result": {
+                        "text": "Update to version $1 or newer",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "Package default status",
+                      "result": {
+                        "text": "No fix released yet",
+                        "index": 2
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".*",
+                      "result": {
+                        "text": "Update this software",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Details"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              },
               {
                 "id": "links",
                 "value": [

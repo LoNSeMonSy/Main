@@ -385,7 +385,7 @@
     {
       "type": "table",
       "title": "Alerts in this time range",
-      "description": "Newest first, up to 200, without Docker noise (see Container activity). Click an alert to open it in Wazuh.",
+      "description": "Newest first, up to 200, without Docker noise (see Container activity).",
       "datasource": {
         "type": "grafana-opensearch-datasource",
         "uid": "P45A1D828630779A3"
@@ -420,28 +420,45 @@
       ],
       "transformations": [
         {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "alias": "Account",
+            "reduce": {
+              "include": [
+                "data.win.eventdata.targetUserName",
+                "data.dstuser",
+                "data.srcuser"
+              ],
+              "reducer": "firstNotNull"
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "includeByName": {
               "timestamp": true,
-              "rule.level": true,
               "rule.description": true,
+              "Account": true,
               "agent.name": true,
-              "data.srcip": true
+              "data.srcip": true,
+              "_id": true
             },
             "indexByName": {
               "timestamp": 0,
-              "rule.level": 1,
-              "rule.description": 2,
+              "rule.description": 1,
+              "Account": 2,
               "agent.name": 3,
-              "data.srcip": 4
+              "data.srcip": 4,
+              "_id": 5
             },
             "renameByName": {
               "timestamp": "Time",
-              "rule.level": "Level",
               "rule.description": "Alert",
               "agent.name": "Machine",
-              "data.srcip": "From IP"
+              "data.srcip": "From IP",
+              "_id": "Wazuh"
             }
           }
         }
@@ -457,7 +474,8 @@
         "defaults": {
           "custom": {
             "align": "left"
-          }
+          },
+          "links": []
         },
         "overrides": [
           {
@@ -468,49 +486,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 170
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Level"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 70
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "text",
-                      "value": null
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 8
-                    },
-                    {
-                      "color": "orange",
-                      "value": 11
-                    },
-                    {
-                      "color": "red",
-                      "value": 13
-                    }
-                  ]
-                }
+                "value": 180
               }
             ]
           },
@@ -521,14 +497,31 @@
             },
             "properties": [
               {
-                "id": "links",
+                "id": "mappings",
                 "value": [
                   {
-                    "title": "See this alert type in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__data.fields[\"Alert\"]}\"'))",
-                    "targetBlank": true
+                    "type": "value",
+                    "options": {
+                      "Host Blocked by firewall-drop Active Response": {
+                        "text": "Attacker IP blocked for 10 minutes",
+                        "color": "green",
+                        "index": 0
+                      }
+                    }
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Account"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
               }
             ]
           },
@@ -553,6 +546,43 @@
               {
                 "id": "custom.width",
                 "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wazuh"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".*",
+                      "result": {
+                        "text": "Open \u2197",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open this alert in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'_id:\"${__value.raw}\"'))",
+                    "targetBlank": true
+                  }
+                ]
               }
             ]
           }
