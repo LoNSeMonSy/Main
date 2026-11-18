@@ -7,7 +7,7 @@
 #   lsmsy update      update to the newest version
 #   lsmsy backup      make a cloud backup now      lsmsy restore   put it back
 #   lsmsy users       Grafana accounts             lsmsy adduser / lsmsy deluser
-#   lsmsy test        send a fake alarm
+#   lsmsy test        send a fake alarm      lsmsy report   the weekly summary
 dir=$(dirname "$(dirname "$(readlink -f "$0")")")   # the LoNSeMonSy folder
 # Grafana's own user API, logged in as admin.
 gapi() { curl -s -m 15 -H 'Content-Type: application/json' \
@@ -19,6 +19,7 @@ case "${1:-}" in
   update)    sudo "$dir/setup/update.sh" ;;
   backup)    sudo "$dir/setup/backup.sh" "${2:-}" ;;
   restore)   sudo "$dir/setup/restore.sh" ;;
+  report)    sudo "$dir/setup/weekly-report.sh" print ;;
   firewall)  sudo ufw status verbose ;;
   users)
     gapi $G/api/org/users | jq -r '.[] | "  \(.login)\t\(.role)"' | column -t ;;
@@ -80,6 +81,7 @@ case "${1:-}" in
     echo "  lsmsy update      update to the newest version"
     echo "  lsmsy backup      make a cloud backup now (lsmsy backup setup: choose the bucket)"
     echo "  lsmsy restore     put the newest cloud backup back"
+    echo "  lsmsy report      this week's security summary (also emailed on Mondays)"
     echo "  lsmsy test        send a fake alarm to check alarms and email work" ;;
   *) echo "Unknown command: $1. Type lsmsy to see the commands."; exit 1 ;;
 esac

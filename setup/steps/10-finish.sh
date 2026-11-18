@@ -14,6 +14,17 @@ systemctl daemon-reload
 systemctl enable --now lonsemonsy-update-check.timer >/dev/null 2>&1
 systemctl start lonsemonsy-update-check.service || true
 
+# Weekly security report by email, Mondays at 8 AM (skipped while email alarms are off).
+cat > /etc/systemd/system/lonsemonsy-weekly-report.service <<UNIT
+[Service]
+Type=oneshot
+ExecStart=$(pwd)/setup/weekly-report.sh
+UNIT
+printf '[Timer]\nOnCalendar=Mon *-*-* 08:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n' \
+  > /etc/systemd/system/lonsemonsy-weekly-report.timer
+systemctl daemon-reload
+systemctl enable --now lonsemonsy-weekly-report.timer >/dev/null 2>&1
+
 # Typing "lsmsy" (or "lonsemonsy") anywhere shows the addresses, version and commands.
 ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lonsemonsy
 ln -sf "$(pwd)/setup/lonsemonsy.sh" /usr/local/bin/lsmsy
