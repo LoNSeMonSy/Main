@@ -7,6 +7,7 @@
 #   lsmsy update      update to the newest version
 #   lsmsy backup      make a cloud backup now      lsmsy restore   put it back
 #   lsmsy users       Grafana accounts             lsmsy adduser / lsmsy deluser
+#   lsmsy test        send a fake alarm
 dir=$(dirname "$(dirname "$(readlink -f "$0")")")   # the LoNSeMonSy folder
 # Grafana's own user API, logged in as admin.
 gapi() { curl -s -m 15 -H 'Content-Type: application/json' \
@@ -44,6 +45,16 @@ case "${1:-}" in
     for s in wazuh-manager wazuh-indexer wazuh-dashboard suricata; do
       echo "  $s: $(systemctl is-active "$s")"
     done ;;
+  test)
+    # 10 fake failed SSH logins from a documentation-only address (192.0.2.99).
+    # Wazuh sees an SSH brute force, Grafana raises an alarm and emails it.
+    for i in $(seq 10); do
+      logger -p auth.notice -t sshd --id=$$ "Failed password for invalid user lsmsy-test from 192.0.2.99 port $((40000 + i)) ssh2"
+      sleep 0.3
+    done
+    echo "  test alarm sent: 10 fake failed logins from 192.0.2.99"
+    echo "  it shows on the Grafana Alarms page (and by email, if set up) in about a minute."
+    echo "  192.0.2.99 also gets auto-blocked for 10 minutes; that is part of the test." ;;
   "")
     ip=$(ip -o -4 route get 1.1.1.1 | grep -oP 'src \K[0-9.]+')
     branch=$(git -c safe.directory="$dir" -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
@@ -51,6 +62,7 @@ case "${1:-}" in
       staging) environment=Staging ;; dev) environment=Development ;; *) environment="" ;;
     esac
     cat "$dir/setup/banner.txt"
+    echo "  Local Network Security Monitoring System"
     echo "  ${environment:+$environment · }version $(cat "$dir/setup/VERSION" 2>/dev/null || echo unknown)"
     echo
     echo "  Grafana:    http://$ip:3000"
@@ -67,6 +79,7 @@ case "${1:-}" in
     echo "  lsmsy deluser     remove one: lsmsy deluser sam"
     echo "  lsmsy update      update to the newest version"
     echo "  lsmsy backup      make a cloud backup now (lsmsy backup setup: choose the bucket)"
-    echo "  lsmsy restore     put the newest cloud backup back" ;;
+    echo "  lsmsy restore     put the newest cloud backup back"
+    echo "  lsmsy test        send a fake alarm to check alarms and email work" ;;
   *) echo "Unknown command: $1. Type lsmsy to see the commands."; exit 1 ;;
 esac
