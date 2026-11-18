@@ -40,6 +40,18 @@
       "tags": []
     },
     {
+      "title": "\ud83d\udce1 Devices",
+      "type": "link",
+      "url": "/d/lons-devices",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
       "title": "\ud83d\udcc8 System Health",
       "type": "link",
       "url": "/d/lons-health",
@@ -367,7 +379,7 @@
           "links": [
             {
               "title": "See serious alerts in Wazuh",
-              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
               "targetBlank": true
             }
           ]
@@ -381,12 +393,12 @@
       "type": "alertlist",
       "title": "Alarms going off now",
       "gridPos": {
-        "h": 11,
-        "w": 16,
+        "h": 7,
+        "w": 24,
         "x": 0,
         "y": 6
       },
-      "description": "Live list of alarms that are firing or about to fire. Empty means everything is normal.",
+      "description": "Alarms fire for Medium or worse security alerts (Wazuh level 8+), port scans, new devices, and a full disk or memory.",
       "options": {
         "viewMode": "list",
         "groupMode": "default",
@@ -412,29 +424,11 @@
           "links": [
             {
               "title": "See serious alerts in Wazuh",
-              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+              "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
               "targetBlank": true
             }
           ]
         },
-        "overrides": []
-      }
-    },
-    {
-      "type": "text",
-      "title": "What the severity bands mean",
-      "gridPos": {
-        "h": 11,
-        "w": 8,
-        "x": 16,
-        "y": 6
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "| Band | Wazuh level | What to do |\n|---|---|---|\n| **Critical** | 13-15 | Act immediately |\n| **High** | 11-12 | Likely attack, act now |\n| **Medium** | 8-10 | Real event, look today |\n| **Low** | 4-7 | Routine housekeeping |\n| **Info** | 0-3 | Normal activity |\n\nAlarms fire at **Medium and above**, on a port scan, a new device, or when the disk or memory fills up."
-      },
-      "fieldConfig": {
-        "defaults": {},
         "overrides": []
       }
     }

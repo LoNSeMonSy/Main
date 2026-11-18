@@ -213,8 +213,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "red",
-            "mode": "fixed"
+            "mode": "thresholds"
           },
           "unit": "short",
           "noValue": "0",
@@ -224,7 +223,20 @@
               "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.groups:authentication_failures'))",
               "targetBlank": true
             }
-          ]
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -367,7 +379,185 @@
         }
       ],
       "title": "Security alerts over time",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Drag across the chart to zoom in. The boxes below follow the zoom."
+    },
+    {
+      "type": "table",
+      "title": "Alerts in this time range",
+      "description": "Newest first, up to 200, without Docker noise (see Container activity). Click an alert to open it in Wazuh.",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "timeField": "timestamp",
+          "query": "rule.level:>=4 AND NOT rule.groups:docker",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "200",
+                "order": "desc"
+              }
+            }
+          ],
+          "bucketAggs": []
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "rule.level": true,
+              "rule.description": true,
+              "agent.name": true,
+              "data.srcip": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "rule.level": 1,
+              "rule.description": 2,
+              "agent.name": 3,
+              "data.srcip": 4
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "rule.level": "Level",
+              "rule.description": "Alert",
+              "agent.name": "Machine",
+              "data.srcip": "From IP"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 8
+                    },
+                    {
+                      "color": "orange",
+                      "value": 11
+                    },
+                    {
+                      "color": "red",
+                      "value": 13
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alert"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "See this alert type in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__data.fields[\"Alert\"]}\"'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Machine"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "From IP"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "datasource": {
@@ -378,7 +568,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 25
       },
       "targets": [
         {
@@ -495,7 +685,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 25
       },
       "targets": [
         {
@@ -609,302 +799,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
-      },
-      "title": "Network Devices (NetAlertX)",
-      "type": "row",
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
-    },
-    {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "P341AFF9E5CCA0B9F"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "blue",
-            "mode": "fixed"
-          },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 0,
-        "y": 26
-      },
-      "options": {
-        "colorMode": "background",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "frser-sqlite-datasource",
-            "uid": "P341AFF9E5CCA0B9F"
-          },
-          "queryText": "SELECT count(*) FROM Devices",
-          "queryType": "table",
-          "rawQueryText": "SELECT count(*) FROM Devices",
-          "refId": "A",
-          "timeColumns": []
-        }
-      ],
-      "title": "Devices on network",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "P341AFF9E5CCA0B9F"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "orange",
-            "mode": "fixed"
-          },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 8,
-        "y": 26
-      },
-      "options": {
-        "colorMode": "background",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "frser-sqlite-datasource",
-            "uid": "P341AFF9E5CCA0B9F"
-          },
-          "queryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
-          "queryType": "table",
-          "rawQueryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
-          "refId": "A",
-          "timeColumns": []
-        }
-      ],
-      "title": "New devices (last 24 h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "P341AFF9E5CCA0B9F"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "green",
-            "mode": "fixed"
-          },
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 16,
-        "y": 26
-      },
-      "options": {
-        "colorMode": "background",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "frser-sqlite-datasource",
-            "uid": "P341AFF9E5CCA0B9F"
-          },
-          "queryText": "SELECT sum(devPresentLastScan) FROM Devices",
-          "queryType": "table",
-          "rawQueryText": "SELECT sum(devPresentLastScan) FROM Devices",
-          "refId": "A",
-          "timeColumns": []
-        }
-      ],
-      "title": "Online now",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "frser-sqlite-datasource",
-        "uid": "P341AFF9E5CCA0B9F"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 31
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "frser-sqlite-datasource",
-            "uid": "P341AFF9E5CCA0B9F"
-          },
-          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
-          "queryType": "table",
-          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
-          "refId": "A",
-          "timeColumns": [
-            "Last Seen",
-            "First Seen"
-          ]
-        }
-      ],
-      "title": "Network device inventory",
-      "type": "table",
-      "fieldConfig": {
-        "defaults": {
-          "links": [
-            {
-              "title": "Open the device list (NetAlertX)",
-              "url": "${netalertx:raw}/devices.php",
-              "targetBlank": true
-            }
-          ]
-        },
-        "overrides": [
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "agent.name"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Alerts from this machine in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'agent.name:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "rule.description"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "These alerts in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'rule.description:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "_lonsemonsy_link": true,
-            "matcher": {
-              "id": "byName",
-              "options": "data.srcip"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Alerts from this IP in Wazuh",
-                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__from:date:iso}',to:'${__to:date:iso}'))&_q=(filters:!(),query:(language:kuery,query:'data.srcip:\"${__value.raw}\"'))",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "First Seen"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "time:MM/DD/YYYY h:mm A"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Last Seen"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "time:MM/DD/YYYY h:mm A"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 41
+        "y": 34
       },
       "title": "Threat detail",
       "type": "row",
@@ -922,7 +817,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 42
+        "y": 35
       },
       "targets": [
         {
@@ -1075,7 +970,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 42
+        "y": 35
       },
       "targets": [
         {
@@ -1145,7 +1040,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 42
+        "y": 35
       },
       "targets": [
         {
@@ -1406,7 +1301,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 43
       },
       "datasource": {
         "type": "grafana-opensearch-datasource",
@@ -1604,6 +1499,18 @@
       "title": "\ud83d\udee1\ufe0f Security Overview",
       "type": "link",
       "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udce1 Devices",
+      "type": "link",
+      "url": "/d/lons-devices",
       "icon": "",
       "tooltip": "",
       "keepTime": false,

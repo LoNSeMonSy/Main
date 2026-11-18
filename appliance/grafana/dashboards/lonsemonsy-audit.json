@@ -40,6 +40,18 @@
       "tags": []
     },
     {
+      "title": "\ud83d\udce1 Devices",
+      "type": "link",
+      "url": "/d/lons-devices",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
       "title": "\ud83d\udcc8 System Health",
       "type": "link",
       "url": "/d/lons-health",
