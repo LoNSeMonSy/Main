@@ -90,3 +90,14 @@ if [ "$ask" = 1 ] && [ -z "$(get BACKUP_REPO)" ]; then
     echo "  cloud backup: skipped"
   fi
 fi
+
+# Question 5: remote access with Tailscale. Its sign-in (Google, Microsoft or GitHub) has 2-step.
+if [ "$ask" = 1 ] && ! tailscale status >/dev/null 2>&1; then
+  echo "  Remote access with 2-step sign-in (optional, Tailscale)"
+  read -r -p "  Open the dashboards from anywhere with Tailscale? [y/N]: " remote
+  if [ "$remote" = y ] || [ "$remote" = Y ]; then
+    echo "  Make a key: https://login.tailscale.com/admin/settings/keys > Generate auth key"
+    read -r -s -p "  Tailscale auth key (Enter to skip): " TS_AUTHKEY; echo
+  fi
+  if [ -n "${TS_AUTHKEY:-}" ]; then echo "  remote access: on (set up at the end)"; else echo "  remote access: skipped"; fi
+fi

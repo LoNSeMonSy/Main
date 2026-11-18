@@ -40,6 +40,9 @@ if [ -n "$(get SITE_NAME)" ]; then
     -d "{\"name\":\"$(get SITE_NAME)\"}" http://localhost:3000/api/org -o /dev/null || true
 fi
 
+# Remote access, if a Tailscale key was given in question 5.
+if [ -n "${TS_AUTHKEY:-}" ]; then TS_AUTHKEY="$TS_AUTHKEY" ./setup/remote.sh || echo "  remote access didn't start; try again with: lsmsy remote"; fi
+
 echo "Done."
 echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
 echo "  NetAlertX:  http://$ip:20211    no login"

@@ -8,6 +8,7 @@
 #   lsmsy backup      make a cloud backup now      lsmsy restore   put it back
 #   lsmsy users       Grafana accounts             lsmsy adduser / lsmsy deluser
 #   lsmsy test        send a fake alarm      lsmsy report   the weekly summary
+#   lsmsy remote      HTTPS access from anywhere (Tailscale)
 dir=$(dirname "$(dirname "$(readlink -f "$0")")")   # the LoNSeMonSy folder
 # Grafana's own user API, logged in as admin.
 gapi() { curl -s -m 15 -H 'Content-Type: application/json' \
@@ -19,6 +20,7 @@ case "${1:-}" in
   update)    sudo "$dir/setup/update.sh" ;;
   backup)    sudo "$dir/setup/backup.sh" "${2:-}" ;;
   restore)   sudo "$dir/setup/restore.sh" ;;
+  remote)    sudo "$dir/setup/remote.sh" ;;
   report)    sudo "$dir/setup/weekly-report.sh" print ;;
   firewall)  sudo ufw status verbose ;;
   users)
@@ -82,6 +84,7 @@ case "${1:-}" in
     echo "  lsmsy backup      make a cloud backup now (lsmsy backup setup: choose the bucket)"
     echo "  lsmsy restore     put the newest cloud backup back"
     echo "  lsmsy report      this week's security summary (also emailed on Mondays)"
-    echo "  lsmsy test        send a fake alarm to check alarms and email work" ;;
+    echo "  lsmsy test        send a fake alarm to check alarms and email work"
+    echo "  lsmsy remote      HTTPS access from anywhere with Tailscale (optional)" ;;
   *) echo "Unknown command: $1. Type lsmsy to see the commands."; exit 1 ;;
 esac
