@@ -40,6 +40,9 @@ if [ -n "$(get SITE_NAME)" ]; then
     -d "{\"name\":\"$(get SITE_NAME)\"}" http://localhost:3000/api/org -o /dev/null || true
 fi
 
+# AI explanations, if turned on (also re-applied after an update).
+if [ "$(get AI_ENABLED)" = true ]; then setup/ai.sh on || echo "  AI explanations didn't start; try again with: lsmsy ai on"; fi
+
 # Remote access, if a Tailscale key was given in question 5.
 if [ -n "${TS_AUTHKEY:-}" ]; then TS_AUTHKEY="$TS_AUTHKEY" ./setup/remote.sh || echo "  remote access didn't start; try again with: lsmsy remote"; fi
 

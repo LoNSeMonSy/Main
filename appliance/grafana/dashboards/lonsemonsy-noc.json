@@ -848,6 +848,257 @@
           }
         ]
       }
+    },
+    {
+      "type": "table",
+      "title": "AI explanations",
+      "description": "Plain-language notes from the AI for Medium or worse alarms (only when AI explanations are on: lsmsy ai on). The AI can be wrong; open the real events in Wazuh.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "import \"regexp\"\nimport \"date\"\n\nfrom(bucket: \"monitoring\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"ai_explanations\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> map(fn: (r) => ({r with\n      what: if regexp.matchRegexpString(r: /What happened:/, v: r.explanation) then regexp.replaceAllString(r: /^.*What happened:\\s*([^|]*?)\\s*(\\|.*)?$/, v: r.explanation, t: \"$1\") else r.explanation,\n      todo: if regexp.matchRegexpString(r: /What to do:/, v: r.explanation) then regexp.replaceAllString(r: /^.*What to do:\\s*([^|]*?)\\s*(\\|.*)?$/, v: r.explanation, t: \"$1\") else \"\",\n      ip: if exists r.src_ip then r.src_ip else \"-\",\n      machine: if exists r.machine then r.machine else \"-\",\n      wfrom: string(v: date.sub(d: 30m, from: r._time)),\n      wto: string(v: date.add(d: 15m, to: r._time))\n  }))\n  |> keep(columns: [\"_time\", \"severity\", \"what\", \"ip\", \"machine\", \"todo\", \"wfrom\", \"wto\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 20)"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Time",
+            "desc": true
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "inspect": true
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "severity"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Severity"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "critical": {
+                        "text": "Critical",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "high": {
+                        "text": "High",
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "medium": {
+                        "text": "Medium",
+                        "color": "yellow",
+                        "index": 2
+                      },
+                      "low": {
+                        "text": "Low",
+                        "color": "blue",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "what"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "What happened"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ip"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "From IP"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "machine"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Machine"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "todo"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "What to do"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wfrom"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Wazuh"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".*",
+                      "result": {
+                        "text": "Open \u2197",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "See these events in Wazuh",
+                    "url": "${wazuh:raw}/app/data-explorer/discover#?_a=(discover:(columns:!(rule.description,agent.name,rule.level,data.srcip),isDirty:!f,sort:!()),metadata:(indexPattern:'wazuh-alerts-*',view:discover))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:'${__data.fields.wfrom}',to:'${__data.fields.wto}'))&_q=(filters:!(),query:(language:kuery,query:'rule.level >= 8'))",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "wto"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "wto"
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "_time": 0,
+              "severity": 1,
+              "what": 2,
+              "ip": 3,
+              "machine": 4,
+              "todo": 5,
+              "wfrom": 6,
+              "wto": 7
+            }
+          }
+        }
+      ]
     }
   ],
   "templating": {

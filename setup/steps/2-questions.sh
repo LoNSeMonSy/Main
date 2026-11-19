@@ -10,7 +10,7 @@ dhcp=0
 if [[ $(ip -o -4 addr show dev "$iface") == *dynamic* ]] && [ ! -f "$NETPLAN" ]; then dhcp=1; fi
 has_tailscale() { tailscale status >/dev/null 2>&1; }
 
-static=${STATIC_IP:-2}; site=""; to=""; from=""; apw=""; repo=""; bucket=""; key_id=""; secret=""; ts_key=""
+static=${STATIC_IP:-2}; site=""; to=""; from=""; apw=""; repo=""; bucket=""; key_id=""; secret=""; ts_key=""; ai=""; ai_url=""
 n=0
 question() { n=$((n + 1)); printf '\n  \033[1mQuestion %s: %s\033[0m\n' "$n" "$1"; }
 
@@ -38,7 +38,7 @@ ask_email() {
 }
 
 questions() {
-  n=0; site=""; to=""; repo=""; ts_key=""
+  n=0; site=""; to=""; repo=""; ts_key=""; ai=""; ai_url=""
   if [ "$dhcp" = 1 ] && [ -z "${STATIC_IP:-}" ]; then
     question "Server address"
     echo "  Other computers reach this server at $ip. The router could change that later."
@@ -74,6 +74,19 @@ questions() {
       done
     fi
   fi
+  if [ "$(get AI_ENABLED)" != true ]; then
+    question "AI explanations"
+    echo "  An AI adds a short note to each serious alarm: what happened and what to do."
+    echo "  It runs on your own network. On this server it needs about 2 GB more memory."
+    if confirm "AI explanations" "Turn on AI explanations? [y/N]: " N; then
+      ai=1
+      ask ai_url "AI explanations" "Another computer running Ollama, like 192.168.1.60 (Enter = this server): "
+      if [ -n "$ai_url" ]; then
+        [[ $ai_url == http* ]] || ai_url="http://$ai_url"
+        [[ ${ai_url#*://} == *:* ]] || ai_url="$ai_url:11434"
+      fi
+    fi
+  fi
 }
 
 line() { printf '    %-16s %s\n' "$1" "$2"; }
@@ -92,6 +105,9 @@ summary() {
   fi
   if ! has_tailscale; then
     if [ -n "$ts_key" ]; then line "Remote access" "on"; else line "Remote access" "off"; fi
+  fi
+  if [ "$(get AI_ENABLED)" != true ]; then
+    if [ -n "$ai" ]; then line "AI explanations" "on (${ai_url:-on this server})"; else line "AI explanations" "off"; fi
   fi
 }
 
@@ -147,3 +163,7 @@ if [ -n "$repo" ]; then
   echo "  cloud backup: on ($bucket)"
 fi
 if [ -n "$ts_key" ]; then TS_AUTHKEY=$ts_key; fi
+if [ -n "$ai" ]; then
+  set_env AI_ENABLED true
+  set_env OLLAMA_URL "$ai_url"
+fi

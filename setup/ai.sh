@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# AI explanations of alarms (optional).
+#   sudo ./setup/ai.sh on       turn it on (or set it up again)
+#   sudo ./setup/ai.sh off      turn it off; alarms still email as before
+#   sudo ./setup/ai.sh status   is it running, and can it reach the model?
+#
+# How it works: Grafana sends each Medium or worse alarm to n8n (a workflow tool).
+# The workflow (appliance/n8n/alert-explainer.json) looks up the Wazuh events, asks
+# the model (Ollama) for a short explanation, emails it and saves it for the Alarms
+# page. The AI only explains; it never blocks or changes anything.
+#
+# The model runs on this server, or on another computer running Ollama (OLLAMA_URL
+# in appliance/.env, e.g. http://192.168.1.60:11434). Alarm data stays on your network.
+# shellcheck source-path=SCRIPTDIR/..
+set -euo pipefail
+cd "$(dirname "$0")/.." || exit 1
+if [ "$(id -u)" != 0 ]; then echo "  Run it with sudo."; exit 1; fi
+source setup/steps/helpers.sh
+POLICIES=appliance/grafana/provisioning/alerting/policies.yaml
+compose() { docker compose -f appliance/docker-compose.yml --profile ai "$@"; }
+reload_alarms() {
+  curl -s -m 15 -o /dev/null -u "admin:$(get GRAFANA_ADMIN_PASSWORD)" \
+    -X POST http://localhost:3000/api/admin/provisioning/alerting/reload || true
+}
+
+url=$(get OLLAMA_URL)
+model=$(get OLLAMA_MODEL)
+if [ -z "$model" ]; then
+  # On this server: the small model under 12 GB of memory, the better one above.
+  if [ -z "$url" ] && [ "$(awk '/MemTotal/{print int($2/1048576)}' /proc/meminfo)" -lt 12 ]; then
+    model=gemma3:1b
+  else
+    model=gemma3:4b
+  fi
+fi
+
+on() {
+  [ -n "$(get N8N_ENCRYPTION_KEY)" ] || set_env N8N_ENCRYPTION_KEY "$(openssl rand -hex 24)"
+  set_env OLLAMA_MODEL "$model"
+  set_env AI_ENABLED true
+
+  if [ -z "$url" ]; then
+    run "Starting the AI (n8n and Ollama)" compose up -d n8n ollama
+    run "Downloading the AI model ($model, one time)" docker exec ollama ollama pull "$model"
+  else
+    run "Starting the AI workflow (n8n)" compose up -d n8n
+    if ! run "Checking the AI computer at $url ($model)" \
+      curl -sf -m 1800 "$url/api/pull" -d "{\"model\":\"$model\",\"stream\":false}"; then
+      echo "  Couldn't reach Ollama at $url. Check that it's running and listening on the network."
+    fi
+  fi
+
+  # n8n gets the email login (from .env) and the workflow, then turns it on.
+  for _ in $(seq 1 60); do
+    if curl -sf -m 3 http://127.0.0.1:5678/healthz >/dev/null; then break; fi
+    sleep 2
+  done
+  local host port tmp
+  host=$(get SMTP_HOST); port=${host##*:}; host=${host%%:*}; [ "$port" != "$host" ] || port=587
+  tmp=$(mktemp)
+  jq -n --arg u "$(get SMTP_USER)" --arg p "$(get SMTP_PASSWORD)" --arg h "$host" --argjson port "$port" \
+    '[{id:"lonsemonsySmtp01", name:"LoNSeMonSy email", type:"smtp", data:{user:$u, password:$p, host:$h, port:$port, secure:false}}]' > "$tmp"
+  docker cp "$tmp" n8n:/tmp/smtp.json && rm -f "$tmp"
+  run "Loading the AI workflow" docker exec n8n sh -c 'n8n import:credentials --input=/tmp/smtp.json && rm -f /tmp/smtp.json &&
+    n8n import:workflow --input=/lonsemonsy-n8n/alert-explainer.json && n8n publish:workflow --id=lonsemonsyAlrtEx'
+  docker restart n8n >/dev/null
+
+  # Grafana also sends Medium or worse alarms to the workflow. Email stays the same.
+  cp appliance/n8n/policies-with-ai.yaml "$POLICIES"
+  reload_alarms
+  echo "  AI explanations: on ($model${url:+ at $url})"
+}
+
+off() {
+  git -c safe.directory="$PWD" show HEAD:"$POLICIES" > "$POLICIES"
+  reload_alarms
+  compose stop n8n ollama >/dev/null 2>&1 || true
+  set_env AI_ENABLED false
+  echo "  AI explanations: off. Alarms still email as before."
+}
+
+status() {
+  echo "  AI explanations: $( [ "$(get AI_ENABLED)" = true ] && echo on || echo off)"
+  echo "  workflow (n8n):  $(docker inspect -f '{{.State.Status}}' n8n 2>/dev/null || echo 'not installed')"
+  echo "  model:           $model at ${url:-this server}"
+  if docker exec n8n wget -qO- "${url:-http://ollama:11434}/api/tags" 2>/dev/null | grep -q "\"$model\""; then
+    echo "  model ready:     yes"
+  else
+    echo "  model ready:     no"
+  fi
+}
+
+case "${1:-}" in
+  on) on ;;
+  off) off ;;
+  status) status ;;
+  *) echo "  usage: lsmsy ai on | off | status"; exit 1 ;;
+esac

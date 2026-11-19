@@ -59,6 +59,17 @@ Then, in https://login.tailscale.com/admin/settings/device-management:
 
 Press Enter to skip; turn it on later with `lsmsy remote`.
 
+## AI explanations
+
+For each Medium or worse alarm, an AI writes a short note: what happened, how serious it is and what to do. It shows on the Alarms page and comes by email. The AI only explains; it never blocks or changes anything, and it can be wrong.
+
+The AI (Google's Gemma 3, run by [Ollama](https://ollama.com)) runs on your own network, so alarm data never leaves it. Two choices:
+
+- **On this server (press Enter):** needs about 2 GB more memory (Gemma 3 1B). With 12 GB of memory or more, setup uses the better Gemma 3 4B (about 5 GB). A note takes about a minute.
+- **On another computer:** install Ollama there (https://ollama.com/download), make it listen on the network (`OLLAMA_HOST=0.0.0.0`), then type that computer's address, e.g. `192.168.1.60`. Setup downloads the model to it.
+
+Turn it on or off later with `lsmsy ai on` or `lsmsy ai off`.
+
 ## Passwords
 
 Setup shows the Grafana, Wazuh and backup passwords once, at the end. Save them in a password manager. They aren't shown again.

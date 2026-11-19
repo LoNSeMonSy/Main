@@ -20,3 +20,14 @@ contactPoints:
           # scan hits arrives as a single readable message.
           singleEmail: true
         disableResolveMessage: false
+
+  # The AI explainer (n8n). Only used when AI explanations are on (setup/ai.sh).
+  - orgId: 1
+    name: lonsemonsy-ai-explainer
+    receivers:
+      - uid: lonsemonsy-ai-webhook
+        type: webhook
+        settings:
+          url: http://n8n:5678/webhook/lonsemonsy-alert
+          httpMethod: POST
+        disableResolveMessage: true

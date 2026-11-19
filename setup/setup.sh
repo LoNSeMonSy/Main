@@ -29,7 +29,7 @@ echo "  Not sure what to answer? Type ? and press Enter at any question."
 
 source setup/steps/helpers.sh     # small functions the steps use
 step 1 "Getting ready";        source setup/steps/1-basics.sh    # settings file, curl and the firewall tool
-step 2 "Questions";            source setup/steps/2-questions.sh # fixed IP, business name, alarm emails, cloud backup, remote access
+step 2 "Questions";            source setup/steps/2-questions.sh # fixed IP, business name, alarm emails, cloud backup, remote access, AI
 step 3 "Docker";               source setup/steps/3-docker.sh    # runs Grafana, InfluxDB and NetAlertX
 step 4 "Settings";             source setup/steps/4-settings.sh  # passwords, time zone, network to scan
 step 5 "Wazuh";                source setup/steps/5-wazuh.sh     # the detection engine
@@ -37,4 +37,4 @@ step 6 "Firewall";             source setup/steps/6-firewall.sh  # block everyth
 step 7 "Starting everything";  source setup/steps/7-start.sh     # and connect Grafana to Wazuh
 step 8 "Protection";           source setup/steps/8-protect.sh   # auto-block, Docker and port-scan detection
 step 9 "Backups";              source setup/steps/9-backup.sh    # nightly, on this server and in the cloud if a bucket was given
-step 10 "Finishing";           source setup/steps/10-finish.sh   # update check, the lsmsy command, remote access, summary
+step 10 "Finishing";           source setup/steps/10-finish.sh   # update check, the lsmsy command, AI, remote access, summary
