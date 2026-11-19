@@ -43,17 +43,21 @@ fi
 # Remote access, if a Tailscale key was given in question 5.
 if [ -n "${TS_AUTHKEY:-}" ]; then TS_AUTHKEY="$TS_AUTHKEY" ./setup/remote.sh || echo "  remote access didn't start; try again with: lsmsy remote"; fi
 
-echo "Done."
+echo
+cat setup/banner.txt
+site=$(get SITE_NAME)
+printf '\n  \033[1mWelcome%s! LoNSeMonSy is installed and watching your network.\033[0m\n' "${site:+, $site}"
+echo "  Setup took $(took "$setup_start"). Version $(cat setup/VERSION)."
+echo
 echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
 echo "  NetAlertX:  http://$ip:20211    no login"
 if [ -s "$WPASS" ]; then
   echo "  Wazuh:      https://$ip         user admin, password $(wazuh_password admin)"
 fi
-if [ -n "$(get BACKUP_REPO)" ]; then
-  echo "  Backup:     password $(get BACKUP_PASSWORD)   save it somewhere else: without it a backup can't be restored"
-fi
+echo "  Backups:    password $(get BACKUP_PASSWORD)   (a backup can't be restored without it)"
 echo
-echo "  Change the Grafana password: click your profile picture > Change password."
-echo "  See the passwords again: lsmsy passwords"
+echo "  Save these passwords in a password manager now. They aren't shown again."
+echo "  Forgot one, or someone else has it: lsmsy password grafana (or wazuh)"
+echo "  Not sure what something means: setup/HELP.md"
 echo "  Protect a computer with a Wazuh agent: see wazuh/README.md"
 echo "  Everything else: type lsmsy"

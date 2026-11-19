@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # The "lsmsy" command (setup links it to /usr/local/bin, so it works anywhere).
 #   lsmsy             addresses, version and commands
-#   lsmsy passwords   the Grafana and Wazuh passwords
+#   lsmsy password    set a new Grafana or Wazuh admin password
 #   lsmsy status      is everything running?
 #   lsmsy firewall    which ports are open
 #   lsmsy update      update to the newest version
-#   lsmsy backup      make a cloud backup now      lsmsy restore   put it back
+#   lsmsy backup      make a backup now            lsmsy restore   put it back
 #   lsmsy users       Grafana accounts             lsmsy adduser / lsmsy deluser
 #   lsmsy test        send a fake alarm      lsmsy report   the weekly summary
 #   lsmsy remote      HTTPS access from anywhere (Tailscale)
@@ -16,10 +16,11 @@ gapi() { curl -s -m 15 -H 'Content-Type: application/json' \
 G=http://localhost:3000
 
 case "${1:-}" in
-  passwords) sudo "$dir/setup/show-passwords.sh" ;;
+  password)  sudo "$dir/setup/change-password.sh" "${2:-}" ;;
+  passwords) echo "  Passwords are shown once, at the end of setup. To set a new one: lsmsy password grafana (or wazuh)" ;;
   update)    sudo "$dir/setup/update.sh" ;;
   backup)    sudo "$dir/setup/backup.sh" "${2:-}" ;;
-  restore)   sudo "$dir/setup/restore.sh" ;;
+  restore)   sudo "$dir/setup/restore.sh" "${2:-}" ;;
   remote)    sudo "$dir/setup/remote.sh" ;;
   report)    sudo "$dir/setup/weekly-report.sh" print ;;
   firewall)  sudo ufw status verbose ;;
@@ -64,7 +65,9 @@ case "${1:-}" in
     case "$branch" in
       staging) environment=Staging ;; dev) environment=Development ;; *) environment="" ;;
     esac
+    site=$( (grep -E '^SITE_NAME=' "$dir/appliance/.env" 2>/dev/null || sudo -n grep -E '^SITE_NAME=' "$dir/appliance/.env" 2>/dev/null) | cut -d= -f2-)
     cat "$dir/setup/banner.txt"
+    echo "  Welcome${site:+, $site}!"
     echo "  Local Network Security Monitoring System"
     echo "  ${environment:+$environment · }version $(cat "$dir/setup/VERSION" 2>/dev/null || echo unknown)"
     echo
@@ -74,15 +77,15 @@ case "${1:-}" in
     echo
     echo "  Installed in $dir"
     echo
-    echo "  lsmsy passwords   show the Grafana and Wazuh passwords"
+    echo "  lsmsy password    set a new admin password: lsmsy password grafana (or wazuh)"
     echo "  lsmsy status      is everything running?"
     echo "  lsmsy firewall    which ports are open"
     echo "  lsmsy users       list the Grafana accounts"
     echo "  lsmsy adduser     add one: lsmsy adduser sam viewer (or editor, admin)"
     echo "  lsmsy deluser     remove one: lsmsy deluser sam"
     echo "  lsmsy update      update to the newest version"
-    echo "  lsmsy backup      make a cloud backup now (lsmsy backup setup: choose the bucket)"
-    echo "  lsmsy restore     put the newest cloud backup back"
+    echo "  lsmsy backup      make a backup now (lsmsy backup setup: add a cloud copy)"
+    echo "  lsmsy restore     put the newest backup back (lsmsy restore cloud: from the cloud)"
     echo "  lsmsy report      this week's security summary (also emailed on Mondays)"
     echo "  lsmsy test        send a fake alarm to check alarms and email work"
     echo "  lsmsy remote      HTTPS access from anywhere with Tailscale (optional)" ;;
