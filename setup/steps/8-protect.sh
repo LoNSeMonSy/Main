@@ -2,6 +2,9 @@
 # Step 8: turn on Wazuh's extras. Each one is added to Wazuh's config as its own block,
 # and Wazuh is restarted once at the end.
 
+# NetAlertX login (its password is shown at the end of setup).
+netalertx_login && echo "  netalertx: login on" || echo "  netalertx: couldn't turn the login on; try: lsmsy password netalertx"
+
 OSC=/var/ossec/etc/ossec.conf
 restart=0
 

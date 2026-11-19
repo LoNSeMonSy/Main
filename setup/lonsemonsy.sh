@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The "lsmsy" command (setup links it to /usr/local/bin, so it works anywhere).
 #   lsmsy             addresses, version and commands
-#   lsmsy password    set a new Grafana or Wazuh admin password
+#   lsmsy password    set a new Grafana, Wazuh or NetAlertX password
 #   lsmsy status      is everything running?
 #   lsmsy firewall    which ports are open
 #   lsmsy update      update to the newest version
@@ -17,7 +17,7 @@ G=http://localhost:3000
 
 case "${1:-}" in
   password)  sudo "$dir/setup/change-password.sh" "${2:-}" ;;
-  passwords) echo "  Passwords are shown once, at the end of setup. To set a new one: lsmsy password grafana (or wazuh)" ;;
+  passwords) echo "  Passwords are shown once, at the end of setup. To set a new one: lsmsy password grafana (or wazuh, netalertx)" ;;
   update)    sudo "$dir/setup/update.sh" ;;
   backup)    sudo "$dir/setup/backup.sh" "${2:-}" ;;
   restore)   sudo "$dir/setup/restore.sh" "${2:-}" ;;
@@ -77,7 +77,7 @@ case "${1:-}" in
     echo
     echo "  Installed in $dir"
     echo
-    echo "  lsmsy password    set a new admin password: lsmsy password grafana (or wazuh)"
+    echo "  lsmsy password    set a new admin password: lsmsy password grafana (or wazuh, netalertx)"
     echo "  lsmsy status      is everything running?"
     echo "  lsmsy firewall    which ports are open"
     echo "  lsmsy users       list the Grafana accounts"

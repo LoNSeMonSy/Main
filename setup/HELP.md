@@ -45,10 +45,17 @@ Backups are encrypted with a backup password that setup makes and shows at the e
 
 Opens the dashboards from anywhere (a phone, a laptop at home) using [Tailscale](https://tailscale.com) (free for up to 3 users). Nothing is opened to the internet: only devices signed in to your Tailscale account can reach it, and that sign-in (Google, Microsoft or GitHub) uses their 2-step verification.
 
-1. Make a free account at https://login.tailscale.com.
-2. Go to https://login.tailscale.com/admin/settings/keys, click **Generate auth key**, then **Generate key**.
-3. Copy the key (it starts with `tskey-`) and paste it into setup.
-4. Install the Tailscale app on each phone or laptop that should reach the dashboard, signed in to the same account.
+1. Make a free account at https://login.tailscale.com. Turn on 2-step verification in that Google, Microsoft or GitHub account: it's the only 2-step check.
+2. Go to https://login.tailscale.com/admin/dns and turn on **HTTPS Certificates** (the dashboard addresses need it).
+3. Go to https://login.tailscale.com/admin/settings/keys, click **Generate auth key**, leave **Reusable** off, then **Generate key**.
+4. Copy the key (it starts with `tskey-`) and paste it into setup.
+5. Install the Tailscale app on each phone or laptop that should reach the dashboard, signed in to the same account.
+
+Then, in https://login.tailscale.com/admin/settings/device-management:
+
+- **Device approval** on: a new phone or laptop can't connect until you approve it.
+- **Key expiry** 7 days: phones and laptops have to sign in again (with 2-step) every week.
+- On the Machines page, open this server's **...** menu and pick **Disable key expiry**, so remote access doesn't stop by itself.
 
 Press Enter to skip; turn it on later with `lsmsy remote`.
 
@@ -56,7 +63,7 @@ Press Enter to skip; turn it on later with `lsmsy remote`.
 
 Setup shows the Grafana, Wazuh and backup passwords once, at the end. Save them in a password manager. They aren't shown again.
 
-- **Forgot one, or think someone else has it:** on the server, run `lsmsy password grafana` or `lsmsy password wazuh`. It sets a new password and signs everyone out.
+- **Forgot one, or think someone else has it:** on the server, run `lsmsy password grafana`, `lsmsy password wazuh` or `lsmsy password netalertx`. It sets a new password and signs everyone out.
 - **Other Grafana users** change their own password in Grafana: profile picture > **Change password**.
 - **If you think you were hacked:** change both passwords, run `lsmsy users` to look for accounts you don't recognize, remove them with `lsmsy deluser <name>`, and check the Audit page for logins you don't recognize.
 - **Backup password:** it can't be changed, but `sudo grep BACKUP_PASSWORD appliance/.env` shows it.

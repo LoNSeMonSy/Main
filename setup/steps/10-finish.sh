@@ -50,14 +50,14 @@ printf '\n  \033[1mWelcome%s! LoNSeMonSy is installed and watching your network.
 echo "  Setup took $(took "$setup_start"). Version $(cat setup/VERSION)."
 echo
 echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
-echo "  NetAlertX:  http://$ip:20211    no login"
+echo "  NetAlertX:  http://$ip:20211    password $(get NETALERTX_PASSWORD)"
 if [ -s "$WPASS" ]; then
   echo "  Wazuh:      https://$ip         user admin, password $(wazuh_password admin)"
 fi
 echo "  Backups:    password $(get BACKUP_PASSWORD)   (a backup can't be restored without it)"
 echo
 echo "  Save these passwords in a password manager now. They aren't shown again."
-echo "  Forgot one, or someone else has it: lsmsy password grafana (or wazuh)"
+echo "  Forgot one, or someone else has it: lsmsy password grafana (or wazuh, netalertx)"
 echo "  Not sure what something means: setup/HELP.md"
 echo "  Protect a computer with a Wazuh agent: see wazuh/README.md"
 echo "  Everything else: type lsmsy"

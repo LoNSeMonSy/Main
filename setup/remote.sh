@@ -23,7 +23,12 @@ if ! tailscale status >/dev/null 2>&1; then
 fi
 if command -v ufw >/dev/null; then ufw allow in on tailscale0 >/dev/null; fi
 
-# HTTPS addresses with a real certificate (needs "HTTPS Certificates" on in Tailscale's DNS settings).
+# HTTPS addresses with a real certificate. Tailscale only gives one when "HTTPS Certificates" is on.
+if [ "$(tailscale status --json | jq '.CertDomains // [] | length')" = 0 ]; then
+  echo "  Turn on HTTPS first: https://login.tailscale.com/admin/dns > HTTPS Certificates > Enable."
+  echo "  Then run: lsmsy remote"
+  exit 1
+fi
 tailscale serve --bg --https=8443 http://localhost:3000 >/dev/null
 tailscale serve --bg --https=8444 http://localhost:20211 >/dev/null
 tailscale serve --bg --https=8445 https+insecure://localhost:443 >/dev/null
@@ -39,3 +44,5 @@ echo "  Remote access is on. From any device signed in to your Tailscale:"
 echo "    Grafana:    https://$name:8443"
 echo "    NetAlertX:  https://$name:8444"
 echo "    Wazuh:      https://$name:8445"
+echo "  In Tailscale's admin page, also turn on Device approval, set Key expiry to 7 days and"
+echo "  disable key expiry for this server (see setup/HELP.md, Remote access)."

@@ -5,7 +5,15 @@
 if [ "${SKIP_FIREWALL:-0}" = 1 ]; then
   echo "  firewall: skipped"
 else
-  ufw allow 22/tcp comment "SSH" >/dev/null                      # first, so SSH never gets cut off
+  # SSH only from this network and Tailscale (first, so SSH never gets cut off).
+  # SSH_ANYWHERE=1 in appliance/.env keeps it open to everyone, like before.
+  ufw allow from "$lan" to any port 22 proto tcp comment "SSH" >/dev/null
+  ufw allow in on tailscale0 to any port 22 proto tcp comment "SSH over Tailscale" >/dev/null
+  if [ "$(get SSH_ANYWHERE)" = 1 ]; then
+    ufw allow 22/tcp comment "SSH" >/dev/null
+  else
+    ufw delete allow 22/tcp >/dev/null 2>&1 || true            # older installs had it open to everyone
+  fi
   ufw allow from "$lan" to any port 3000 proto tcp comment "Grafana" >/dev/null
   ufw allow from "$lan" to any port 443 proto tcp comment "Wazuh dashboard" >/dev/null
   ufw allow from "$lan" to any port 20211 proto tcp comment "NetAlertX" >/dev/null
@@ -21,7 +29,6 @@ else
   ufw --force enable >/dev/null
   ufw reload >/dev/null
   echo "  firewall: on. Everything is blocked except:"
-  echo "    Port 22 (SSH), from anywhere"
-  echo "    Port 3000 (Grafana), 443 (Wazuh dashboard), 20211 (NetAlertX),"
+  echo "    Port 22 (SSH), 3000 (Grafana), 443 (Wazuh dashboard), 20211 (NetAlertX),"
   echo "    1514 and 1515 (Wazuh agents), only from $lan"
 fi

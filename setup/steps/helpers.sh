@@ -83,6 +83,21 @@ set_env() {
   echo "$1=$2" >> "$ENV"
 }
 
+# short_pw: a random 12-character password (letters and numbers), easy enough to type.
+short_pw() { openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | cut -c1-12; }
+
+# netalertx_login: turn on NetAlertX's login with NETALERTX_PASSWORD. Its web page reads
+# the password straight from app.conf, so it goes in that file (and in docker-compose.yml).
+netalertx_login() {
+  local _
+  for _ in $(seq 1 60); do
+    docker exec netalertx test -s /data/config/app.conf 2>/dev/null && break
+    sleep 2
+  done
+  docker exec -u 20211:20211 netalertx sh -c "sed -i '/^SETPWD_enable_password=/d; /^SETPWD_password=/d' /data/config/app.conf &&
+    printf 'SETPWD_enable_password=True\nSETPWD_password=%s\n' \"'$(get NETALERTX_PASSWORD_HASH)'\" >> /data/config/app.conf"
+}
+
 # wait_for_updates: after a reboot Ubuntu installs its own updates in the background,
 # and nothing else can install packages until they finish.
 updating() { pgrep -f '/usr/bin/unattended-upgrade$' >/dev/null || pgrep -x dpkg >/dev/null; }
