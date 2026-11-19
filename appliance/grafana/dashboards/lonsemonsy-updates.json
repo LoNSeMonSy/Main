@@ -378,7 +378,7 @@
     },
     {
       "type": "stat",
-      "title": "Last cloud backup",
+      "title": "Last backup",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -402,7 +402,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "dateTimeFromNow",
-          "noValue": "Not set up",
+          "noValue": "None yet",
           "color": {
             "mode": "fixed",
             "fixedColor": "green"

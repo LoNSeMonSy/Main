@@ -345,16 +345,16 @@ groups:
                     params: [0]
 
       # ------------------------------------------------------------------
-      # Cloud backup hasn't worked for 2 days (setup/backup.sh writes
-      # lonsemonsy_backup after each good backup). Silent if not set up.
+      # No backup has worked for 2 days (setup/backup.sh writes
+      # lonsemonsy_backup after each good backup).
       # ------------------------------------------------------------------
       - uid: lons-backup-old
-        title: Cloud backup is out of date
+        title: Backup is out of date
         condition: C
         for: 0m
         annotations:
           summary: >-
-            No cloud backup has worked for over 2 days. Run lonsemonsy backup to see why.
+            No backup has worked for over 2 days. Run lsmsy backup on the server to see why.
         labels:
           severity: medium
         noDataState: OK
