@@ -37,16 +37,18 @@ fi
 on() {
   [ -n "$(get N8N_ENCRYPTION_KEY)" ] || set_env N8N_ENCRYPTION_KEY "$(openssl rand -hex 24)"
   set_env OLLAMA_MODEL "$model"
-  set_env AI_ENABLED true
 
   if [ -z "$url" ]; then
     run "Starting the AI (n8n and Ollama)" compose up -d n8n ollama
     run "Downloading the AI model ($model, one time)" docker exec ollama ollama pull "$model"
   else
     run "Starting the AI workflow (n8n)" compose up -d n8n
-    if ! run "Checking the AI computer at $url ($model)" \
-      curl -sf -m 1800 "$url/api/pull" -d "{\"model\":\"$model\",\"stream\":false}"; then
-      echo "  Couldn't reach Ollama at $url. Check that it's running and listening on the network."
+    # Download the model to that computer, unless it already has it.
+    if ! curl -sf -m 10 "$url/api/tags" | grep -q "\"$model\""; then
+      if ! run "Downloading the AI model to $url ($model, one time)" \
+        curl -sf -m 1800 "$url/api/pull" -d "{\"model\":\"$model\",\"stream\":false}"; then
+        echo "  Couldn't reach Ollama at $url. Check that it's running and listening on the network."
+      fi
     fi
   fi
 
@@ -55,12 +57,13 @@ on() {
     if curl -sf -m 3 http://127.0.0.1:5678/healthz >/dev/null; then break; fi
     sleep 2
   done
-  local host port tmp
+  local host port
   host=$(get SMTP_HOST); port=${host##*:}; host=${host%%:*}; [ "$port" != "$host" ] || port=587
-  tmp=$(mktemp)
+  # Written by n8n's own user, so it can read it.
+  docker exec -u root n8n rm -f /tmp/smtp.json
   jq -n --arg u "$(get SMTP_USER)" --arg p "$(get SMTP_PASSWORD)" --arg h "$host" --argjson port "$port" \
-    '[{id:"lonsemonsySmtp01", name:"LoNSeMonSy email", type:"smtp", data:{user:$u, password:$p, host:$h, port:$port, secure:false}}]' > "$tmp"
-  docker cp "$tmp" n8n:/tmp/smtp.json && rm -f "$tmp"
+    '[{id:"lonsemonsySmtp01", name:"LoNSeMonSy email", type:"smtp", data:{user:$u, password:$p, host:$h, port:$port, secure:false}}]' |
+    docker exec -i n8n sh -c 'umask 077; cat > /tmp/smtp.json'
   run "Loading the AI workflow" docker exec n8n sh -c 'n8n import:credentials --input=/tmp/smtp.json && rm -f /tmp/smtp.json &&
     n8n import:workflow --input=/lonsemonsy-n8n/alert-explainer.json && n8n publish:workflow --id=lonsemonsyAlrtEx'
   docker restart n8n >/dev/null
@@ -68,6 +71,7 @@ on() {
   # Grafana also sends Medium or worse alarms to the workflow. Email stays the same.
   cp appliance/n8n/policies-with-ai.yaml "$POLICIES"
   reload_alarms
+  set_env AI_ENABLED true
   echo "  AI explanations: on ($model${url:+ at $url})"
 }
 
