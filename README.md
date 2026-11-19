@@ -59,12 +59,12 @@ sudo ./setup/setup.sh
 | Command | What it does |
 |---|---|
 | `lsmsy` | shows the addresses, the version and these commands |
-| `lsmsy passwords` | shows the Grafana and Wazuh passwords |
+| `lsmsy password` | sets a new Grafana or Wazuh admin password and signs everyone out |
 | `lsmsy status` | shows whether everything is running |
 | `lsmsy firewall` | shows which ports are open |
 | `lsmsy update` | updates to the newest version |
-| `lsmsy backup` | makes a cloud backup now (`lsmsy backup setup` chooses the bucket) |
-| `lsmsy restore` | puts the newest cloud backup back |
+| `lsmsy backup` | makes a backup now (`lsmsy backup setup` adds a cloud copy) |
+| `lsmsy restore` | puts the newest backup back (`lsmsy restore cloud` uses the cloud copy) |
 | `lsmsy users` | lists the Grafana accounts (`lsmsy adduser` / `lsmsy deluser` add or remove one) |
 | `lsmsy report` | shows this week's security summary (also emailed on Mondays) |
 | `lsmsy test` | sends a fake alarm to check that alarms and email work |
@@ -72,7 +72,7 @@ sudo ./setup/setup.sh
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 
-**Email alarms** are sent from a Gmail account. Use a separate one made just for this, with an [app password](https://myaccount.google.com/apppasswords) (not its normal password; needs 2-Step Verification).
+Not sure what to answer during setup? Type `?` at any question, or see [setup/HELP.md](setup/HELP.md).
 
 ## What's inside
 

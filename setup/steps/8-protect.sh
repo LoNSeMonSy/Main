@@ -38,9 +38,8 @@ fi
 # Port-scan detection with Suricata (appliance/suricata/install-suricata.sh).
 if [ -f "$OSC" ] && [ "${SKIP_SURICATA:-0}" != 1 ] && ! grep -q suricata/eve.json "$OSC"; then
   wait_for_updates
-  echo "  installing Suricata (port-scan detection)..."
-  if ! NO_WAZUH_RESTART=1 bash appliance/suricata/install-suricata.sh > /root/suricata-install.log 2>&1; then
-    echo "  Suricata didn't install. See /root/suricata-install.log, then run setup again."; exit 1
+  if ! run "Installing Suricata (port-scan detection)" env NO_WAZUH_RESTART=1 bash appliance/suricata/install-suricata.sh; then
+    echo "  Suricata didn't install. Run setup again; it carries on from here."; exit 1
   fi
   restart=1
   echo "  suricata: on"
@@ -52,17 +51,13 @@ elif [ -f /etc/systemd/system/suricata-update.service ]; then
 fi
 
 if [ "$restart" = 1 ]; then
-  echo "  wazuh: restarting to load the changes..."
-  wazuh_restart
+  run "Restarting Wazuh to load the changes" wazuh_restart
 fi
 
 # Keep 90 days of alerts so the disk doesn't fill up (wazuh/ism-policy.json).
 if [ -s "$WPASS" ]; then
   admin=$(wazuh_password admin)
-  for _ in $(seq 1 30); do
-    if curl -sk -u "admin:$admin" https://127.0.0.1:9200 -o /dev/null; then break; fi
-    sleep 5
-  done
+  run "Waiting for Wazuh's indexer" bash -c 'for _ in $(seq 1 30); do curl -sfk -u "admin:$1" https://127.0.0.1:9200 -o /dev/null && exit 0; sleep 5; done' _ "$admin" || true
   curl -sk -u "admin:$admin" -X PUT https://127.0.0.1:9200/_plugins/_ism/policies/lonsemonsy-alerts-retention \
     -H 'Content-Type: application/json' --data-binary @wazuh/ism-policy.json -o /dev/null
   echo "  wazuh: keeping 90 days of alerts"

@@ -9,7 +9,7 @@ if [ ! -f "$ENV" ]; then
 fi
 
 wait_for_updates
-apt-get -o DPkg::Lock::Timeout=1800 update -qq
+run "Checking Ubuntu's package list" apt-get -o DPkg::Lock::Timeout=1800 update
 need curl curl
 need openssl openssl
 need jq jq

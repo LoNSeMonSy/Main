@@ -13,27 +13,10 @@ else
     echo "  note: Wazuh wants 8 GB of memory. It will run on less, but slowly."
     ignore="-i"                       # tell Wazuh's installer not to stop on that
   fi
-  echo "  installing Wazuh $ver (15-20 minutes, log: /root/wazuh-install.log)"
+  echo "  Wazuh's installer adds the indexer (stores alerts), the manager (finds attacks),"
+  echo "  Filebeat (connects the two) and the Wazuh dashboard. It takes 15-20 minutes."
   curl -fsSo /root/wazuh-install.sh "https://packages.wazuh.com/$ver/wazuh-install.sh"
-  (cd /root && bash wazuh-install.sh -a $ignore > /root/wazuh-install.log 2>&1) &
-  pid=$!
-  # Show each part as Wazuh's installer reaches it.
-  shown=""
-  while kill -0 "$pid" 2>/dev/null; do
-    part=$(grep -oE "Starting (Wazuh indexer|the Wazuh manager|Filebeat|Wazuh dashboard) installation" /root/wazuh-install.log | tail -1)
-    if [ "$part" != "$shown" ]; then
-      case "$part" in
-        *indexer*)   echo "    [1/4] the indexer (stores the alerts)" ;;
-        *manager*)   echo "    [2/4] the manager (the detection engine)" ;;
-        *Filebeat*)  echo "    [3/4] Filebeat (connects the two)" ;;
-        *dashboard*) echo "    [4/4] the Wazuh dashboard" ;;
-      esac
-      shown=$part
-    fi
-    sleep 5
-  done
-  if ! wait "$pid"; then echo "  Wazuh install failed. See /root/wazuh-install.log"; exit 1; fi
-  echo "  wazuh: installed"
+  run "Installing Wazuh $ver" bash -c "cd /root && bash wazuh-install.sh -a $ignore"
 fi
 
 # Grafana reads the alerts with Wazuh's built-in read-only user "readall".

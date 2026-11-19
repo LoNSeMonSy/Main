@@ -3,11 +3,10 @@
 # Docker's own installer: https://docs.docker.com/engine/install/
 
 if ! command -v docker >/dev/null; then
-  echo "  installing Docker..."
-  curl -fsSL https://get.docker.com | sh >/dev/null
+  run "Installing Docker" sh -c 'curl -fsSL https://get.docker.com | sh'
 fi
 if ! docker compose version >/dev/null 2>&1; then
-  echo "  installing Docker Compose..."
-  apt-get -o DPkg::Lock::Timeout=1800 install -y -qq docker-compose-v2 >/dev/null
+  run "Installing Docker Compose" apt-get -o DPkg::Lock::Timeout=1800 install -y docker-compose-v2
 fi
+echo "  docker: $(docker --version | cut -d, -f1)"
 systemctl enable --now docker >/dev/null 2>&1
