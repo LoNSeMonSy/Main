@@ -1,0 +1,383 @@
+{
+  "links": [
+    {
+      "title": "\ud83d\udd14 Alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udee1\ufe0f Security Overview",
+      "type": "link",
+      "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udce1 Devices",
+      "type": "link",
+      "url": "/d/lons-devices",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcc8 System Health",
+      "type": "link",
+      "url": "/d/lons-health",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u26a0\ufe0f Vulnerabilities",
+      "type": "link",
+      "url": "/d/lons-vulns",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udccb Audit",
+      "type": "link",
+      "url": "/d/lons-audit",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u2b06\ufe0f Updates",
+      "type": "link",
+      "url": "/d/lons-updates",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "appliance",
+        "label": "Open links via",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "wazuh",
+        "label": "Wazuh address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "netalertx",
+        "label": "NetAlertX address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      }
+    ]
+  },
+  "schemaVersion": 39,
+  "uid": "lons-devices",
+  "title": "Devices",
+  "tags": [
+    "lonsemonsy",
+    "security"
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 2
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT count(*) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT count(*) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Devices on network",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 2
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
+          "queryType": "table",
+          "rawQueryText": "SELECT COUNT(*) FROM Devices WHERE devFirstConnection >= datetime('now', '-24 hours')",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "New devices (last 24 h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 2
+      },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "queryType": "table",
+          "rawQueryText": "SELECT sum(devPresentLastScan) FROM Devices",
+          "refId": "A",
+          "timeColumns": []
+        }
+      ],
+      "title": "Online now",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "P341AFF9E5CCA0B9F"
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "P341AFF9E5CCA0B9F"
+          },
+          "queryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "queryType": "table",
+          "rawQueryText": "SELECT devLastIP as IP, devName as Name, devVendor as Vendor, CAST(strftime('%s', devFirstConnection) AS INTEGER) as 'First Seen', CAST(strftime('%s', devLastConnection) AS INTEGER) as 'Last Seen' FROM Devices ORDER BY devLastConnection DESC",
+          "refId": "A",
+          "timeColumns": [
+            "Last Seen",
+            "First Seen"
+          ]
+        }
+      ],
+      "title": "Network device inventory",
+      "type": "table",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "First Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:MM/DD/YYYY h:mm A"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last Seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time:MM/DD/YYYY h:mm A"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "timezone": ""
+}

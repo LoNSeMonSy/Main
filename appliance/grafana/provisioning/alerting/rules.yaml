@@ -200,62 +200,6 @@ groups:
                     params: [5]
 
   - orgId: 1
-    name: capacity
-    folder: LoNSeMonSy Alerts
-    interval: 5m
-    rules:
-      # ------------------------------------------------------------------
-      # 3. Backup storage filling up. This is the "margin" case the other two
-      #    are not: it warns while there is still room to act, rather than
-      #    after backups have already started failing.
-      #    Currently ~12% used, so this sits well below the line.
-      # ------------------------------------------------------------------
-      - uid: lons-backup-storage
-        title: Backup storage running low
-        condition: C
-        for: 15m
-        annotations:
-          summary: >-
-            The PBS backup datastore is above 85% full. Backups are the rollback
-            mechanism for this appliance, so losing backup capacity means losing
-            the ability to undo a bad change.
-        labels:
-          severity: medium
-        noDataState: OK
-        execErrState: OK
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 3600
-              to: 0
-            datasourceUid: P951FEA4DE68E13C5
-            model:
-              refId: A
-              query: |
-                from(bucket: "monitoring")
-                  |> range(start: -1h)
-                  |> filter(fn: (r) => r._measurement == "pbs_storage_stats")
-                  |> filter(fn: (r) => r._field == "usage_pct")
-                  |> last()
-          - refId: B
-            datasourceUid: __expr__
-            model:
-              refId: B
-              type: reduce
-              expression: A
-              reducer: last
-          - refId: C
-            datasourceUid: __expr__
-            model:
-              refId: C
-              type: threshold
-              expression: B
-              conditions:
-                - evaluator:
-                    type: gt
-                    params: [85]
-
-  - orgId: 1
     name: network
     folder: LoNSeMonSy Alerts
     interval: 5m
@@ -401,16 +345,16 @@ groups:
                     params: [0]
 
       # ------------------------------------------------------------------
-      # Cloud backup hasn't worked for 2 days (setup/backup.sh writes
-      # lonsemonsy_backup after each good backup). Silent if not set up.
+      # No backup has worked for 2 days (setup/backup.sh writes
+      # lonsemonsy_backup after each good backup).
       # ------------------------------------------------------------------
       - uid: lons-backup-old
-        title: Cloud backup is out of date
+        title: Backup is out of date
         condition: C
         for: 0m
         annotations:
           summary: >-
-            No cloud backup has worked for over 2 days. Run lonsemonsy backup to see why.
+            No backup has worked for over 2 days. Run lsmsy backup on the server to see why.
         labels:
           severity: medium
         noDataState: OK
@@ -446,3 +390,99 @@ groups:
                 - evaluator:
                     type: gt
                     params: [48]
+
+      # ------------------------------------------------------------------
+      # The server's disk is almost full (numbers from Telegraf, see the
+      # System Health page). A full disk stops Wazuh and Grafana.
+      # ------------------------------------------------------------------
+      - uid: lons-disk-full
+        title: Disk almost full
+        condition: C
+        for: 5m
+        annotations:
+          summary: >-
+            The server's disk is over 90% full. Free up space or add a bigger disk.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "disk" and r._field == "used_percent" and r.path == "/")
+                  |> last()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [90]
+
+      # ------------------------------------------------------------------
+      # Memory has been almost all used for 10 minutes.
+      # ------------------------------------------------------------------
+      - uid: lons-memory-full
+        title: Server low on memory
+        condition: C
+        for: 10m
+        annotations:
+          summary: >-
+            The server has used over 95% of its memory for 10 minutes. It needs more memory.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -10m)
+                  |> filter(fn: (r) => r._measurement == "mem" and r._field == "used_percent")
+                  |> mean()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [95]
+
+# Rules that used to ship and are removed on update.
+deleteRules:
+  - orgId: 1
+    uid: lons-backup-storage

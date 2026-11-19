@@ -17,7 +17,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> installing suricata"
-DEBIAN_FRONTEND=noninteractive apt-get install -y suricata >/dev/null
+DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=1800 install -y suricata >/dev/null
 
 echo "==> site config (policy only -- no network literals)"
 install -m 755 "$HERE/lonsemonsy-homenet"            /usr/local/sbin/lonsemonsy-homenet

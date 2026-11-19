@@ -13,35 +13,107 @@
   },
   "links": [
     {
-      "title": "LoNSeMonSy",
-      "type": "dashboards",
-      "tags": [
-        "lonsemonsy"
-      ],
+      "title": "\ud83d\udd14 Alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
       "asDropdown": false,
-      "includeVars": true,
-      "keepTime": true,
-      "icon": "apps",
-      "targetBlank": false
+      "tags": []
     },
     {
-      "title": "Wazuh",
+      "title": "\ud83d\udee1\ufe0f Security Overview",
       "type": "link",
-      "url": "${wazuh:raw}",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Wazuh dashboard: the advanced view for IT people"
+      "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
     },
     {
-      "title": "Devices (NetAlertX)",
+      "title": "\ud83d\udce1 Devices",
       "type": "link",
-      "url": "${netalertx:raw}/devices.php",
-      "targetBlank": true,
-      "icon": "external link",
-      "tooltip": "Every device on the network"
+      "url": "/d/lons-devices",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcc8 System Health",
+      "type": "link",
+      "url": "/d/lons-health",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u26a0\ufe0f Vulnerabilities",
+      "type": "link",
+      "url": "/d/lons-vulns",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udccb Audit",
+      "type": "link",
+      "url": "/d/lons-audit",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u2b06\ufe0f Updates",
+      "type": "link",
+      "url": "/d/lons-updates",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
     }
   ],
   "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
     {
       "type": "stat",
       "title": "Installed version",
@@ -49,7 +121,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -92,7 +164,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -151,7 +223,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 2
       },
       "datasource": {
         "type": "influxdb",
@@ -195,11 +267,11 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 2
       },
       "options": {
         "mode": "markdown",
-        "content": "On the appliance, in the LoNSeMonSy folder:\n\n`sudo ./setup/update.sh`\n\nYour settings and data are kept. Back up the machine first."
+        "content": "Run `lsmsy update` on the server.\n\nSettings and data are kept."
       },
       "fieldConfig": {
         "defaults": {},
@@ -210,10 +282,10 @@
       "type": "table",
       "title": "What's new in the newest version",
       "gridPos": {
-        "h": 10,
+        "h": 5,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 6
       },
       "datasource": {
         "type": "influxdb",
@@ -305,31 +377,13 @@
       }
     },
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "Full history: `setup/CHANGELOG.md` in the LoNSeMonSy repository on GitHub. The appliance checks for a new version once a day."
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
-    },
-    {
       "type": "stat",
-      "title": "Last cloud backup",
+      "title": "Last backup",
       "gridPos": {
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 16
+        "y": 11
       },
       "datasource": {
         "type": "influxdb",
@@ -348,7 +402,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "dateTimeFromNow",
-          "noValue": "Not set up",
+          "noValue": "None yet",
           "color": {
             "mode": "fixed",
             "fixedColor": "green"
@@ -368,6 +422,25 @@
         "graphMode": "none",
         "textMode": "value"
       }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Checked once a day. Full history: `setup/CHANGELOG.md` on GitHub."
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "transparent": true
     }
   ],
   "templating": {
