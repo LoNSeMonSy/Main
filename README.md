@@ -62,6 +62,10 @@ sudo ./setup/setup.sh
 | `lsmsy update` | updates to the newest version |
 | `lsmsy backup` | makes a cloud backup now (`lsmsy backup setup` chooses the bucket) |
 | `lsmsy restore` | puts the newest cloud backup back |
+| `lsmsy users` | lists the Grafana accounts (`lsmsy adduser` / `lsmsy deluser` add or remove one) |
+| `lsmsy report` | shows this week's security summary (also emailed on Mondays) |
+| `lsmsy test` | sends a fake alarm to check that alarms and email work |
+| `lsmsy remote` | turns on HTTPS access from anywhere with Tailscale (optional) |
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 
