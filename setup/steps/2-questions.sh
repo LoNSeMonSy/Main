@@ -39,34 +39,31 @@ say() { printf '  %s\n' "$@"; echo; }
 
 ask_email() {
   while true; do
-    say "Where should alarm emails go? Any email address works." "Format: name@example.com, e.g. owner@acmedental.com"
-    ask to "Alarm emails" "Your email (Enter to skip) > "
-    if [ -z "$to" ]; then return; fi
-    if [[ $to != *@*.* ]]; then echo "  That isn't an email address."; echo; continue; fi
+    say "Format: name@gmail.com, e.g. acmealarms@gmail.com"
+    ask from "Alarm emails" "Gmail address (Enter to skip) > "
+    if [ -z "$from" ]; then return; fi
+    if [[ $from != *@*.* ]]; then echo "  That isn't an email address."; echo; continue; fi
     echo
-    say "Alarms are sent from a Gmail account. A new one just for this works best." "Format: name@gmail.com, e.g. acmealarms@gmail.com"
-    while true; do
-      ask from "Alarm emails" "Gmail address > "
-      if [[ $from == *@*.* ]]; then break; fi
-      echo "  That isn't an email address."
-    done
-    echo
-    say "Gmail won't let LoNSeMonSy use that account's normal password. Instead," \
-        "Google gives you a separate 16-letter password just for LoNSeMonSy:" \
-        "  https://myaccount.google.com/apppasswords   (signed in as $from)" \
-        "Format: 16 letters, e.g. abcd efgh ijkl mnop. Type ? for step-by-step help."
+    say "Get its app password at https://myaccount.google.com/apppasswords" "Format: 16 letters, e.g. abcd efgh ijkl mnop"
     ask apw "Alarm emails" "16-letter password (hidden) > " hidden
     apw=${apw// /}                    # Google shows it with spaces; they aren't part of it
     echo "  checking with Gmail..."
     # Log in to Gmail once to check it (nothing is sent).
     if curl -s --max-time 20 --ssl-reqd --url smtp://smtp.gmail.com:587 --user "$from:$apw" -X NOOP -o /dev/null; then
       echo "  ✓ Gmail accepted it."
-      return
+      break
     fi
     echo "  ✗ Gmail didn't accept that Gmail address and password."
     echo
-    if ! confirm "Alarm emails" "Try again? [Y/n] > " Y; then to=""; return; fi
+    if ! confirm "Alarm emails" "Try again? [Y/n] > " Y; then return; fi
     echo
+  done
+  echo
+  while true; do
+    ask to "Alarm emails" "Send alarms to [$from] > "
+    to=${to:-$from}
+    if [[ $to == *@*.* ]]; then return; fi
+    echo "  That isn't an email address."
   done
 }
 
@@ -74,13 +71,12 @@ questions() {
   n=0; tz=""; backup_time=""; site=""; to=""; repo=""; remote=""; ai=""; ai_url=""
   if q_address; then
     question "Server address"
-    say "Other computers reach this server at $ip." "The router could change that address later, which breaks the links."
+    say "The dashboard links stop working if this address changes."
     if confirm "Server address" "Keep it fixed at $ip? [Y/n] > " Y; then static=1; else static=2; fi
   fi
   if q_timezone; then
     question "Time zone"
-    say "This server's clock is on UTC, so backups and reports would run" "at the wrong local time." \
-        "Format: Region/City, e.g. America/New_York or America/Chicago." "Type ? for the common ones."
+    say "Format: Region/City, e.g. America/New_York or America/Chicago"
     while true; do
       ask tz "Time zone" "Time zone [America/New_York] > "
       case "${tz,,}" in
@@ -94,56 +90,51 @@ questions() {
   fi
   if q_name; then
     question "Business name"
-    say "Shown at the top of the dashboard and on alarm emails." "Format: any name, e.g. Acme Dental."
+    say "It shows on the dashboard and on alarm emails." "Format: any name, e.g. Acme Dental"
     ask site "Business name" "Business name (Enter to skip) > "
     site=${site//[\"\\]/}             # no quotes or backslashes
   fi
   if q_email; then
     question "Alarm emails"
-    say "LoNSeMonSy emails you when something needs attention." "Without this, you only see alarms when you open the dashboard." \
-        "The same address gets Grafana's reset link if the admin password is forgotten."
+    say "LoNSeMonSy uses a Gmail account to email you when something needs attention."
     ask_email
   fi
   if q_backup; then
     question "Backups"
-    say "Every night LoNSeMonSy saves a copy of its settings and data on this" "server. This is always on." \
-        "Pick a time when the office is closed but this server is still online." "Format: e.g. 1am, 11:30pm or 23:30."
+    say "LoNSeMonSy saves a copy on this server every night." "Format: e.g. 1am, 11:30pm or 23:30"
     while true; do
       ask backup_time Backups "Backup time [1am] > "
       if backup_time=$(to_24h "${backup_time:-1am}"); then break; fi
       echo "  That isn't a time. Type it as e.g. 1am, 11:30pm or 23:30."
     done
     echo
-    say "If this server's disk dies, the copy on it is lost too." "A cloud copy is kept somewhere else: Amazon S3 or Backblaze B2."
+    say "A cloud copy is safe even if this server's disk dies."
     if confirm Backups "Also send a copy to the cloud? [y/N] > " N; then echo; ask_bucket; fi
   fi
   if q_remote; then
     question "Remote access"
-    say "Open the dashboards from your phone or laptop anywhere, with a 2-step sign-in." \
-        "It uses Tailscale. At the end of setup you sign in with a Google, Microsoft or" \
-        "GitHub account. The dashboards then only open on devices signed in to Tailscale." \
-        "Cost: free for personal use. A business needs a paid plan, billed per user:" \
-        "see tailscale.com/pricing"
+    say "Open the dashboards from anywhere with Tailscale and a 2-step sign-in." \
+        "It's free for personal use. A business pays per user: tailscale.com/pricing"
     if confirm "Remote access" "Set up remote access? [y/N] > " N; then
       remote=1
       echo
       if [ -n "${to:-}$(get ALERT_EMAIL_TO)" ]; then
-        say "Use the Gmail account the alarms are sent from: it already has 2-step verification." \
-            "While setup runs, get the Tailscale app on your phone. Scan this for the steps:"
+        say "You sign in at the end, with the Gmail account the alarms are sent from." \
+            "Get the Tailscale app on your phone while setup runs. Scan this for the steps:"
       else
-        say "While setup runs: turn on 2-step verification for that account, and get the" \
-            "Tailscale app on your phone. Scan this for the steps:"
+        say "You sign in at the end. Turn on that account's 2-step verification and get the" \
+            "Tailscale app on your phone while setup runs. Scan this for the steps:"
       fi
       qr "$GUIDE#remote-access"
     fi
   fi
   if q_ai; then
     question "AI explanations"
-    say "An AI adds a short note to each serious alarm: what happened and what" "to do. It runs on your own network. On this server it needs about" "2 GB more memory."
+    say "An AI on your own network explains each serious alarm. It needs about 2 GB of memory."
     if confirm "AI explanations" "Turn on AI explanations? [y/N] > " N; then
       ai=1
       echo
-      say "It can run on this server, or on another computer running Ollama." "Format: that computer's IP address, e.g. 192.168.1.60."
+      say "It can also run on another computer that has Ollama." "Format: IP address, e.g. 192.168.1.60"
       ask ai_url "AI explanations" "Other computer (Enter = this server) > "
       if [ -n "$ai_url" ]; then
         [[ $ai_url == http* ]] || ai_url="http://$ai_url"

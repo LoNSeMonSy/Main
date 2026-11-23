@@ -51,15 +51,12 @@ turn_on() {
     else
       echo
       if [ -n "$sender" ]; then
-        echo "  Sign this server in to Tailscale with Google, as $sender"
-        echo "  (the account the alarm emails are sent from). Its app password only works while"
-        echo "  2-step verification is on, so that account always has it."
+        echo "  Sign this server in to Tailscale with Google, as $sender."
       else
         echo "  Sign this server in to Tailscale with a Google, Microsoft or GitHub account."
-        echo "  Turn on 2-step verification for that account FIRST. Nothing forces it: without it,"
-        echo "  its password alone gets someone in. For Google: myaccount.google.com/security"
+        echo "  Turn on 2-step verification for that account first."
       fi
-      echo "  Type the link below into a browser, or scan the code with your phone."
+      echo "  Scan the code with your phone, or type the link into a browser."
       echo
       small=()   # the same size as the other codes, if this Tailscale can do that
       if tailscale up --help 2>&1 | grep -q -- --qr-format; then small=(--qr-format=small); fi
@@ -76,9 +73,7 @@ turn_on() {
   # The HTTPS addresses need one switch in Tailscale's settings.
   if ! https_on; then
     echo
-    echo "  One more switch: HTTPS certificates. On any computer or phone, open"
-    echo "    https://login.tailscale.com/admin/dns"
-    echo "  and click Enable under HTTPS Certificates."
+    echo "  Click Enable under HTTPS Certificates at https://login.tailscale.com/admin/dns"
     qr https://login.tailscale.com/admin/dns
     echo "  Waiting for it... (press Enter to stop waiting)"
     until https_on; do
@@ -100,19 +95,15 @@ turn_on() {
   setup/remote-check.sh >/dev/null 2>&1 || true
 
   echo
-  echo "  Remote access is on. Open these on a phone or laptop signed in to the same Tailscale"
-  echo "  account (install the Tailscale app first):"
+  echo "  Remote access is on. Open these on a device signed in to the same Tailscale account:"
   addresses
   echo
-  echo "  Do these two now, at login.tailscale.com (they can't be set from here):"
-  echo "    1. Machines > this server's ... menu > Disable key expiry, so it stays signed in."
-  echo "    2. Settings > Device management > Key expiry: change 180 days to 1 day. Phones and"
-  echo "       laptops then sign in again (with 2-step) every day."
+  echo "  Do these two now, at login.tailscale.com:"
+  echo "    1. Machines > this server's ... menu > Disable key expiry."
+  echo "    2. Settings > Device management > Key expiry: change 180 days to 1 day."
   if firewall_on && [ "$(get IP_ACCESS)" != off ] && [ "$(get IP_ACCESS_KEEP)" != 1 ]; then
     echo
-    echo "  The dashboards can now open only over Tailscale, not by IP address, so nobody on this"
-    echo "  network skips the sign-in. If Tailscale stops working, SSH in from this network (or use"
-    echo "  this screen) and run: sudo lsmsy remote ip on"
+    echo "  The dashboards now open only over Tailscale. If it stops working: sudo lsmsy remote ip on"
     ip_access off "$lan" "$iface"
   fi
 }

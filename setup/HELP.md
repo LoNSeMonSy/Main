@@ -2,6 +2,15 @@
 
 Setup asks a few questions, then does the rest on its own. At any question, type `?` and press Enter to see its part of this page. Press Enter on its own to take the answer shown in [brackets].
 
+## Before you start
+
+Use a server that doesn't do anything else. Setup changes its settings:
+
+- It turns on the firewall (ufw). Incoming connections are blocked, except the ones LoNSeMonSy needs. SSH is only allowed from this network and Tailscale.
+- It installs Docker, Wazuh and Suricata, and replaces their settings.
+- It adds a swap file if the server has less than 8 GB of memory.
+- If you say yes to those questions, it fixes the server's IP address and sets the time zone.
+
 ## Server address
 
 Other computers (and your browser) reach LoNSeMonSy at this server's IP address, e.g. `192.168.1.50`. Most routers hand out addresses that can change after a restart, and then the dashboard link and the Wazuh agents stop working.
@@ -34,13 +43,13 @@ Shown at the top of the dashboard and as the sender of alarm emails, e.g. `Acme 
 
 LoNSeMonSy emails you when something needs attention: an attack, a new device on the network, a full disk. Without email you only see alarms when you open the dashboard.
 
-1. **Your email address:** where alarms go, e.g. `owner@acmedental.com`. Any email works.
-2. **A Gmail address to send from:** make a new free Gmail account just for this, e.g. `acmealarms@gmail.com`.
-3. **The 16-letter password from Google.** Google doesn't let programs use your normal Gmail password, so it makes a separate one for each program (Google calls it an "app password"):
-   1. Sign in to the sending Gmail account.
+1. **A Gmail address:** alarms are sent from it. Best is a new free Gmail account just for this, e.g. `acmealarms@gmail.com`.
+2. **The 16-letter password from Google.** Google doesn't let programs use your normal Gmail password, so it makes a separate one for each program (Google calls it an "app password"):
+   1. Sign in to that Gmail account.
    2. Turn on 2-Step Verification: https://myaccount.google.com/signinoptions/twosv
    3. Go to https://myaccount.google.com/apppasswords, type `LoNSeMonSy` as the name, click **Create**.
    4. Copy the 16 letters it shows (spaces don't matter) and paste them into setup.
+3. **Send alarms to:** press Enter to use that same account, or type another address, e.g. `owner@acmedental.com`. Any email works.
 
 Setup checks the password with Gmail before going on. Press Enter at the first question to skip; set it up later by running setup again.
 

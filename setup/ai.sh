@@ -35,6 +35,11 @@ if [ -z "$model" ]; then
   fi
 fi
 
+load() {
+  compose run --rm --no-deps -T -v "$1:/tmp/smtp.json:ro" --entrypoint sh n8n -c 'n8n import:credentials --input=/tmp/smtp.json &&
+    n8n import:workflow --input=/lonsemonsy-n8n/alert-explainer.json && n8n publish:workflow --id=lonsemonsyAlrtEx' </dev/null
+}
+
 on() {
   [ -n "$(get N8N_ENCRYPTION_KEY)" ] || set_env N8N_ENCRYPTION_KEY "$(openssl rand -hex 24)"
   set_env OLLAMA_MODEL "$model"
@@ -43,11 +48,10 @@ on() {
   if [ -z "$url" ]; then
     run "Downloading the AI workflow tool (n8n)" compose pull --quiet n8n
     run "Downloading the AI engine (Ollama, a big download, often 10-15 minutes)" compose pull --quiet ollama
-    run "Starting the AI" compose up -d n8n ollama
+    run "Starting the AI engine" compose up -d ollama
     run "Downloading the AI model ($model)" docker exec ollama ollama pull "$model"
   else
     run "Downloading the AI workflow tool (n8n)" compose pull --quiet n8n
-    run "Starting the AI workflow (n8n)" compose up -d n8n
     # Download the model to that computer, unless it already has it.
     if ! curl -sf -m 10 "$url/api/tags" | grep -q "\"$model\""; then
       if ! run "Downloading the AI model to $url ($model)" \
@@ -57,19 +61,18 @@ on() {
     fi
   fi
 
-  # n8n gets the email login (from .env) and the workflow, then turns it on.
-  run "Waiting for the AI workflow to start" timeout 120 \
-    bash -c "until curl -sf -m 3 http://127.0.0.1:5678/healthz; do sleep 2; done" || true
-  local host port
+  # n8n gets the email login (from .env) and the workflow before it starts. Loading them while
+  # it's running locks its database on a slow server.
+  local host port login
   host=$(get SMTP_HOST); port=${host##*:}; host=${host%%:*}; [ "$port" != "$host" ] || port=587
-  # Written by n8n's own user, so it can read it.
-  docker exec -u root n8n rm -f /tmp/smtp.json
+  compose stop n8n >/dev/null 2>&1 || true
+  login=$(mktemp)
   jq -n --arg u "$(get SMTP_USER)" --arg p "$(get SMTP_PASSWORD)" --arg h "$host" --argjson port "$port" \
-    '[{id:"lonsemonsySmtp01", name:"LoNSeMonSy email", type:"smtp", data:{user:$u, password:$p, host:$h, port:$port, secure:false}}]' |
-    docker exec -i n8n sh -c 'umask 077; cat > /tmp/smtp.json'
-  run "Loading the AI workflow" docker exec n8n sh -c 'n8n import:credentials --input=/tmp/smtp.json && rm -f /tmp/smtp.json &&
-    n8n import:workflow --input=/lonsemonsy-n8n/alert-explainer.json && n8n publish:workflow --id=lonsemonsyAlrtEx'
-  docker restart n8n >/dev/null
+    '[{id:"lonsemonsySmtp01", name:"LoNSeMonSy email", type:"smtp", data:{user:$u, password:$p, host:$h, port:$port, secure:false}}]' > "$login"
+  chown 1000 "$login"               # n8n's own user, so it can read it
+  if ! run "Loading the AI workflow (a few minutes the first time)" load "$login"; then rm -f "$login"; return 1; fi
+  rm -f "$login"
+  run "Starting the AI workflow" compose up -d n8n
 
   # Grafana also sends Medium or worse alarms to the workflow. Email stays the same.
   cp appliance/n8n/policies-with-ai.yaml "$POLICIES"

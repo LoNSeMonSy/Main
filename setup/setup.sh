@@ -24,9 +24,8 @@ echo "  ${environment:+$environment · }setup, version $(cat setup/VERSION 2>/de
 if [ "$(id -u)" != 0 ]; then echo "  Run it with sudo:  sudo ./setup/setup.sh"; exit 1; fi
 setup_start=$SECONDS
 echo
-echo "  Setup takes about 20-30 minutes on a new machine. Installing Wazuh takes most of that time."
-echo "  It starts with a few questions, which take about 2 minutes. After that, it runs by itself."
-echo "  If you're not sure what to answer, type ? and press Enter at any question."
+echo "  Setup asks a few questions, then runs by itself for about 20-30 minutes."
+echo "  Type ? at any question for help."
 
 source setup/steps/helpers.sh     # small functions the steps use
 only_one setup "Setup is already running in another window. Wait for it to finish."
@@ -34,14 +33,10 @@ only_one setup "Setup is already running in another window. Wait for it to finis
 # The first run changes how this server is set up, so say what changes before starting.
 if [ -t 0 ] && [ "${SKIP_QUESTIONS:-0}" != 1 ] && [ ! -f "$ENV" ]; then
   echo
-  echo "  Setup changes this server's settings. Use a server that doesn't do anything else."
-  echo "    - It turns on the firewall (ufw). Incoming connections are blocked, except the ones"
-  echo "      LoNSeMonSy needs. SSH is only allowed from this network and Tailscale."
-  echo "    - It installs Docker, Wazuh and Suricata, and replaces their settings."
-  echo "    - It adds a swap file if the server has less than 8 GB of memory."
-  echo "    - If you say yes to those questions, it fixes the server's IP address and sets the time zone."
+  echo "  Setup turns on the firewall and installs Docker, Wazuh and Suricata."
+  echo "  It replaces their settings, so use a server that doesn't do anything else."
   echo
-  if ! confirm "" "Go ahead? [Y/n] > " Y; then echo "  Nothing was changed."; exit 0; fi
+  if ! confirm "Before you start" "Go ahead? [Y/n] > " Y; then echo "  Nothing was changed."; exit 0; fi
 fi
 step 1 "Getting ready";        source setup/steps/1-basics.sh    # settings file, curl and the firewall tool
 step 2 "Questions";            source setup/steps/2-questions.sh # fixed IP, business name, alarm emails, cloud backup, remote access, AI

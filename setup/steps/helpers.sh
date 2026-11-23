@@ -176,8 +176,7 @@ need() {
 # Sets repo (empty if skipped), bucket, key_id and secret.
 ask_bucket() {
   repo=""
-  echo "  Four things from your bucket at Amazon S3 or Backblaze B2."
-  echo "  Type ? at any of them to see where to find them."
+  echo "  Use a bucket at Amazon S3 or Backblaze B2."
   while true; do
     printf '\n  Format: e.g. s3.us-east-1.amazonaws.com (Amazon) or s3.us-east-005.backblazeb2.com (Backblaze)\n'
     ask endpoint Backups "Bucket endpoint (Enter to skip) > "
