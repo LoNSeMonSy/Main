@@ -40,7 +40,7 @@ on() {
   set_env OLLAMA_MODEL "$model"
 
   if [ -z "$url" ]; then
-    run "Starting the AI (n8n and Ollama)" compose up -d n8n ollama
+    run "Downloading and starting the AI (a big download, often 15-20 minutes)" compose up -d n8n ollama
     run "Downloading the AI model ($model, one time)" docker exec ollama ollama pull "$model"
   else
     run "Starting the AI workflow (n8n)" compose up -d n8n

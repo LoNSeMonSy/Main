@@ -19,7 +19,9 @@ touch "$LOG" 2>/dev/null && chmod 600 "$LOG" 2>/dev/null || true
 step() {
   local bar
   bar=$(printf '%*s' "$1" '' | sed 's/ /█/g')$(printf '%*s' $((10 - $1)) '' | sed 's/ /░/g')
-  if [ -t 1 ]; then printf '\n\033[1m[%s/10] %s %s\033[0m\n' "$1" "$bar" "$2"; else printf '\n[%s/10] %s\n' "$1" "$2"; fi
+  local total=""
+  if [ -n "${setup_start:-}" ]; then total="  ($(took "$setup_start") so far)"; fi
+  if [ -t 1 ]; then printf '\n\033[1m[%s/10] %s %s\033[0m\033[2m%s\033[0m\n' "$1" "$bar" "$2" "$total"; else printf '\n[%s/10] %s%s\n' "$1" "$2" "$total"; fi
 }
 
 # run "WHAT" COMMAND...: run COMMAND with its output going to the log, while showing a
