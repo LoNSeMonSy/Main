@@ -39,12 +39,12 @@ say() { printf '  %s\n' "$@"; echo; }
 
 ask_email() {
   while true; do
-    say "Where should alarm emails go? Any email address works." "Format: name@example.com, like owner@acmedental.com"
+    say "Where should alarm emails go? Any email address works." "Format: name@example.com, e.g. owner@acmedental.com"
     ask to "Alarm emails" "Your email (Enter to skip) > "
     if [ -z "$to" ]; then return; fi
     if [[ $to != *@*.* ]]; then echo "  That isn't an email address."; echo; continue; fi
     echo
-    say "Alarms are sent from a Gmail account. A new one just for this works best." "Format: name@gmail.com, like acmealarms@gmail.com"
+    say "Alarms are sent from a Gmail account. A new one just for this works best." "Format: name@gmail.com, e.g. acmealarms@gmail.com"
     while true; do
       ask from "Alarm emails" "Gmail address > "
       if [[ $from == *@*.* ]]; then break; fi
@@ -54,7 +54,7 @@ ask_email() {
     say "Gmail won't let LoNSeMonSy use that account's normal password. Instead," \
         "Google gives you a separate 16-letter password just for LoNSeMonSy:" \
         "  https://myaccount.google.com/apppasswords   (signed in as $from)" \
-        "Format: 16 letters, like abcd efgh ijkl mnop. Type ? for step-by-step help."
+        "Format: 16 letters, e.g. abcd efgh ijkl mnop. Type ? for step-by-step help."
     ask apw "Alarm emails" "16-letter password (hidden) > " hidden
     apw=${apw// /}                    # Google shows it with spaces; they aren't part of it
     echo "  checking with Gmail..."
@@ -80,7 +80,7 @@ questions() {
   if q_timezone; then
     question "Time zone"
     say "This server's clock is on UTC, so backups and reports would run" "at the wrong local time." \
-        "Format: Region/City, like America/New_York or America/Chicago." "Type ? for the common ones."
+        "Format: Region/City, e.g. America/New_York or America/Chicago." "Type ? for the common ones."
     while true; do
       ask tz "Time zone" "Time zone [America/New_York] > "
       case "${tz,,}" in
@@ -94,7 +94,7 @@ questions() {
   fi
   if q_name; then
     question "Business name"
-    say "Shown at the top of the dashboard and on alarm emails." "Format: any name, like Acme Dental."
+    say "Shown at the top of the dashboard and on alarm emails." "Format: any name, e.g. Acme Dental."
     ask site "Business name" "Business name (Enter to skip) > "
     site=${site//[\"\\]/}             # no quotes or backslashes
   fi
@@ -107,14 +107,14 @@ questions() {
   if q_backup; then
     question "Backups"
     say "Every night LoNSeMonSy saves a copy of its settings and data on this" "server. This is always on." \
-        "Pick a time when the office is closed but this server is still online." "Format: like 1am, 11:30pm or 23:30."
+        "Pick a time when the office is closed but this server is still online." "Format: e.g. 1am, 11:30pm or 23:30."
     while true; do
       ask backup_time Backups "Backup time [1am] > "
       if backup_time=$(to_24h "${backup_time:-1am}"); then break; fi
-      echo "  That isn't a time. Type it like 1am, 11:30pm or 23:30."
+      echo "  That isn't a time. Type it as e.g. 1am, 11:30pm or 23:30."
     done
     echo
-    say "If this server's disk dies, the copy on it is lost too." "A cloud copy is kept somewhere else (Backblaze or Amazon S3)."
+    say "If this server's disk dies, the copy on it is lost too." "A cloud copy is kept somewhere else: Amazon S3 or Backblaze B2."
     if confirm Backups "Also send a copy to the cloud? [y/N] > " N; then echo; ask_bucket; fi
   fi
   if q_remote; then
@@ -130,7 +130,7 @@ questions() {
     if confirm "AI explanations" "Turn on AI explanations? [y/N] > " N; then
       ai=1
       echo
-      say "It can run on this server, or on another computer running Ollama." "Format: that computer's IP address, like 192.168.1.60."
+      say "It can run on this server, or on another computer running Ollama." "Format: that computer's IP address, e.g. 192.168.1.60."
       ask ai_url "AI explanations" "Other computer (Enter = this server) > "
       if [ -n "$ai_url" ]; then
         [[ $ai_url == http* ]] || ai_url="http://$ai_url"

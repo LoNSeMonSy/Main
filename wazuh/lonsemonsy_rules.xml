@@ -110,12 +110,12 @@
   </rule>
   <rule id="100921" level="6">
     <if_sid>100920</if_sid>
-    <field name="action">^denied$</field>
+    <action>denied</action>
     <description>Backup button refused: $(by) is not an admin</description>
   </rule>
   <rule id="100922" level="6">
     <if_sid>100920</if_sid>
-    <field name="action">^failed$</field>
+    <action>failed</action>
     <description>Backup failed: $(what), started by $(by)</description>
   </rule>
 </group>

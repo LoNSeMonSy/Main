@@ -48,9 +48,17 @@ Setup checks the password with Gmail before going on. Press Enter at the first q
 
 Every night LoNSeMonSy saves a copy of its settings and data on this server, in `/var/backups/lonsemonsy-copies`. This is always on: it keeps 7 daily, 4 weekly and 6 monthly copies, and it's what `lsmsy restore` puts back after a bad change.
 
-**Time:** pick when the office is closed but the server is still online, typed like `1am`, `11:30pm` or `23:30` (Enter = 1 AM). If the server was offline then, the backup runs as soon as it's back online. Change it later with `lsmsy backup time 11pm`.
+**Time:** pick when the office is closed but the server is still online, typed e.g. `1am`, `11:30pm` or `23:30` (Enter = 1 AM). If the server was offline then, the backup runs as soon as it's back online. Change it later with `lsmsy backup time 11pm`.
 
-That copy is gone if the server's disk dies, so you can also send a copy to the cloud. You need a bucket (online storage) at [Backblaze B2](https://www.backblaze.com/cloud-storage) (free up to 10 GB) or Amazon S3. With Backblaze:
+That copy is gone if the server's disk dies, so you can also send a copy to the cloud. You need a bucket (online storage) at [Amazon S3](https://aws.amazon.com/s3/) or [Backblaze B2](https://www.backblaze.com/cloud-storage) (free up to 10 GB).
+
+With Amazon S3:
+
+1. In the AWS console, **S3 > Create bucket**, e.g. `acme-lonsemonsy` (Block all public access stays on). Note its region, e.g. `us-east-1`.
+2. The endpoint is `s3.<region>.amazonaws.com`, e.g. `s3.us-east-1.amazonaws.com`.
+3. **IAM > Users > Create user**, give it access to that bucket, then **Security credentials > Create access key**. Copy the `Access key ID` (Key ID) and `Secret access key` (secret key). The secret key is only shown once.
+
+With Backblaze:
 
 1. Sign up, then **Buckets > Create a Bucket**, private, e.g. `acme-lonsemonsy`.
 2. The bucket's **Endpoint** is the bucket address, e.g. `s3.us-east-005.backblazeb2.com`.

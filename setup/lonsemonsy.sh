@@ -77,7 +77,7 @@ case "${1:-}" in
       read -r -p "  Add someone (a), remove someone (r), or Enter to finish: " what
       case "$what" in
         a|A)
-          read -r -p "  Name to sign in with, like sam: " name
+          read -r -p "  Name to sign in with, e.g. sam: " name
           [ -n "$name" ] || continue
           read -r -p "  Their email, for password resets (Enter to skip): " email
           read -r -p "  Role: viewer (looks only), editor or admin [viewer]: " role

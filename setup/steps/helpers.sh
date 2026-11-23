@@ -144,18 +144,18 @@ need() {
 # Sets repo (empty if skipped), bucket, key_id and secret.
 ask_bucket() {
   repo=""
-  echo "  Four things from your bucket."
-  echo "  Type ? at any of them to see where Backblaze shows them."
+  echo "  Four things from your bucket at Amazon S3 or Backblaze B2."
+  echo "  Type ? at any of them to see where to find them."
   while true; do
-    printf '\n  Format: like s3.us-east-005.backblazeb2.com\n'
+    printf '\n  Format: e.g. s3.us-east-1.amazonaws.com (Amazon) or s3.us-east-005.backblazeb2.com (Backblaze)\n'
     ask endpoint Backups "Bucket endpoint (Enter to skip) > "
     endpoint=${endpoint#https://}; endpoint=${endpoint#s3:}; endpoint=${endpoint%/}
     if [ -z "$endpoint" ]; then return; fi
     if [[ $endpoint == */* ]]; then bucket=${endpoint#*/}; endpoint=${endpoint%%/*}   # name pasted too
-    else printf '\n  Format: like acme-lonsemonsy\n'; ask bucket Backups "Bucket name > "; fi
-    printf '\n  Backblaze calls it keyID. Format: 25 letters and numbers, like 005a1b2c3d4e5f60000000001\n'
+    else printf '\n  Format: e.g. acme-lonsemonsy\n'; ask bucket Backups "Bucket name > "; fi
+    printf '\n  Amazon calls it Access key ID, Backblaze calls it keyID.\n  Format: e.g. AKIAIOSFODNN7EXAMPLE (Amazon) or 005a1b2c3d4e5f60000000001 (Backblaze)\n'
     ask key_id Backups "Key ID > "
-    printf '\n  Backblaze calls it applicationKey. Format: 31 letters and numbers\n'
+    printf '\n  Amazon calls it Secret access key, Backblaze calls it applicationKey.\n'
     ask secret Backups "Secret key (hidden) > " hidden
     echo
     # Backblaze: its own connection (b2:), which takes any of its keys. Others: S3.
