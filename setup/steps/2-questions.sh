@@ -18,7 +18,7 @@ q_address() { [ "$dhcp" = 1 ] && [ -z "${STATIC_IP:-}" ]; }
 q_timezone() { [ "$utc" = 1 ]; }
 q_name() { [ -z "$(get SITE_NAME)" ]; }
 q_email() { [ -z "$(get ALERT_EMAIL_TO)" ]; }
-q_backup() { [ -z "$(get BACKUP_REPO)" ]; }
+q_backup() { [ -z "$(get BACKUP_TIME)" ]; }
 q_remote() { ! has_tailscale; }
 q_ai() { [ "$(get AI_ENABLED)" != true ]; }
 total=0
@@ -142,24 +142,37 @@ questions() {
 
 line() { printf '    %-18s %s\n' "$1" "$2"; }
 summary() {
+  local saved=" (saved before)" r
   printf '\n\n  \033[1m── Your answers %s\033[0m\n\n' "$(printf '%*s' 47 '' | sed 's/ /─/g')"
   if q_address; then
     if [ "$static" = 1 ]; then line "Server address" "fixed at $ip"; else line "Server address" "chosen by the router"; fi
+  elif [ -f "$NETPLAN" ]; then line "Server address" "fixed at $ip$saved"
   fi
-  if q_timezone; then line "Time zone" "$tz"; fi
-  if q_name; then line "Business name" "${site:-(none)}"; fi
+  if q_timezone; then line "Time zone" "$tz"
+  else line "Time zone" "$(timedatectl show -p Timezone --value)$saved"
+  fi
+  if q_name; then line "Business name" "${site:-(none)}"
+  else line "Business name" "$(get SITE_NAME)$saved"
+  fi
   if q_email; then
     if [ -n "$to" ]; then line "Alarm emails" "to $to, sent from $from"; else line "Alarm emails" "off"; fi
+  else line "Alarm emails" "to $(get ALERT_EMAIL_TO), sent from $(get SMTP_FROM_ADDRESS)$saved"
   fi
   if q_backup; then
     when="every night at $(date -d "$backup_time" '+%-I:%M %p')"
     if [ -n "$repo" ]; then line "Backups" "$when, here and in the cloud ($bucket)"; else line "Backups" "$when, on this server"; fi
+  else
+    when="every night at $(date -d "$(get BACKUP_TIME)" '+%-I:%M %p' 2>/dev/null || echo "1:00 AM")"
+    r=$(get BACKUP_REPO); r=${r#b2:}; r=${r#s3:*/}; r=${r%%:*}
+    if [ -n "$r" ]; then line "Backups" "$when, here and in the cloud ($r)$saved"; else line "Backups" "$when, on this server$saved"; fi
   fi
   if q_remote; then
     if [ -n "$remote" ]; then line "Remote access" "on (you sign in at the end)"; else line "Remote access" "off"; fi
+  else line "Remote access" "on$saved"
   fi
   if q_ai; then
     if [ -n "$ai" ]; then line "AI explanations" "on (${ai_url:-on this server})"; else line "AI explanations" "off"; fi
+  else r=$(get OLLAMA_URL); line "AI explanations" "on, ${r:-on this server}$saved"
   fi
   echo
 }
@@ -168,7 +181,7 @@ if [ "$ask" = 1 ]; then
   echo "  Press Enter to take the answer in [brackets]. Type ? for help."
   while true; do
     questions
-    if [ "$n" = 0 ]; then break; fi
+    if [ "$n" = 0 ]; then summary; break; fi
     summary
     if confirm "" "Is this right? [Y/n] > " Y; then echo; break; fi
     echo "  OK, once more."
