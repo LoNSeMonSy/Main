@@ -16,6 +16,7 @@ Newest first.
 - The business name shows on every Grafana page; backup emails list what was saved
 - High and Critical alarms have their own email: the subject says so, it starts with what to do, Critical repeats every hour
 - Setup ends with a test alarm on the dashboard and by email
+- Alarm emails are required: setup asks for a Gmail account (and where to send alarms)
 - lsmsy commands can't be run again right away (test, backup, update and others)
 
 ## 0.6.1 - 2026-11-19

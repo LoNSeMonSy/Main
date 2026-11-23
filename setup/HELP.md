@@ -41,7 +41,7 @@ Shown at the top of the dashboard and as the sender of alarm emails, e.g. `Acme 
 
 ## Alarm emails
 
-LoNSeMonSy emails you when something needs attention: an attack, a new device on the network, a full disk. Without email you only see alarms when you open the dashboard.
+LoNSeMonSy emails you when something needs attention: an attack, a new device on the network, a full disk. It's required: an alarm nobody sees doesn't help, and Grafana's password reset link goes there too. You need a free Gmail account before you start.
 
 1. **A Gmail address:** alarms are sent from it. Best is a new free Gmail account just for this, e.g. `acmealarms@gmail.com`.
 2. **The 16-letter password from Google.** Google doesn't let programs use your normal Gmail password, so it makes a separate one for each program (Google calls it an "app password"):
@@ -51,7 +51,7 @@ LoNSeMonSy emails you when something needs attention: an attack, a new device on
    4. Copy the 16 letters it shows (spaces don't matter) and paste them into setup.
 3. **Send alarms to:** press Enter to use that same account, or type another address, e.g. `owner@acmedental.com`. Any email works.
 
-Setup checks the password with Gmail before going on. Press Enter at the first question to skip; set it up later by running setup again.
+Setup checks the password with Gmail before going on. If you can't use Gmail, stop with Ctrl+C and run `sudo SKIP_QUESTIONS=1 ./setup/setup.sh`, which asks nothing and leaves email off.
 
 ## Backups
 

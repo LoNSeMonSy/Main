@@ -40,8 +40,7 @@ say() { printf '  %s\n' "$@"; echo; }
 ask_email() {
   while true; do
     say "Format: name@gmail.com, e.g. acmealarms@gmail.com"
-    ask from "Alarm emails" "Gmail address (Enter to skip) > "
-    if [ -z "$from" ]; then return; fi
+    ask from "Alarm emails" "Gmail address > "
     if [[ $from != *@*.* ]]; then echo "  That isn't an email address."; echo; continue; fi
     echo
     say "Get its app password at https://myaccount.google.com/apppasswords" "Format: 16 letters, e.g. abcd efgh ijkl mnop"
@@ -55,7 +54,7 @@ ask_email() {
     fi
     echo "  ✗ Gmail didn't accept that Gmail address and password."
     echo
-    if ! confirm "Alarm emails" "Try again? [Y/n] > " Y; then return; fi
+    echo "  Check both and try again. Type ? for help."
     echo
   done
   echo
