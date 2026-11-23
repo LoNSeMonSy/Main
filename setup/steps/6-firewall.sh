@@ -20,6 +20,7 @@ else
   ufw allow from "$lan" to any port 1514 proto tcp comment "Wazuh agents (logs)" >/dev/null
   ufw allow from "$lan" to any port 1515 proto tcp comment "Wazuh agents (sign up)" >/dev/null
   ufw allow from 172.20.0.0/24 to 172.20.0.1 port 9200 proto tcp comment "Grafana reads Wazuh" >/dev/null
+  ufw allow from 172.20.0.0/24 to 172.20.0.1 port 5002 proto tcp comment "Grafana backup button" >/dev/null
   ufw default deny incoming >/dev/null
   # Docker opens Grafana's port itself, past the rules above. This rule in Docker's own
   # chain makes Grafana follow them too (only answer this network). Saved in ufw's file.

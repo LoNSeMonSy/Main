@@ -291,6 +291,56 @@ groups:
                     type: gte
                     params: [3]
 
+      # ------------------------------------------------------------------
+      # 4c. A phone or laptop joined the Tailscale account that remote access
+      #    uses, so it can now open the dashboards from outside. setup/remote-check.sh
+      #    (every 5 min) writes remote_new_device the first time it sees one.
+      # ------------------------------------------------------------------
+      - uid: lons-remote-new-device
+        title: New device can reach your dashboard
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            A new phone or laptop was added to the Tailscale account used for remote
+            access, so it can open the dashboards from outside. If you don't know it,
+            remove it at login.tailscale.com/admin/machines. See the Devices page.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -15m)
+                  |> filter(fn: (r) => r._measurement == "remote_new_device" and r._field == "name")
+                  |> group()
+                  |> count()
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
   - orgId: 1
     name: maintenance
     folder: LoNSeMonSy Alerts
@@ -345,8 +395,8 @@ groups:
                     params: [0]
 
       # ------------------------------------------------------------------
-      # No backup has worked for 2 days (setup/backup.sh writes
-      # lonsemonsy_backup after each good backup).
+      # No good local or cloud backup for 2 days
+      # (setup/backup.sh writes lonsemonsy_backup after each one).
       # ------------------------------------------------------------------
       - uid: lons-backup-old
         title: Backup is out of date
@@ -354,7 +404,7 @@ groups:
         for: 0m
         annotations:
           summary: >-
-            No backup has worked for over 2 days. Run lsmsy backup on the server to see why.
+            No {{ $labels.where }} backup has worked for over 2 days. See the Backups page, or run sudo lsmsy backup on the server to see why.
         labels:
           severity: medium
         noDataState: OK
@@ -370,9 +420,11 @@ groups:
               query: |
                 from(bucket: "monitoring")
                   |> range(start: -90d)
-                  |> filter(fn: (r) => r._measurement == "lonsemonsy_backup" and r._field == "ok")
+                  |> filter(fn: (r) => r._measurement == "lonsemonsy_backup" and r._field == "ok" and r._value == 1)
+                  |> map(fn: (r) => ({r with where: if exists r.store and r.store == "cloud" then "cloud" else "local"}))
+                  |> group(columns: ["where"])
                   |> last()
-                  |> map(fn: (r) => ({_time: r._time, _value: float(v: int(v: now()) - int(v: r._time)) / 3600000000000.0}))
+                  |> map(fn: (r) => ({where: r.where, _time: r._time, _value: float(v: int(v: now()) - int(v: r._time)) / 3600000000000.0}))
           - refId: B
             datasourceUid: __expr__
             model:
@@ -390,6 +442,54 @@ groups:
                 - evaluator:
                     type: gt
                     params: [48]
+
+      # ------------------------------------------------------------------
+      # The newest local or cloud backup failed.
+      # ------------------------------------------------------------------
+      - uid: lons-backup-failed
+        title: Backup failed
+        condition: C
+        for: 0m
+        annotations:
+          summary: >-
+            The last {{ $labels.where }} backup failed. See the Backups page, or run sudo lsmsy backup on the server to see why.
+        labels:
+          severity: medium
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 7776000
+              to: 0
+            datasourceUid: P951FEA4DE68E13C5
+            model:
+              refId: A
+              query: |
+                from(bucket: "monitoring")
+                  |> range(start: -90d)
+                  |> filter(fn: (r) => r._measurement == "lonsemonsy_backup" and r._field == "ok" and exists r.store)
+                  |> map(fn: (r) => ({r with where: if r.store == "cloud" then "cloud" else "local"}))
+                  |> group(columns: ["where"])
+                  |> last()
+                  |> map(fn: (r) => ({where: r.where, _time: r._time, _value: float(v: r._value)}))
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
 
       # ------------------------------------------------------------------
       # The server's disk is almost full (numbers from Telegraf, see the

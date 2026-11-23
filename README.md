@@ -63,7 +63,7 @@ sudo ./setup/setup.sh
 | `lsmsy status` | shows whether everything is running |
 | `lsmsy firewall` | shows which ports are open |
 | `lsmsy update` | updates to the newest version |
-| `lsmsy backup` | makes a backup now (`lsmsy backup setup` adds a cloud copy) |
+| `lsmsy backup` | makes a backup now (`lsmsy backup time 11pm` changes the nightly time, `lsmsy backup setup` adds a cloud copy) |
 | `lsmsy restore` | puts the newest backup back (`lsmsy restore cloud` uses the cloud copy) |
 | `lsmsy users` | lists the Grafana accounts (`lsmsy adduser` / `lsmsy deluser` add or remove one) |
 | `lsmsy report` | shows this week's security summary (also emailed on Mondays) |

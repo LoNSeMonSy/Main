@@ -44,6 +44,9 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      # Backups page button: Grafana adds this token and the signed-in user's name.
+      - BACKUP_API_TOKEN=${BACKUP_API_TOKEN:-}
+      - GF_DATAPROXY_SEND_USER_HEADER=true
       # Button panel (backup trigger) + OpenSearch datasource so Grafana can read
       # the Wazuh indexer. Comma-separated; do not split into two lines.
       - GF_INSTALL_PLUGINS=volkovlabs-form-panel,grafana-opensearch-datasource,frser-sqlite-datasource
@@ -139,6 +142,7 @@ services:
       - SCAN_SUBNETS=${SCAN_SUBNETS}
     volumes:
       - netalertx-data:/data
+      - /var/log/netalertx:/tmp/log   # its logs, so Wazuh can see wrong passwords
 
   # Server health numbers (CPU, memory, disk, network) for the System Health page.
   # Host network + the read-only /hostfs mount let it see the real server, not the container.

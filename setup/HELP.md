@@ -11,6 +11,21 @@ Other computers (and your browser) reach LoNSeMonSy at this server's IP address,
 
 Either way, it's worth reserving it on the router too, so no other device gets the same address.
 
+## Time zone
+
+Only asked when the server's clock is on UTC (Ubuntu Server's default). The time zone sets when backups and the weekly report run, and the times on alarms. Type its name as `Region/City`:
+
+| Where | Type |
+|---|---|
+| US Eastern | `America/New_York` (or `eastern`) |
+| US Central | `America/Chicago` (or `central`) |
+| US Mountain | `America/Denver` (or `mountain`) |
+| US Pacific | `America/Los_Angeles` (or `pacific`) |
+| UK | `Europe/London` |
+| Keep UTC | `UTC` |
+
+Any other city: run `timedatectl list-timezones` to see them all.
+
 ## Business name
 
 Shown at the top of the dashboard and as the sender of alarm emails, e.g. `Acme Dental`. Press Enter to skip; nothing else depends on it.
@@ -31,7 +46,9 @@ Setup checks the password with Gmail before going on. Press Enter at the first q
 
 ## Backups
 
-Every night at 1 AM, LoNSeMonSy saves a copy of its settings and data on this server, in `/var/backups/lonsemonsy-copies`. This is always on: it keeps 7 daily and 4 weekly copies, and it's what `lsmsy restore` puts back after a bad change.
+Every night LoNSeMonSy saves a copy of its settings and data on this server, in `/var/backups/lonsemonsy-copies`. This is always on: it keeps 7 daily, 4 weekly and 6 monthly copies, and it's what `lsmsy restore` puts back after a bad change.
+
+**Time:** pick when the office is closed but the server is still online, typed like `1am`, `11:30pm` or `23:30` (Enter = 1 AM). If the server was offline then, the backup runs as soon as it's back online. Change it later with `lsmsy backup time 11pm`.
 
 That copy is gone if the server's disk dies, so you can also send a copy to the cloud. You need a bucket (online storage) at [Backblaze B2](https://www.backblaze.com/cloud-storage) (free up to 10 GB) or Amazon S3. With Backblaze:
 
@@ -45,11 +62,10 @@ Backups are encrypted with a backup password that setup makes and shows at the e
 
 Opens the dashboards from anywhere (a phone, a laptop at home) using [Tailscale](https://tailscale.com) (free for up to 3 users). Nothing is opened to the internet: only devices signed in to your Tailscale account can reach it, and that sign-in (Google, Microsoft or GitHub) uses their 2-step verification.
 
-1. Make a free account at https://login.tailscale.com. Turn on 2-step verification in that Google, Microsoft or GitHub account: it's the only 2-step check.
-2. Go to https://login.tailscale.com/admin/dns and turn on **HTTPS Certificates** (the dashboard addresses need it).
-3. Go to https://login.tailscale.com/admin/settings/keys, click **Generate auth key**, leave **Reusable** off, then **Generate key**.
-4. Copy the key (it starts with `tskey-`) and paste it into setup.
-5. Install the Tailscale app on each phone or laptop that should reach the dashboard, signed in to the same account.
+1. Pick the Google, Microsoft or GitHub account you'll sign in with and turn on its 2-step verification. That's the 2-step check for remote access, and LoNSeMonSy can't turn it on for you. Save the account's backup codes too, in case you lose your phone.
+2. At the end of setup, LoNSeMonSy shows a sign-in link and a QR code. Type the link into a browser on any computer, or scan the code with your phone, and sign in. That makes a free Tailscale account if you don't have one.
+3. If asked, turn on **HTTPS Certificates** at https://login.tailscale.com/admin/dns (setup waits for it).
+4. Install the Tailscale app on each phone or laptop that should reach the dashboards, signed in to the same account. Setup shows a QR code for Grafana's address.
 
 Then, in https://login.tailscale.com/admin/settings/device-management:
 
@@ -57,7 +73,9 @@ Then, in https://login.tailscale.com/admin/settings/device-management:
 - **Key expiry** 7 days: phones and laptops have to sign in again (with 2-step) every week.
 - On the Machines page, open this server's **...** menu and pick **Disable key expiry**, so remote access doesn't stop by itself.
 
-Press Enter to skip; turn it on later with `lsmsy remote`.
+If you lose access to that account, the dashboards still open from the office network with their normal passwords. A new phone or laptop on the account sets off the alarm "New device can reach your dashboard".
+
+Press Enter to skip; turn it on or off later with `lsmsy remote`.
 
 ## AI explanations
 
@@ -74,6 +92,7 @@ Turn it on or off later with `lsmsy ai on` or `lsmsy ai off`.
 
 Setup shows the Grafana, Wazuh and backup passwords once, at the end. Save them in a password manager. They aren't shown again.
 
+- **Forgot the Grafana password:** click **Forgot your password?** on Grafana's login page; the reset link goes to the alarm email address (this needs alarm emails set up).
 - **Forgot one, or think someone else has it:** on the server, run `lsmsy password grafana`, `lsmsy password wazuh` or `lsmsy password netalertx`. It sets a new password and signs everyone out.
 - **Other Grafana users** change their own password in Grafana: profile picture > **Change password**.
 - **If you think you were hacked:** change both passwords, run `lsmsy users` to look for accounts you don't recognize, remove them with `lsmsy deluser <name>`, and check the Audit page for logins you don't recognize.

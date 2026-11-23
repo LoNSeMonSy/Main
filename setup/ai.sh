@@ -16,6 +16,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 if [ "$(id -u)" != 0 ]; then echo "  Run it with sudo."; exit 1; fi
 source setup/steps/helpers.sh
+only_one ai "lsmsy ai is already running. Try again when it's done."
 POLICIES=appliance/grafana/provisioning/alerting/policies.yaml
 compose() { docker compose -f appliance/docker-compose.yml --profile ai "$@"; }
 reload_alarms() {

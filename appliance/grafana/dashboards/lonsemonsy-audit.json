@@ -88,6 +88,18 @@
       "tags": []
     },
     {
+      "title": "\ud83d\udcbe Backups",
+      "type": "link",
+      "url": "/d/lons-backups",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
       "title": "\u2b06\ufe0f Updates",
       "type": "link",
       "url": "/d/lons-updates",
@@ -1068,6 +1080,106 @@
         ]
       },
       "description": "Changes to system files and Windows registry keys that Wazuh watches."
+    },
+    {
+      "type": "table",
+      "title": "Backups",
+      "datasource": {
+        "type": "grafana-opensearch-datasource",
+        "uid": "P45A1D828630779A3"
+      },
+      "description": "Every backup, and every press of the Back up now button (allowed or refused).",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-opensearch-datasource",
+            "uid": "P45A1D828630779A3"
+          },
+          "timeField": "timestamp",
+          "query": "rule.groups:lonsemonsy_backup",
+          "metrics": [
+            {
+              "id": "1",
+              "type": "raw_data",
+              "settings": {
+                "size": "100",
+                "order": "desc"
+              }
+            }
+          ],
+          "bucketAggs": []
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "includeByName": {
+              "timestamp": true,
+              "rule.description": true,
+              "rule.level": true
+            },
+            "indexByName": {
+              "timestamp": 0,
+              "rule.description": 1,
+              "rule.level": 2
+            },
+            "renameByName": {
+              "timestamp": "Time",
+              "rule.description": "What happened",
+              "rule.level": "Level"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          },
+          "noValue": "Nothing yet"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

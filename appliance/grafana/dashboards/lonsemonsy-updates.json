@@ -85,6 +85,18 @@
       "tags": []
     },
     {
+      "title": "\ud83d\udcbe Backups",
+      "type": "link",
+      "url": "/d/lons-backups",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
       "title": "\u2b06\ufe0f Updates",
       "type": "link",
       "url": "/d/lons-updates",
@@ -377,60 +389,13 @@
       }
     },
     {
-      "type": "stat",
-      "title": "Last backup",
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 11
-      },
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and r._field == \"ok\")\n  |> last()\n  |> map(fn: (r) => ({_value: int(v: r._time) / 1000000}))"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "dateTimeFromNow",
-          "noValue": "None yet",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "green"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/^_value$/",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value"
-      }
-    },
-    {
       "type": "text",
       "title": "",
       "gridPos": {
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 11
       },
       "options": {
         "mode": "markdown",

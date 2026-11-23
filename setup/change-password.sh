@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.." || exit 1
 # shellcheck source-path=SCRIPTDIR/..
 source setup/steps/helpers.sh   # get, set_env, short_pw, netalertx_login
 [ "$(id -u)" = 0 ] || { echo "Run it with sudo:  sudo lsmsy password $*"; exit 1; }
+only_one password "A password is already being changed. Try again when it's done."
 what=${1:-}
 case "$what" in grafana|wazuh|netalertx) ;; *) echo "  usage: lsmsy password grafana   (or wazuh, netalertx)"; exit 1 ;; esac
 

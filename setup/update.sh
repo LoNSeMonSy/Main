@@ -4,6 +4,9 @@
 #   sudo ./setup/update.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# One update at a time. (The new copy takes the lock over after the download.)
+exec 8>/run/lock/lonsemonsy-update.lock
+flock -n 8 || { echo "  An update is already running. Try again when it's done."; exit 1; }
 
 # Second half, run by the new copy after the download (see the end of this file).
 if [ "${1:-}" = --apply ]; then

@@ -21,10 +21,17 @@ if [ -f "$OSC" ] && ! grep -q 'LoNSeMonSy auto-block' "$OSC"; then
   restart=1
   echo "  wazuh: auto-block on"
 fi
-# Older installs: also block for the "lsmsy test" rule, so the test shows an auto-block.
-if [ -f "$OSC" ] && grep -q '<rules_id>5712,5720,5763</rules_id>' "$OSC"; then
-  sed -i 's#<rules_id>5712,5720,5763</rules_id>#<rules_id>5712,5720,5763,100910</rules_id>#' "$OSC"
+# Older installs: also block for the "lsmsy test" rule and wrong web-login passwords.
+if [ -f "$OSC" ] && grep -qE '<rules_id>5712,5720,5763(,100910)?</rules_id>' "$OSC"; then
+  sed -i -E 's#<rules_id>5712,5720,5763(,100910)?</rules_id>#<rules_id>5712,5720,5763,100910,100931,100933</rules_id>#' "$OSC"
   restart=1
+fi
+
+# Read NetAlertX's web log (wrong passwords on its login page).
+if [ -f "$OSC" ] && ! grep -q /var/log/netalertx/nginx-access.log "$OSC"; then
+  printf '<ossec_config>\n  <localfile>\n    <log_format>apache</log_format>\n    <location>/var/log/netalertx/nginx-access.log</location>\n  </localfile>\n</ossec_config>\n' >> "$OSC"
+  restart=1
+  echo "  wazuh: watching wrong passwords on the NetAlertX and Wazuh logins"
 fi
 
 # Watch this machine's Docker containers, and add our rules (wazuh/lonsemonsy_rules.xml).
@@ -35,6 +42,10 @@ if [ -f "$OSC" ] && ! grep -q 'docker-listener' "$OSC"; then
 fi
 if [ -f "$OSC" ] && ! cmp -s wazuh/lonsemonsy_rules.xml /var/ossec/etc/rules/lonsemonsy_rules.xml; then
   install -o wazuh -g wazuh -m 660 wazuh/lonsemonsy_rules.xml /var/ossec/etc/rules/
+  restart=1
+fi
+if [ -f "$OSC" ] && ! cmp -s wazuh/lonsemonsy_decoders.xml /var/ossec/etc/decoders/lonsemonsy_decoders.xml; then
+  install -o wazuh -g wazuh -m 660 wazuh/lonsemonsy_decoders.xml /var/ossec/etc/decoders/
   restart=1
 fi
 

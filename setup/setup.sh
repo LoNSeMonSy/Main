@@ -28,6 +28,7 @@ echo "  First a few questions (about 2 minutes), then it runs by itself."
 echo "  Not sure what to answer? Type ? and press Enter at any question."
 
 source setup/steps/helpers.sh     # small functions the steps use
+only_one setup "Setup is already running in another window. Wait for it to finish."
 step 1 "Getting ready";        source setup/steps/1-basics.sh    # settings file, curl and the firewall tool
 step 2 "Questions";            source setup/steps/2-questions.sh # fixed IP, business name, alarm emails, cloud backup, remote access, AI
 step 3 "Docker";               source setup/steps/3-docker.sh    # runs Grafana, InfluxDB and NetAlertX

@@ -88,6 +88,18 @@
       "tags": []
     },
     {
+      "title": "\ud83d\udcbe Backups",
+      "type": "link",
+      "url": "/d/lons-backups",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
       "title": "\u2b06\ufe0f Updates",
       "type": "link",
       "url": "/d/lons-updates",

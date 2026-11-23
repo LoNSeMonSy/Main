@@ -99,3 +99,56 @@
     <group>authentication_failures,lsmsy_test,</group>
   </rule>
 </group>
+
+<!-- Backups (setup/backup.sh and the Backups page's button) for the Audit page.
+     The log line is JSON: {"lonsemonsy":"backup","action":"started","what":"local","by":"alice"} -->
+<group name="lonsemonsy,lonsemonsy_backup,">
+  <rule id="100920" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="lonsemonsy">^backup$</field>
+    <description>Backup $(action): $(what), by $(by)</description>
+  </rule>
+  <rule id="100921" level="6">
+    <if_sid>100920</if_sid>
+    <field name="action">^denied$</field>
+    <description>Backup button refused: $(by) is not an admin</description>
+  </rule>
+  <rule id="100922" level="6">
+    <if_sid>100920</if_sid>
+    <field name="action">^failed$</field>
+    <description>Backup failed: $(what), started by $(by)</description>
+  </rule>
+</group>
+
+<!-- Wrong passwords on the Wazuh dashboard and NetAlertX login pages. Five from the same
+     address within 5 minutes raises an alarm, and that address is blocked for 10 minutes
+     (auto-block, like SSH). Grafana locks the account by itself after 5 wrong passwords. -->
+<group name="lonsemonsy,web,authentication_failed,">
+  <rule id="100930" level="5">
+    <decoded_as>lonsemonsy-dashboard-login</decoded_as>
+    <status>^401$</status>
+    <description>Wazuh dashboard: wrong password from $(srcip)</description>
+  </rule>
+  <rule id="100931" level="10" frequency="5" timeframe="300">
+    <if_matched_sid>100930</if_matched_sid>
+    <same_source_ip />
+    <description>Wazuh dashboard: many wrong passwords from $(srcip). Address blocked for 10 minutes.</description>
+    <group>authentication_failures,</group>
+  </rule>
+
+  <!-- NetAlertX answers a wrong password with its login page again (200), a right one
+       with a redirect (302). Its web log is in /var/log/netalertx (docker-compose.yml). -->
+  <rule id="100932" level="5">
+    <if_sid>31100,31108</if_sid>
+    <url>^/index.php</url>
+    <match>"POST /index.php</match>
+    <id>^200$</id>
+    <description>NetAlertX: wrong password from $(srcip)</description>
+  </rule>
+  <rule id="100933" level="10" frequency="5" timeframe="300">
+    <if_matched_sid>100932</if_matched_sid>
+    <same_source_ip />
+    <description>NetAlertX: many wrong passwords from $(srcip). Address blocked for 10 minutes.</description>
+    <group>authentication_failures,</group>
+  </rule>
+</group>

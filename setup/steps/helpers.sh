@@ -3,6 +3,12 @@
 ENV=appliance/.env                    # the settings file
 owner=$(stat -c %U .)                 # the person who downloaded this folder
 
+# only_one NAME MESSAGE: stop if the same task is already running (two at once can clash).
+only_one() {
+  exec 8>"/run/lock/lonsemonsy-$1.lock"
+  if ! flock -n 8; then echo "  $2"; exit 1; fi
+}
+
 # get KEY: print one setting from the settings file.
 get() { grep -E "^$1=" "$ENV" | cut -d= -f2- || true; }
 
@@ -47,6 +53,21 @@ run() {
 }
 took() { local s=$((SECONDS - $1)); printf '%d:%02d' $((s / 60)) $((s % 60)); }
 
+# to_24h TIME: print a time like 1am, 11:30 pm or 23:30 as HH:MM (fails if it isn't a time).
+to_24h() {
+  local t=${1,,} h m ap
+  t=${t// /}; t=${t//a.m./am}; t=${t//p.m./pm}; t=${t//./:}
+  [[ $t =~ ^([0-9]{1,2})(:([0-5][0-9]))?(am|pm)?$ ]] || return 1
+  h=$((10#${BASH_REMATCH[1]})); m=${BASH_REMATCH[3]:-00}; ap=${BASH_REMATCH[4]}
+  if [ -n "$ap" ]; then
+    if [ "$h" -lt 1 ] || [ "$h" -gt 12 ]; then return 1; fi
+    if [ "$ap" = am ] && [ "$h" = 12 ]; then h=0; fi
+    if [ "$ap" = pm ] && [ "$h" != 12 ]; then h=$((h + 12)); fi
+  fi
+  if [ "$h" -gt 23 ]; then return 1; fi
+  printf '%02d:%s\n' "$h" "$m"
+}
+
 # ask VAR TOPIC PROMPT [hidden]: read an answer into VAR. "?" shows TOPIC's part of setup/HELP.md.
 ask() {
   local _answer
@@ -70,8 +91,10 @@ show_help() {
   if [ -z "$1" ]; then
     echo "    Y keeps these answers. n goes through the questions again."
   else
-    awk -v t="## $1" '$0 == t {on = 1; next} on && /^## / {exit} on' setup/HELP.md |
-      sed -E 's/\*\*//g; s/`//g; s/\[([^]]*)\]\(([^)]*)\)/\1 (\2)/g; s/^/    /'
+    awk -v t="## $1" '$0 == t {on = 1; next} on && /^## / {exit} on && (seen || NF) {seen = 1; print}' setup/HELP.md |
+      sed -E '/^\|[- |]+\|$/d; s/^\| (.*) \| (.*) \|$/\1|\2/' |
+      awk -F'|' 'NF == 2 {printf "%-16s %s\n", $1, $2; next} {print}' |
+      sed -E 's/\*\*//g; s/`//g; s/\[([^]]*)\]\(([^)]*)\)/\1 (\2)/g' | fold -s -w 72 | sed 's/^/    /'
   fi
   echo
 }
@@ -121,15 +144,20 @@ need() {
 # Sets repo (empty if skipped), bucket, key_id and secret.
 ask_bucket() {
   repo=""
-  echo "  Type ? at any of these to see where Backblaze shows them."
+  echo "  Four things from your bucket."
+  echo "  Type ? at any of them to see where Backblaze shows them."
   while true; do
-    ask endpoint Backups "Bucket endpoint, e.g. s3.us-east-005.backblazeb2.com (Enter to skip): "
+    printf '\n  Format: like s3.us-east-005.backblazeb2.com\n'
+    ask endpoint Backups "Bucket endpoint (Enter to skip) > "
     endpoint=${endpoint#https://}; endpoint=${endpoint#s3:}; endpoint=${endpoint%/}
     if [ -z "$endpoint" ]; then return; fi
     if [[ $endpoint == */* ]]; then bucket=${endpoint#*/}; endpoint=${endpoint%%/*}   # name pasted too
-    else ask bucket Backups "Bucket name: "; fi
-    ask key_id Backups "Key ID (Backblaze calls it keyID): "
-    ask secret Backups "Secret key (Backblaze calls it applicationKey, hidden): " hidden
+    else printf '\n  Format: like acme-lonsemonsy\n'; ask bucket Backups "Bucket name > "; fi
+    printf '\n  Backblaze calls it keyID. Format: 25 letters and numbers, like 005a1b2c3d4e5f60000000001\n'
+    ask key_id Backups "Key ID > "
+    printf '\n  Backblaze calls it applicationKey. Format: 31 letters and numbers\n'
+    ask secret Backups "Secret key (hidden) > " hidden
+    echo
     # Backblaze: its own connection (b2:), which takes any of its keys. Others: S3.
     if [[ $endpoint == *backblazeb2.com ]]; then repo="b2:$bucket:lonsemonsy"; else repo="s3:$endpoint/$bucket"; fi
     need restic restic
@@ -142,7 +170,7 @@ ask_bucket() {
     fi
     echo "$out" > /var/log/lonsemonsy-bucket-check.log   # restic's whole answer (no keys in it)
     echo "  The bucket didn't answer: $(grep -m1 -iE 'fatal|error|denied' <<<"$out" | cut -c1-160)"
-    if ! confirm Backups "Check the endpoint, bucket name and keys. Try again? [Y/n]: " Y; then repo=""; return; fi
+    if ! confirm Backups "Check the endpoint, bucket name and keys. Try again? [Y/n] > " Y; then repo=""; return; fi
   done
 }
 

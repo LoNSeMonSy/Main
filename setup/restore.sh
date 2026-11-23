@@ -6,6 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 # shellcheck source-path=SCRIPTDIR/..
 source setup/steps/helpers.sh   # get, set_env, ask_bucket
+only_one backup "A backup or restore is already running. Try again when it's done."
 
 export RESTIC_REPOSITORY RESTIC_PASSWORD AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY B2_ACCOUNT_ID B2_ACCOUNT_KEY
 RESTIC_PASSWORD=$(get BACKUP_PASSWORD)

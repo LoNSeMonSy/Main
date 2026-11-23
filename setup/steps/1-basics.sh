@@ -13,6 +13,7 @@ run "Checking Ubuntu's package list" apt-get -o DPkg::Lock::Timeout=1800 update
 need curl curl
 need openssl openssl
 need jq jq
+need qrencode qrencode   # QR codes for phones (remote access, the finish screen)
 if [ "${SKIP_FIREWALL:-0}" != 1 ]; then need ufw ufw; fi
 
 # Wazuh needs about 8 GB of memory. With less and no swap, add a 4 GB swap file so it

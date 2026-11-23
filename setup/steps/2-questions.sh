@@ -10,77 +10,128 @@ dhcp=0
 if [[ $(ip -o -4 addr show dev "$iface") == *dynamic* ]] && [ ! -f "$NETPLAN" ]; then dhcp=1; fi
 has_tailscale() { tailscale status >/dev/null 2>&1; }
 
-static=${STATIC_IP:-2}; site=""; to=""; from=""; apw=""; repo=""; bucket=""; key_id=""; secret=""; ts_key=""; ai=""; ai_url=""
+utc=0
+case "$(timedatectl show -p Timezone --value)" in UTC|Etc/UTC|Etc/Universal|"") utc=1 ;; esac
+static=${STATIC_IP:-2}; tz=""; backup_time=""; site=""; to=""; from=""; apw=""; repo=""; bucket=""; key_id=""; secret=""; remote=""; ai=""; ai_url=""
+# Which questions get asked: each is skipped once answered, or when it doesn't apply.
+q_address() { [ "$dhcp" = 1 ] && [ -z "${STATIC_IP:-}" ]; }
+q_timezone() { [ "$utc" = 1 ]; }
+q_name() { [ -z "$(get SITE_NAME)" ]; }
+q_email() { [ -z "$(get ALERT_EMAIL_TO)" ]; }
+q_backup() { [ -z "$(get BACKUP_REPO)" ]; }
+q_remote() { ! has_tailscale; }
+q_ai() { [ "$(get AI_ENABLED)" != true ]; }
+total=0
+for q in q_address q_timezone q_name q_email q_backup q_remote q_ai; do
+  if $q; then total=$((total + 1)); fi
+done
 n=0
-question() { n=$((n + 1)); printf '\n  \033[1mQuestion %s: %s\033[0m\n' "$n" "$1"; }
+
+# question TITLE: a heading like "── Question 2 of 7: Time zone ─────" with space around it.
+question() {
+  local head
+  n=$((n + 1))
+  head="Question $n of $total: $1"
+  printf '\n\n  \033[1m── %s %s\033[0m\n\n' "$head" "$(printf '%*s' $((58 - ${#head})) '' | sed 's/ /─/g')"
+}
+# say LINE...: lines of explanation, then a blank line.
+say() { printf '  %s\n' "$@"; echo; }
 
 ask_email() {
   while true; do
-    ask to "Alarm emails" "Your email address, where alarms go (Enter to skip): "
+    say "Where should alarm emails go? Any email address works." "Format: name@example.com, like owner@acmedental.com"
+    ask to "Alarm emails" "Your email (Enter to skip) > "
     if [ -z "$to" ]; then return; fi
-    if [[ $to != *@*.* ]]; then echo "  That isn't an email address."; continue; fi
-    echo "  Alarms are sent from a Gmail account. A new one just for this works best."
-    ask from "Alarm emails" "Gmail address to send from, e.g. acmealarms@gmail.com: "
-    echo "  Gmail won't let LoNSeMonSy use that account's normal password. Instead Google gives"
-    echo "  you a separate 16-letter password for it: https://myaccount.google.com/apppasswords"
-    echo "  (signed in as $from). Type ? for step-by-step help."
-    ask apw "Alarm emails" "The 16-letter password from Google (hidden): " hidden
+    if [[ $to != *@*.* ]]; then echo "  That isn't an email address."; echo; continue; fi
+    echo
+    say "Alarms are sent from a Gmail account. A new one just for this works best." "Format: name@gmail.com, like acmealarms@gmail.com"
+    while true; do
+      ask from "Alarm emails" "Gmail address > "
+      if [[ $from == *@*.* ]]; then break; fi
+      echo "  That isn't an email address."
+    done
+    echo
+    say "Gmail won't let LoNSeMonSy use that account's normal password. Instead," \
+        "Google gives you a separate 16-letter password just for LoNSeMonSy:" \
+        "  https://myaccount.google.com/apppasswords   (signed in as $from)" \
+        "Format: 16 letters, like abcd efgh ijkl mnop. Type ? for step-by-step help."
+    ask apw "Alarm emails" "16-letter password (hidden) > " hidden
     apw=${apw// /}                    # Google shows it with spaces; they aren't part of it
     echo "  checking with Gmail..."
     # Log in to Gmail once to check it (nothing is sent).
     if curl -s --max-time 20 --ssl-reqd --url smtp://smtp.gmail.com:587 --user "$from:$apw" -X NOOP -o /dev/null; then
-      echo "  Gmail accepted it."
+      echo "  ✓ Gmail accepted it."
       return
     fi
-    echo "  Gmail didn't accept that Gmail address and password."
-    if ! confirm "Alarm emails" "Try again? [Y/n]: " Y; then to=""; return; fi
+    echo "  ✗ Gmail didn't accept that Gmail address and password."
+    echo
+    if ! confirm "Alarm emails" "Try again? [Y/n] > " Y; then to=""; return; fi
+    echo
   done
 }
 
 questions() {
-  n=0; site=""; to=""; repo=""; ts_key=""; ai=""; ai_url=""
-  if [ "$dhcp" = 1 ] && [ -z "${STATIC_IP:-}" ]; then
+  n=0; tz=""; backup_time=""; site=""; to=""; repo=""; remote=""; ai=""; ai_url=""
+  if q_address; then
     question "Server address"
-    echo "  Other computers reach this server at $ip. The router could change that later."
-    if confirm "Server address" "Keep it fixed at $ip? [Y/n]: " Y; then static=1; else static=2; fi
+    say "Other computers reach this server at $ip." "The router could change that address later, which breaks the links."
+    if confirm "Server address" "Keep it fixed at $ip? [Y/n] > " Y; then static=1; else static=2; fi
   fi
-  if [ -z "$(get SITE_NAME)" ]; then
+  if q_timezone; then
+    question "Time zone"
+    say "This server's clock is on UTC, so backups and reports would run" "at the wrong local time." \
+        "Format: Region/City, like America/New_York or America/Chicago." "Type ? for the common ones."
+    while true; do
+      ask tz "Time zone" "Time zone [America/New_York] > "
+      case "${tz,,}" in
+        "") tz=America/New_York ;;
+        eastern) tz=America/New_York ;;  central) tz=America/Chicago ;;
+        mountain) tz=America/Denver ;;   pacific) tz=America/Los_Angeles ;;
+      esac
+      if timedatectl list-timezones | grep -qx "$tz"; then break; fi
+      echo "  That isn't a time zone name. Type ? to see the common ones."
+    done
+  fi
+  if q_name; then
     question "Business name"
-    echo "  Shown at the top of the dashboard and on alarm emails."
-    ask site "Business name" "Business name, e.g. Acme Dental (Enter to skip): "
+    say "Shown at the top of the dashboard and on alarm emails." "Format: any name, like Acme Dental."
+    ask site "Business name" "Business name (Enter to skip) > "
     site=${site//[\"\\]/}             # no quotes or backslashes
   fi
-  if [ -z "$(get ALERT_EMAIL_TO)" ]; then
+  if q_email; then
     question "Alarm emails"
-    echo "  LoNSeMonSy emails you when something needs attention."
-    echo "  Without this, you only see alarms when you open the dashboard."
+    say "LoNSeMonSy emails you when something needs attention." "Without this, you only see alarms when you open the dashboard." \
+        "The same address gets Grafana's reset link if the admin password is forgotten."
     ask_email
   fi
-  if [ -z "$(get BACKUP_REPO)" ]; then
+  if q_backup; then
     question "Backups"
-    echo "  Every night LoNSeMonSy saves a copy of its settings and data on this server (always on)."
-    echo "  If this server's disk dies, that copy is lost too. A cloud copy is kept somewhere else."
-    if confirm Backups "Also send a copy to the cloud (Backblaze or Amazon S3)? [y/N]: " N; then ask_bucket; fi
+    say "Every night LoNSeMonSy saves a copy of its settings and data on this" "server. This is always on." \
+        "Pick a time when the office is closed but this server is still online." "Format: like 1am, 11:30pm or 23:30."
+    while true; do
+      ask backup_time Backups "Backup time [1am] > "
+      if backup_time=$(to_24h "${backup_time:-1am}"); then break; fi
+      echo "  That isn't a time. Type it like 1am, 11:30pm or 23:30."
+    done
+    echo
+    say "If this server's disk dies, the copy on it is lost too." "A cloud copy is kept somewhere else (Backblaze or Amazon S3)."
+    if confirm Backups "Also send a copy to the cloud? [y/N] > " N; then echo; ask_bucket; fi
   fi
-  if ! has_tailscale; then
+  if q_remote; then
     question "Remote access"
-    echo "  Open the dashboards away from the office, on a phone or laptop, with Tailscale (free)."
-    if confirm "Remote access" "Set up remote access? [y/N]: " N; then
-      echo "  Make a key: https://login.tailscale.com/admin/settings/keys > Generate auth key."
-      while true; do
-        ask ts_key "Remote access" "Paste the key (starts with tskey-, hidden, Enter to skip): " hidden
-        if [ -z "$ts_key" ] || [[ $ts_key == tskey-* ]]; then break; fi
-        echo "  That isn't a Tailscale key. It starts with tskey-."
-      done
-    fi
+    say "Open the dashboards from your phone or laptop anywhere, with a 2-step sign-in." \
+        "It uses Tailscale (free). At the end of setup you sign in once with a Google," \
+        "Microsoft or GitHub account that has 2-step verification on."
+    if confirm "Remote access" "Set up remote access? [y/N] > " N; then remote=1; fi
   fi
-  if [ "$(get AI_ENABLED)" != true ]; then
+  if q_ai; then
     question "AI explanations"
-    echo "  An AI adds a short note to each serious alarm: what happened and what to do."
-    echo "  It runs on your own network. On this server it needs about 2 GB more memory."
-    if confirm "AI explanations" "Turn on AI explanations? [y/N]: " N; then
+    say "An AI adds a short note to each serious alarm: what happened and what" "to do. It runs on your own network. On this server it needs about" "2 GB more memory."
+    if confirm "AI explanations" "Turn on AI explanations? [y/N] > " N; then
       ai=1
-      ask ai_url "AI explanations" "Another computer running Ollama, like 192.168.1.60 (Enter = this server): "
+      echo
+      say "It can run on this server, or on another computer running Ollama." "Format: that computer's IP address, like 192.168.1.60."
+      ask ai_url "AI explanations" "Other computer (Enter = this server) > "
       if [ -n "$ai_url" ]; then
         [[ $ai_url == http* ]] || ai_url="http://$ai_url"
         [[ ${ai_url#*://} == *:* ]] || ai_url="$ai_url:11434"
@@ -89,26 +140,28 @@ questions() {
   fi
 }
 
-line() { printf '    %-16s %s\n' "$1" "$2"; }
+line() { printf '    %-18s %s\n' "$1" "$2"; }
 summary() {
-  echo
-  echo "  Your answers:"
-  if [ "$dhcp" = 1 ] && [ -z "${STATIC_IP:-}" ]; then
+  printf '\n\n  \033[1m── Your answers %s\033[0m\n\n' "$(printf '%*s' 47 '' | sed 's/ /─/g')"
+  if q_address; then
     if [ "$static" = 1 ]; then line "Server address" "fixed at $ip"; else line "Server address" "chosen by the router"; fi
   fi
-  if [ -z "$(get SITE_NAME)" ]; then line "Business name" "${site:-(none)}"; fi
-  if [ -z "$(get ALERT_EMAIL_TO)" ]; then
+  if q_timezone; then line "Time zone" "$tz"; fi
+  if q_name; then line "Business name" "${site:-(none)}"; fi
+  if q_email; then
     if [ -n "$to" ]; then line "Alarm emails" "to $to, sent from $from"; else line "Alarm emails" "off"; fi
   fi
-  if [ -z "$(get BACKUP_REPO)" ]; then
-    if [ -n "$repo" ]; then line "Backups" "on this server and in the cloud ($bucket)"; else line "Backups" "on this server"; fi
+  if q_backup; then
+    when="every night at $(date -d "$backup_time" '+%-I:%M %p')"
+    if [ -n "$repo" ]; then line "Backups" "$when, here and in the cloud ($bucket)"; else line "Backups" "$when, on this server"; fi
   fi
-  if ! has_tailscale; then
-    if [ -n "$ts_key" ]; then line "Remote access" "on"; else line "Remote access" "off"; fi
+  if q_remote; then
+    if [ -n "$remote" ]; then line "Remote access" "on (you sign in at the end)"; else line "Remote access" "off"; fi
   fi
-  if [ "$(get AI_ENABLED)" != true ]; then
+  if q_ai; then
     if [ -n "$ai" ]; then line "AI explanations" "on (${ai_url:-on this server})"; else line "AI explanations" "off"; fi
   fi
+  echo
 }
 
 if [ "$ask" = 1 ]; then
@@ -117,7 +170,7 @@ if [ "$ask" = 1 ]; then
     questions
     if [ "$n" = 0 ]; then break; fi
     summary
-    if confirm "" "Is this right? [Y/n]: " Y; then break; fi
+    if confirm "" "Is this right? [Y/n] > " Y; then echo; break; fi
     echo "  OK, once more."
   done
 fi
@@ -144,6 +197,12 @@ NET
     echo "  server address: chosen by the router. Reserve $ip on the router ($gw) so it stays the same."
   fi
 fi
+if [ -n "$tz" ]; then
+  timedatectl set-timezone "$tz"
+  set_env TZ "$tz"
+  echo "  time zone: $tz"
+fi
+if [ -n "$backup_time" ]; then set_env BACKUP_TIME "$backup_time"; fi
 if [ -n "$site" ]; then
   set_env SITE_NAME "$site"
   set_env SMTP_FROM_NAME "$site LoNSeMonSy"
@@ -162,7 +221,6 @@ if [ -n "$repo" ]; then
   set_env BACKUP_SECRET "$secret"
   echo "  cloud backup: on ($bucket)"
 fi
-if [ -n "$ts_key" ]; then TS_AUTHKEY=$ts_key; fi
 if [ -n "$ai" ]; then
   set_env AI_ENABLED true
   set_env OLLAMA_URL "$ai_url"

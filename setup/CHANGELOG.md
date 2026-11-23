@@ -2,6 +2,17 @@
 
 Newest first.
 
+## 0.6.2 - 2026-11-23
+
+- AI explanations of serious alarms (optional): on this server or another computer running Ollama
+- NetAlertX asks for a password; passwords are shorter (12 characters); SSH only from the office network and Tailscale
+- Remote access: sign in with a link or QR code instead of a key; Devices page shows which phones and laptops can connect, with an alarm for a new one
+- Forgot the Grafana password: the reset link goes to the alarm email
+- lsmsy users adds and removes accounts; lsmsy help is grouped
+- New Backups page with Back up now buttons (admins only); setup asks the backup time and time zone
+- Five wrong passwords on the Wazuh or NetAlertX login blocks that address for 10 minutes
+- lsmsy commands can't be run again right away (test, backup, update and others)
+
 ## 0.6.1 - 2026-11-19
 
 - Clearer setup questions, with help: type ? at any question

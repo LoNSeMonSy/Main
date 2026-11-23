@@ -1,0 +1,717 @@
+{
+  "links": [
+    {
+      "title": "\ud83d\udd14 Alarms",
+      "type": "link",
+      "url": "/d/lons-noc",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udee1\ufe0f Security Overview",
+      "type": "link",
+      "url": "/d/lons-sec-overview",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udce1 Devices",
+      "type": "link",
+      "url": "/d/lons-devices",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcc8 System Health",
+      "type": "link",
+      "url": "/d/lons-health",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u26a0\ufe0f Vulnerabilities",
+      "type": "link",
+      "url": "/d/lons-vulns",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udccb Audit",
+      "type": "link",
+      "url": "/d/lons-audit",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\ud83d\udcbe Backups",
+      "type": "link",
+      "url": "/d/lons-backups",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "\u2b06\ufe0f Updates",
+      "type": "link",
+      "url": "/d/lons-updates",
+      "icon": "",
+      "tooltip": "",
+      "keepTime": false,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "appliance",
+        "label": "Open links via",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_address\")\n  |> last()\n  |> group()\n  |> sort(columns: [\"rank\"])\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "wazuh",
+        "label": "Wazuh address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"wazuh\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "netalertx",
+        "label": "NetAlertX address",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "backup_time",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "import \"array\"\n\nsaved = from(bucket: \"monitoring\")\n  |> range(start: -3650d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup_schedule\" and r._field == \"at\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [array.from(rows: [{_time: time(v: 0), _value: \"1:00 AM\"}]), saved])\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> tail(n: 1)\n  |> keep(columns: [\"_value\"])",
+        "definition": "import \"array\"\n\nsaved = from(bucket: \"monitoring\")\n  |> range(start: -3650d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup_schedule\" and r._field == \"at\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [array.from(rows: [{_time: time(v: 0), _value: \"1:00 AM\"}]), saved])\n  |> group()\n  |> sort(columns: [\"_time\"])\n  |> tail(n: 1)\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "current": {},
+        "options": [],
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "uid": "lons-backups",
+  "title": "Backups",
+  "tags": [
+    "lonsemonsy"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "_lonsemonsy": "ext-links",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Local",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 19,
+        "x": 0,
+        "y": 2
+      },
+      "description": "Latest local backup. LATE means no good backup for over 36 hours. Only admins can use the Back up now buttons, and every press is listed on the Audit page.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and exists r.store and r.store == \"local\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> tail(n: 1)\n  |> map(fn: (r) => {\n      hours = (int(v: now()) - int(v: r._time)) / 3600000000000\n      ago = if hours < 1 then \"less than an hour ago\" else if hours == 1 then \"1 hour ago\" else if hours < 48 then string(v: hours) + \" hours ago\" else string(v: hours / 24) + \" days ago\"\n      state = if r.ok == 0 then \"FAILED\" else if hours > 36 then \"LATE\" else \"OK\"\n      return {_time: r._time, n: if r.store == \"cloud\" then \"2\" else \"1\", where: if r.store == \"cloud\" then \"Cloud\" else \"Local\",\n              _value: state + \" \u00b7 \" + ago + \" \u00b7 \" + string(v: r.copies) + \" copies \u00b7 \" + string(v: r.size / 1048576) + \" MB\"}\n  })\n  |> group(columns: [\"n\", \"where\"])   // this server first"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Local$/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "titleSize": 16,
+          "valueSize": 22
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "displayName": "${__field.labels.where}",
+          "noValue": "No backup yet",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^OK.*",
+                "result": {
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^LATE.*",
+                "result": {
+                  "color": "orange",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^FAILED.*",
+                "result": {
+                  "color": "red",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      }
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 19,
+        "y": 2
+      },
+      "options": {
+        "buttonGroup": {
+          "orientation": "center",
+          "size": "lg"
+        },
+        "confirmModal": {
+          "body": "Makes a new local backup on this server. Takes a few minutes.",
+          "cancel": "Cancel",
+          "columns": {
+            "include": [],
+            "name": "Label",
+            "newValue": "New Value",
+            "oldValue": "Old Value"
+          },
+          "confirm": "Start",
+          "elementDisplayMode": "modified",
+          "title": "Local backup now?"
+        },
+        "elementValueChanged": "",
+        "elements": [],
+        "initial": {
+          "code": "return;",
+          "contentType": "application/json",
+          "getPayload": "return {}",
+          "header": [],
+          "highlight": false,
+          "highlightColor": "red",
+          "method": "-",
+          "payload": {},
+          "url": ""
+        },
+        "layout": {
+          "orientation": "horizontal",
+          "padding": 14,
+          "sectionVariant": "default",
+          "sections": [],
+          "variant": "none"
+        },
+        "reset": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "process",
+          "text": "Reset",
+          "variant": "hidden"
+        },
+        "resetAction": {
+          "code": "return;",
+          "confirm": false,
+          "getPayload": "return {}",
+          "mode": "initial",
+          "payload": {}
+        },
+        "saveDefault": {
+          "icon": "save",
+          "text": "Save Default",
+          "variant": "hidden"
+        },
+        "submit": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "save",
+          "text": "Back up now",
+          "variant": "primary"
+        },
+        "sync": false,
+        "update": {
+          "code": "// Goes through Grafana, which adds the button's token and your user name on the server.\nreturn fetch('/api/datasources/proxy/uid/lons-backup-api/backup/local', { method: 'POST' })\n  .then(function (r) {\n    return r.json().catch(function () { return {}; }).then(function (body) {\n      var msg = body.message || ('Error ' + r.status);\n      if (r.ok) { context.grafana.notifySuccess(['Backup', msg]); }\n      else if (r.status === 409) { context.grafana.notifyWarning(['Backup', msg]); }\n      else { context.grafana.notifyError(['Backup', msg]); }\n    });\n  })\n  .catch(function (e) { context.grafana.notifyError(['Backup', 'Could not reach the backup service (' + e.message + ')']); });",
+          "confirm": true,
+          "contentType": "application/json",
+          "getPayload": "return {};",
+          "header": [],
+          "method": "-",
+          "payload": {},
+          "payloadMode": "custom",
+          "url": ""
+        },
+        "updateEnabled": "auto"
+      },
+      "pluginVersion": "6.3.5",
+      "targets": [
+        {
+          "refId": "A"
+        }
+      ],
+      "title": "\u00a0",
+      "type": "volkovlabs-form-panel",
+      "transparent": true
+    },
+    {
+      "type": "stat",
+      "title": "Cloud",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 19,
+        "x": 0,
+        "y": 5
+      },
+      "description": "Latest cloud backup. Set it up on the server with sudo lsmsy backup setup.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and exists r.store and r.store == \"cloud\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n  |> tail(n: 1)\n  |> map(fn: (r) => {\n      hours = (int(v: now()) - int(v: r._time)) / 3600000000000\n      ago = if hours < 1 then \"less than an hour ago\" else if hours == 1 then \"1 hour ago\" else if hours < 48 then string(v: hours) + \" hours ago\" else string(v: hours / 24) + \" days ago\"\n      state = if r.ok == 0 then \"FAILED\" else if hours > 36 then \"LATE\" else \"OK\"\n      return {_time: r._time, n: if r.store == \"cloud\" then \"2\" else \"1\", where: if r.store == \"cloud\" then \"Cloud\" else \"Local\",\n              _value: state + \" \u00b7 \" + ago + \" \u00b7 \" + string(v: r.copies) + \" copies \u00b7 \" + string(v: r.size / 1048576) + \" MB\"}\n  })\n  |> group(columns: [\"n\", \"where\"])   // this server first"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Cloud$/",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "titleSize": 16,
+          "valueSize": 22
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "displayName": "${__field.labels.where}",
+          "noValue": "Not set up",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^OK.*",
+                "result": {
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^LATE.*",
+                "result": {
+                  "color": "orange",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^FAILED.*",
+                "result": {
+                  "color": "red",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      }
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 19,
+        "y": 5
+      },
+      "options": {
+        "buttonGroup": {
+          "orientation": "center",
+          "size": "lg"
+        },
+        "confirmModal": {
+          "body": "Makes a new cloud backup. Needs a cloud backup set up (sudo lsmsy backup setup). Takes a few minutes.",
+          "cancel": "Cancel",
+          "columns": {
+            "include": [],
+            "name": "Label",
+            "newValue": "New Value",
+            "oldValue": "Old Value"
+          },
+          "confirm": "Start",
+          "elementDisplayMode": "modified",
+          "title": "Cloud backup now?"
+        },
+        "elementValueChanged": "",
+        "elements": [],
+        "initial": {
+          "code": "return;",
+          "contentType": "application/json",
+          "getPayload": "return {}",
+          "header": [],
+          "highlight": false,
+          "highlightColor": "red",
+          "method": "-",
+          "payload": {},
+          "url": ""
+        },
+        "layout": {
+          "orientation": "horizontal",
+          "padding": 14,
+          "sectionVariant": "default",
+          "sections": [],
+          "variant": "none"
+        },
+        "reset": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "process",
+          "text": "Reset",
+          "variant": "hidden"
+        },
+        "resetAction": {
+          "code": "return;",
+          "confirm": false,
+          "getPayload": "return {}",
+          "mode": "initial",
+          "payload": {}
+        },
+        "saveDefault": {
+          "icon": "save",
+          "text": "Save Default",
+          "variant": "hidden"
+        },
+        "submit": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "cloud-upload",
+          "text": "Back up now",
+          "variant": "primary"
+        },
+        "sync": false,
+        "update": {
+          "code": "// Goes through Grafana, which adds the button's token and your user name on the server.\nreturn fetch('/api/datasources/proxy/uid/lons-backup-api/backup/cloud', { method: 'POST' })\n  .then(function (r) {\n    return r.json().catch(function () { return {}; }).then(function (body) {\n      var msg = body.message || ('Error ' + r.status);\n      if (r.ok) { context.grafana.notifySuccess(['Backup', msg]); }\n      else if (r.status === 409) { context.grafana.notifyWarning(['Backup', msg]); }\n      else { context.grafana.notifyError(['Backup', msg]); }\n    });\n  })\n  .catch(function (e) { context.grafana.notifyError(['Backup', 'Could not reach the backup service (' + e.message + ')']); });",
+          "confirm": true,
+          "contentType": "application/json",
+          "getPayload": "return {};",
+          "header": [],
+          "method": "-",
+          "payload": {},
+          "payloadMode": "custom",
+          "url": ""
+        },
+        "updateEnabled": "auto"
+      },
+      "pluginVersion": "6.3.5",
+      "targets": [
+        {
+          "refId": "A"
+        }
+      ],
+      "title": "\u00a0",
+      "type": "volkovlabs-form-panel",
+      "transparent": true
+    },
+    {
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Backups run every night at ${backup_time}. To change the time, run `sudo lsmsy backup time 11pm` on the server. To restore a backup, run `sudo lsmsy restore`. To add a cloud backup, run `sudo lsmsy backup setup`."
+      }
+    },
+    {
+      "type": "table",
+      "title": "Recent backups (30 days)",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"monitoring\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_backup\" and exists r.store)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> map(fn: (r) => ({_time: r._time,\n      where: if r.store == \"cloud\" then \"Cloud\" else \"Local\",\n      result: if r.ok == 1 then \"OK\" else \"FAILED\",\n      by: if exists r.by then r.by else \"\",\n      copies: r.copies, size: r.size, seconds: r.seconds}))\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 60)"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "_time": 0,
+              "where": 1,
+              "result": 2,
+              "by": 3,
+              "copies": 4,
+              "size": 5,
+              "seconds": 6
+            },
+            "renameByName": {
+              "_time": "Time",
+              "where": "Type",
+              "result": "Result",
+              "by": "Started by",
+              "copies": "Copies kept",
+              "size": "Space used",
+              "seconds": "Duration"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left"
+          },
+          "noValue": "No backups yet"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Result"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "OK": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Space used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
