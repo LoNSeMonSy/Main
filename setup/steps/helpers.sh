@@ -185,10 +185,16 @@ ask_bucket() {
     if [ -z "$endpoint" ]; then return; fi
     if [[ $endpoint == */* ]]; then bucket=${endpoint#*/}; endpoint=${endpoint%%/*}   # name pasted too
     else printf '\n  Format: e.g. acme-lonsemonsy\n'; ask bucket Backups "Bucket name > "; fi
-    printf '\n  Amazon calls it Access key ID, Backblaze calls it keyID.\n  Format: e.g. AKIAIOSFODNN7EXAMPLE (Amazon) or 005a1b2c3d4e5f60000000001 (Backblaze)\n'
-    ask key_id Backups "Key ID > "
-    printf '\n  Amazon calls it Secret access key, Backblaze calls it applicationKey.\n'
-    ask secret Backups "Secret key (hidden) > " hidden
+    # Ask for the keys by the names that company uses.
+    if [[ $endpoint == *backblazeb2.com ]]; then
+      id_name=keyID; secret_name=applicationKey; example=005a1b2c3d4e5f60000000001
+    else
+      id_name="Access key ID"; secret_name="Secret access key"; example=AKIAIOSFODNN7EXAMPLE
+    fi
+    printf '\n  Format: e.g. %s\n' "$example"
+    ask key_id Backups "$id_name > "
+    echo
+    ask secret Backups "$secret_name (hidden) > " hidden
     echo
     # Backblaze: its own connection (b2:), which takes any of its keys. Others: S3.
     if [[ $endpoint == *backblazeb2.com ]]; then repo="b2:$bucket:lonsemonsy"; else repo="s3:$endpoint/$bucket"; fi

@@ -56,13 +56,13 @@ With Amazon S3:
 
 1. In the AWS console, **S3 > Create bucket**, e.g. `acme-lonsemonsy` (Block all public access stays on). Note its region, e.g. `us-east-1`.
 2. The endpoint is `s3.<region>.amazonaws.com`, e.g. `s3.us-east-1.amazonaws.com`.
-3. **IAM > Users > Create user**, give it access to that bucket, then **Security credentials > Create access key**. Copy the `Access key ID` (Key ID) and `Secret access key` (secret key). The secret key is only shown once.
+3. **IAM > Users > Create user**, give it access to that bucket, then **Security credentials > Create access key**. Copy the `Access key ID` and `Secret access key`. The secret one is only shown once.
 
 With Backblaze:
 
 1. Sign up, then **Buckets > Create a Bucket**, private, e.g. `acme-lonsemonsy`.
 2. The bucket's **Endpoint** is the bucket address, e.g. `s3.us-east-005.backblazeb2.com`.
-3. **Application Keys > Add a New Application Key**, for that bucket. Copy its `keyID` (Key ID) and `applicationKey` (secret key). The secret key is only shown once.
+3. **Application Keys > Add a New Application Key**, for that bucket. Copy its `keyID` and `applicationKey`. The applicationKey is only shown once.
 
 Backups are encrypted with a backup password that setup makes and shows at the end. **Save it somewhere else** (a password manager): a backup can't be restored without it. Add or change the bucket later with `lsmsy backup setup`.
 
