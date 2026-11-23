@@ -6,14 +6,12 @@
 
 **Local Network Security Monitoring System**
 
-Security monitoring for small networks, on one Ubuntu machine.
+See the unseen within your private local network.
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04%20%7C%2024.04-E95420?logo=ubuntu&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![Wazuh](https://img.shields.io/badge/Wazuh-4.14-3595F7)
 ![Grafana](https://img.shields.io/badge/Grafana-13-F46800?logo=grafana&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-2F855A)
-[![Lint](https://github.com/LoNSeMonSy/Main/actions/workflows/lint.yml/badge.svg)](https://github.com/LoNSeMonSy/Main/actions/workflows/lint.yml)
 
 </div>
 
@@ -24,9 +22,14 @@ Security monitoring for small networks, on one Ubuntu machine.
 - **New device alarm:** NetAlertX spots unknown devices on the network
 - **Port scan alarm:** Suricata spots scans of this machine
 - **Firewall on by default:** only the ports LoNSeMonSy needs, only from your network
-- **One dashboard:** Grafana's Active Alarms page, with email alarms
+- **AI alarm explainer (optional):** a short plain-English note on each serious alarm, what happened and what to do; it runs on your own network
+- **One dashboard:** Grafana's Alarms page, with email alarms
+- **Vulnerabilities page:** pick a device, see which software to update and which settings to fix
+- **Audit page:** who logged in, failed logins, admin commands, account and file changes
+- **System Health page:** CPU, memory, disk and network of the server, with alarms when the disk or memory fills up
 - **Update check:** Grafana shows when a new version is out
-- **Cloud backup (optional):** encrypted nightly copies to an S3 or Backblaze bucket, with an alarm if they stop
+- **Backups every night:** on the server, and optionally to Amazon S3 or Backblaze, encrypted, with an alarm if they stop
+- **Remote access (optional):** open the dashboards from anywhere over HTTPS with Tailscale
 
 LoNSeMonSy finds problems and tells you within minutes. It doesn't replace your router's firewall, antivirus or updates.
 
@@ -56,20 +59,21 @@ sudo ./setup/setup.sh
 | Command | What it does |
 |---|---|
 | `lsmsy` | shows the addresses, the version and these commands |
-| `lsmsy passwords` | shows the Grafana and Wazuh passwords |
+| `lsmsy password` | sets a new Grafana, Wazuh or NetAlertX password |
 | `lsmsy status` | shows whether everything is running |
 | `lsmsy firewall` | shows which ports are open |
 | `lsmsy update` | updates to the newest version |
-| `lsmsy backup` | makes a cloud backup now (`lsmsy backup setup` chooses the bucket) |
-| `lsmsy restore` | puts the newest cloud backup back |
-| `lsmsy users` | lists the Grafana accounts (`lsmsy adduser` / `lsmsy deluser` add or remove one) |
+| `lsmsy backup` | makes a backup now (`lsmsy backup time 11pm` changes the nightly time, `lsmsy backup setup` adds a cloud copy) |
+| `lsmsy restore` | puts the newest backup back (`lsmsy restore cloud` uses the cloud copy) |
+| `lsmsy users` | lists the Grafana accounts, and adds or removes one |
 | `lsmsy report` | shows this week's security summary (also emailed on Mondays) |
 | `lsmsy test` | sends a fake alarm to check that alarms and email work |
-| `lsmsy remote` | turns on HTTPS access from anywhere with Tailscale (optional) |
+| `lsmsy remote` | turns HTTPS access from anywhere with Tailscale on or off |
+| `lsmsy ai on` | turns on AI explanations of alarms (`lsmsy ai off` turns them off) |
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 
-**Email alarms** are sent from a Gmail account. Use a separate one made just for this, with an [app password](https://myaccount.google.com/apppasswords) (not its normal password; needs 2-Step Verification).
+Not sure what to answer during setup? Type `?` at any question, or see [setup/HELP.md](setup/HELP.md).
 
 ## What's inside
 
@@ -80,22 +84,10 @@ To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/READ
 | [NetAlertX](https://docs.netalertx.com/) | device discovery |
 | [Grafana](https://grafana.com/docs/grafana/latest/) | dashboards and email alarms |
 | [InfluxDB](https://docs.influxdata.com/influxdb/v2/) | stores measurements over time |
+| [Telegraf](https://docs.influxdata.com/telegraf/v1/) | collects the server's health numbers |
+| [n8n](https://docs.n8n.io/) and [Ollama](https://ollama.com/) | the AI alarm explainer (Gemma 3 model) |
+| [Tailscale](https://tailscale.com/kb/) | remote access |
 | [ufw](https://documentation.ubuntu.com/server/how-to/security/firewalls/) | the firewall |
-
-Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMonSy's own version is in `setup/VERSION`, and what changed in [`setup/CHANGELOG.md`](setup/CHANGELOG.md).
-
-```
-appliance/   Docker Compose, Grafana dashboards and alarms, Suricata
-setup/       setup.sh and its steps, update.sh, the lonsemonsy command
-wazuh/       detection rules, auto-block, adding a computer
-systems/     every system we use
-lint/        code checks
-images/      logo and diagram
-```
-
-## Development
-
-Branches: `dev` → `staging` → `main`. Code checks: [lint/](lint/)
 
 ## Team
 

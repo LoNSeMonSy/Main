@@ -1,0 +1,535 @@
+{
+  "id": "lonsemonsyAlrtEx",
+  "name": "LoNSeMonSy alert explainer",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lonsemonsy-alert",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "612d7a47-16ef-4606-b73c-9c7e8dd5f202",
+      "name": "Grafana alarm",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "e56d3a97-04e4-437e-95cd-f387733d7ea0"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.alerts",
+        "options": {}
+      },
+      "id": "f307a7aa-5497-41d2-8a1d-7ee5dee79007",
+      "name": "One alarm at a time",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de92d667-7bd9-4800-bc2c-2f256b4e0afa",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "firing",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "f135bc68-4926-48f0-a8f6-bcf32cab1848",
+              "leftValue": "={{ $json.labels.alertname }}",
+              "rightValue": "Backup storage running low",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "5d0c9f0e-6c3b-4a53-9b0e-2f7f0a1c7d11",
+              "leftValue": "={{ $('One alarm at a time').all().findIndex(i => i.json.status === 'firing' && i.json.labels.alertname === $json.labels.alertname) === $itemIndex }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0fea9da8-779f-4310-97c6-f559f0941d14",
+      "name": "Only new security alarms",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "afaae022-b64b-419a-9037-a62fae6fc140",
+              "name": "alarm",
+              "value": "={{ $json.labels.alertname }}",
+              "type": "string"
+            },
+            {
+              "id": "35da466c-5a8c-4f10-a0f2-5230951878ab",
+              "name": "severity",
+              "value": "={{ $json.labels.severity || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "f441d911-5a1f-44c0-a6ce-be517b7c2c0f",
+              "name": "summary",
+              "value": "={{ $json.annotations.summary || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "67a1e0bc-d0ec-4d0a-a487-49e475be92ff",
+              "name": "count",
+              "value": "={{ $json.values ? Object.values($json.values)[0] : 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "23452fcc-785c-4a24-97a8-07aeea25bc65",
+              "name": "search",
+              "value": "={{ ({'Security alert (Medium)': '(rule.level:[8 TO 10] AND NOT rule.groups:sca) OR rule.id:651', 'Security alert (High or Critical)': 'rule.level:>=11 OR rule.id:651', 'Port scan detected': 'rule.id:86601'})[$json.labels.alertname] || 'rule.id:0' }}",
+              "type": "string"
+            },
+            {
+              "id": "0c1f4a52-7a39-4d3a-8f57-7f0b5f2d9c31",
+              "name": "headline",
+              "value": "={{ $json.annotations.headline || $json.labels.alertname }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd86626d-925f-4634-87c4-b72e5d63a31e",
+      "name": "What to look up",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WAZUH_INDEXER_URL }}/wazuh-alerts-*/_search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Basic {{ ($env.WAZUH_INDEXER_USER + ':' + $env.WAZUH_INDEXER_PASSWORD).base64Encode() }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ size: 3, sort: [{ timestamp: 'desc' }], query: { bool: { filter: [ { range: { timestamp: { gte: 'now-15m' } } }, { query_string: { query: $json.search } } ] } }, _source: ['timestamp','rule.description','rule.level','rule.id','rule.groups','rule.firedtimes','agent.name','data.srcip','data.src_ip','data.srcuser','data.dstuser','data.win.eventdata.targetUserName','data.alert.signature'] }) }}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 20000
+        }
+      },
+      "id": "85dfb248-76d9-4338-93da-94a36f161a64",
+      "name": "Latest Wazuh events",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bcba7d28-4722-4f93-ba2e-1b1cab477fec",
+              "name": "alarm",
+              "value": "={{ $('What to look up').item.json.alarm }}",
+              "type": "string"
+            },
+            {
+              "id": "ccfc521b-1711-4fcc-b53f-fb121507dc82",
+              "name": "severity",
+              "value": "={{ $('What to look up').item.json.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "ad5677ff-7765-4ca2-b421-68d5b0497726",
+              "name": "facts",
+              "value": "={{ ($json.hits?.hits || []).length === 0 ? 'Alarm: ' + $('What to look up').item.json.alarm + '. Severity: ' + ($('What to look up').item.json.severity.charAt(0).toUpperCase() + $('What to look up').item.json.severity.slice(1)) + '. ' + $('What to look up').item.json.summary + ' Count in the alarm: ' + $('What to look up').item.json.count + '.' : 'Alarm: ' + $('What to look up').item.json.alarm + '. Severity: ' + ($('What to look up').item.json.severity.charAt(0).toUpperCase() + $('What to look up').item.json.severity.slice(1)) + '.\\n' + $json.hits.hits.map((h, i) => 'Event ' + (i + 1) + ': ' + h._source.timestamp + ' | ' + (String(h._source.rule?.id) === '651' ? 'LoNSeMonSy automatically blocked source IP ' + (h._source.data?.srcip || h._source.data?.src_ip || 'unknown') + ' for 10 minutes' : (h._source.data?.alert?.signature || h._source.rule?.description)) + ' | Wazuh level ' + h._source.rule?.level + ' (rule ' + h._source.rule?.id + ')' + ' | machine ' + (h._source.agent?.name || 'unknown') + ' | source IP ' + (h._source.data?.srcip || h._source.data?.src_ip || 'unknown') + ' | user ' + (h._source.data?.win?.eventdata?.targetUserName || h._source.data?.srcuser || h._source.data?.dstuser || 'unknown') + ' | times seen ' + (h._source.rule?.firedtimes ?? 'unknown') + ' | suggested action: ' + ((r, ip, m) => { const id = String(r.id || ''); const g = r.groups || []; if (id === '651') return 'No action needed: LoNSeMonSy already blocked ' + ip + ' for 10 minutes. Check whether you recognise that device.'; if (g.includes('authentication_failures') || g.includes('authentication_failed') || ['5712','5720','5763','5551','5710'].includes(id)) return 'Check whether you recognise the device at ' + ip + ', and make sure accounts on ' + m + ' use strong passwords or SSH keys.'; if (id === '86601') return 'Check whether you recognise the device at ' + ip + '. Scans often come before an attack.'; if (id === '592') return 'No action needed: this is the nightly log rotation.'; if (id === '60602') return 'Check whether the same program keeps crashing on ' + m + '. If it does, update or reinstall it.'; return 'Open the alert in Wazuh for details, or ask your IT person.'; })(h._source.rule || {}, (h._source.data?.srcip || h._source.data?.src_ip || 'unknown'), (h._source.agent?.name || 'unknown'))).join('\\n') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8f19f1cc-01b8-4814-836a-4f7d41f0d39e",
+      "name": "Facts for the AI",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OLLAMA_URL }}/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({ model: $env.OLLAMA_MODEL, stream: false, keep_alive: '30m', options: { num_thread: 3, temperature: 0.2, num_ctx: 4096, num_predict: 200 }, messages: [ { role: 'system', content: \"You explain security alarms from LoNSeMonSy, a network monitoring system, to a small-business owner who is not a security expert.\\n\\nReply with exactly three lines and nothing else:\\nWhat happened: <one or two plain sentences>\\nHow serious: <the severity word given in the facts>. <one short reason>\\nWhat to do: <the suggested action from the facts, in plain words>\\n\\nRules:\\n- Use only the facts you are given. Never invent IP addresses, machine names, usernames, counts, times or causes.\\n- If something is not in the facts, say \\\"unknown\\\" instead of guessing.\\n- Use the severity word exactly as given in the facts; do not change it.\\n- Only say an address was blocked if the facts say LoNSeMonSy blocked it. Say which IP was blocked.\\n- Mention the source IP address when the facts give one.\\n- For \\\"What to do\\\", use only the \\\"suggested action\\\" given for each event. Do not add advice of your own.\\n- If the source IP is \\\"unknown\\\", do not mention a source IP at all.\\n- If the events are unrelated, say so briefly.\\n- No markdown, no bullet points, no extra lines.\\n\\nBackground:\\n- \\\"ET SCAN\\\" events come from Suricata and mean something scanned the appliance for open ports.\\n- \\\"Log file size reduced\\\" right after midnight is the nightly log rotation, not an attack.\\n- \\\"Windows application error event\\\" means a program on that Windows PC crashed or reported an error.\" }, { role: 'user', content: ($env.OLLAMA_MODEL.startsWith('qwen3') && !$env.OLLAMA_MODEL.includes('instruct') ? '/no_think\\n' : '') + $json.facts } ] }, $env.OLLAMA_MODEL.startsWith('qwen3') && !$env.OLLAMA_MODEL.includes('instruct') ? { think: false } : {})) }}",
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "adcaec25-abd7-4c9c-8604-e854d4e28b14",
+      "name": "Ask the local AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c0f4422b-cf77-47d2-884f-9167bbc88cf2",
+              "name": "alarm",
+              "value": "={{ $('Facts for the AI').item.json.alarm }}",
+              "type": "string"
+            },
+            {
+              "id": "a353d441-0d23-4445-8f0a-329b0516b484",
+              "name": "severity",
+              "value": "={{ $('Facts for the AI').item.json.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "0e5f6f78-bd32-4146-b012-4b6d2470f745",
+              "name": "facts",
+              "value": "={{ $('Facts for the AI').item.json.facts }}",
+              "type": "string"
+            },
+            {
+              "id": "8bb4db9f-d74e-4829-b4f6-4e009990cf4c",
+              "name": "explanation",
+              "value": "={{ ($json.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d76c5006-5fe4-4699-b123-4cf7160ac09d",
+      "name": "The explanation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c4cf9a89-b90a-492d-ab49-9a57cb5205b0",
+              "leftValue": "={{ $json.explanation }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fb048b33-4355-4278-a032-3d87fd9ac29c",
+      "name": "Has an explanation",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM_ADDRESS }}",
+        "toEmail": "={{ $env.ALERT_EMAIL_TO }}",
+        "subject": "=\ud83e\udd16 Explained: {{ $('What to look up').item.json.headline }}",
+        "emailFormat": "text",
+        "text": "={{ $json.alarm }}\n\n{{ $json.explanation.replace(/\\*\\*/g, '').split('\\n').map(l => l.trim()).filter(l => l).join('\\n\\n') }}\n\nWhat was seen:\n\n{{ $('Latest Wazuh events').item.json.hits.hits.map((h, i) => { const s = h._source, r = s.rule || {}, ip = s.data?.srcip || s.data?.src_ip, u = s.data?.win?.eventdata?.targetUserName || s.data?.srcuser || s.data?.dstuser, blocked = String(r.id) === '651'; const t = new Date(String(s.timestamp).replace(/([+-]\\d\\d)(\\d\\d)$/, '$1:$2')).toLocaleTimeString('en-US', { timeZone: $env.GENERIC_TIMEZONE || 'UTC', hour: 'numeric', minute: '2-digit' }); const what = blocked ? 'Automatically blocked ' + ip + ' for 10 minutes' : (s.data?.alert?.signature || r.description); const d = ['Machine: ' + (s.agent?.name || 'unknown')]; if (ip && !blocked) d.push('From: ' + ip); if (u) d.push('User: ' + u); d.push('Level ' + r.level); return (i + 1) + '. ' + t + '  ' + what + '\\n   ' + d.join('   '); }).join('\\n\\n') }}\n\nNext steps:\n- {{ ['high','critical'].includes(($json.severity || '').toLowerCase()) ? 'This is serious. If you are not sure what to do, contact your IT person or Managed Service Provider (MSP) now and forward them this email.' : 'If you are not sure what this means, ask your IT person or Managed Service Provider (MSP) to take a look.' }}\n- See this alarm in Grafana: {{ $('One alarm at a time').item.json.generatorURL || 'open your LoNSeMonSy dashboard' }}\n- See the events in Wazuh (admins only): {{ (u => u.port === '8443' ? u.protocol + '//' + u.hostname + ':8445' : 'https://' + u.hostname)(new URL($('One alarm at a time').item.json.generatorURL || 'https://localhost')) }}/app/threat-hunting#/overview/?tab=general&tabView=events&_g=(time:(from:now-1h,to:now))\n- Guide for small businesses (CISA): https://www.cisa.gov/cyber-guidance-small-businesses\n",
+        "options": {}
+      },
+      "id": "fc8a777f-60e6-4cf9-ac56-5f5d62789500",
+      "name": "Email the explanation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2640,
+        180
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "lonsemonsySmtp01",
+          "name": "LoNSeMonSy email"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INFLUX_URL }}/api/v2/write?org={{ encodeURIComponent($env.INFLUXDB_ORG) }}&bucket={{ encodeURIComponent($env.INFLUXDB_BUCKET) }}&precision=s",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Token {{ $env.INFLUXDB_ADMIN_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ 'ai_explanations,alarm=' + $json.alarm.replace(/[ ,=]/g, c => '\\\\' + c) + ',severity=' + $json.severity + ' explanation=\"' + $json.explanation.replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"').replace(/\\n+/g, ' | ') + '\",model=\"' + $env.OLLAMA_MODEL + '\"' + (s => s ? ',src_ip=\"' + (s.data?.srcip || s.data?.src_ip || '-') + '\",machine=\"' + (s.agent?.name || '-') + '\"' : '')((($('Latest Wazuh events').item.json.hits || {}).hits || [])[0]?._source) }}",
+        "options": {}
+      },
+      "id": "ac165179-947e-4b51-9aaa-2b188d203c8d",
+      "name": "Save for the dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        420
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5b7422fc-b133-45ba-9713-12daeefc870a",
+      "name": "AI unavailable (normal alarm email already sent)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2444e9c4-6023-4695-9621-1b52b01112de",
+              "leftValue": "={{ $json.facts }}",
+              "rightValue": "Event 1:",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "80026dec-f9d7-427a-ba9d-23dbb19ed2f3",
+      "name": "Found real events",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        300
+      ],
+      "notes": "Only explain alarms we found real Wazuh events for. Without them the AI would be guessing; the normal Grafana alarm email has already gone out."
+    }
+  ],
+  "connections": {
+    "Grafana alarm": {
+      "main": [
+        [
+          {
+            "node": "One alarm at a time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One alarm at a time": {
+      "main": [
+        [
+          {
+            "node": "Only new security alarms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only new security alarms": {
+      "main": [
+        [
+          {
+            "node": "What to look up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What to look up": {
+      "main": [
+        [
+          {
+            "node": "Latest Wazuh events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Latest Wazuh events": {
+      "main": [
+        [
+          {
+            "node": "Facts for the AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facts for the AI": {
+      "main": [
+        [
+          {
+            "node": "Found real events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask the local AI": {
+      "main": [
+        [
+          {
+            "node": "The explanation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI unavailable (normal alarm email already sent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The explanation": {
+      "main": [
+        [
+          {
+            "node": "Has an explanation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has an explanation": {
+      "main": [
+        [
+          {
+            "node": "Email the explanation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save for the dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Found real events": {
+      "main": [
+        [
+          {
+            "node": "Ask the local AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "tags": []
+}

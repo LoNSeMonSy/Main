@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
-# Puts the newest cloud backup back:  lsmsy restore
-# On a new machine: run setup first, then this. It asks for the bucket and the backup password.
+# Puts the newest backup back:  lsmsy restore   (lsmsy restore cloud: use the cloud copy)
+# It uses the copy on this server when there is one. On a new machine: run setup first,
+# then this; it asks for the bucket and the backup password.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 # shellcheck source-path=SCRIPTDIR/..
 source setup/steps/helpers.sh   # get, set_env, ask_bucket
-
-# A new machine has no bucket in its settings yet: ask (the same answers as on the old machine).
-if [ -z "$(get BACKUP_REPO)" ]; then
-  ask_bucket
-  if [ -z "$repo" ]; then echo "Nothing changed."; exit 0; fi
-  read -r -s -p "  Backup password (lsmsy passwords shows it on the old machine): " password; echo
-  set_env BACKUP_REPO "$repo"
-  set_env BACKUP_KEY_ID "$key_id"
-  set_env BACKUP_SECRET "$secret"
-  set_env BACKUP_PASSWORD "$password"
-fi
+only_one backup "A backup or restore is already running. Try again when it's done."
 
 export RESTIC_REPOSITORY RESTIC_PASSWORD AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY B2_ACCOUNT_ID B2_ACCOUNT_KEY
-RESTIC_REPOSITORY=$(get BACKUP_REPO)
 RESTIC_PASSWORD=$(get BACKUP_PASSWORD)
+RESTIC_REPOSITORY=$(get BACKUP_LOCAL)
+if [ "${1:-}" = cloud ] || [ -z "$RESTIC_REPOSITORY" ] || ! restic cat config >/dev/null 2>&1; then
+  # A new machine has no bucket in its settings yet: ask (the same answers as on the old machine).
+  if [ -z "$(get BACKUP_REPO)" ]; then
+    ask_bucket
+    if [ -z "$repo" ]; then echo "Nothing changed."; exit 0; fi
+    read -r -s -p "  Backup password (shown at the end of setup on the old machine): " password; echo
+    set_env BACKUP_REPO "$repo"
+    set_env BACKUP_KEY_ID "$key_id"
+    set_env BACKUP_SECRET "$secret"
+    set_env BACKUP_PASSWORD "$password"
+  fi
+  RESTIC_REPOSITORY=$(get BACKUP_REPO)
+  RESTIC_PASSWORD=$(get BACKUP_PASSWORD)
+  echo "Backups in the cloud:"
+else
+  echo "Backups on this server (for the cloud copy: lsmsy restore cloud):"
+fi
 AWS_ACCESS_KEY_ID=$(get BACKUP_KEY_ID)
 AWS_SECRET_ACCESS_KEY=$(get BACKUP_SECRET)
 B2_ACCOUNT_ID=$AWS_ACCESS_KEY_ID          # the same key, under Backblaze's names
@@ -53,6 +61,13 @@ if [ -d "$tmp/var/ossec/etc" ]; then cp -a "$tmp/var/ossec/etc/." /var/ossec/etc
 # Put this machine's Wazuh login back into the restored settings file.
 sed -i "/^WAZUH_INDEXER_PASSWORD=/d" appliance/.env
 echo "WAZUH_INDEXER_PASSWORD=$reader" >> appliance/.env
+
+# On a new machine, setup made a backup store with a new password. Start it over with the
+# restored one, or tonight's backup couldn't open it.
+store=$(get BACKUP_LOCAL); store=${store:-/var/backups/lonsemonsy-copies}
+if [ -f "$store/config" ] && ! RESTIC_REPOSITORY=$store RESTIC_PASSWORD=$(get BACKUP_PASSWORD) restic cat config >/dev/null 2>&1; then
+  mv "$store" "$store.before-restore-$(date +%Y%m%d)"
+fi
 
 echo "restoring InfluxDB..."
 (cd appliance && docker compose start influxdb >/dev/null 2>&1)

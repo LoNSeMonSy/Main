@@ -23,6 +23,6 @@
   <disabled>no</disabled>
   <command>firewall-drop</command>
   <location>local</location>
-  <rules_id>5712,5720,5763</rules_id>
+  <rules_id>5712,5720,5763,100910,100931,100933</rules_id>
   <timeout>600</timeout>
 </active-response>

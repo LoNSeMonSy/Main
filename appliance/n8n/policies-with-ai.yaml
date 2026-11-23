@@ -1,0 +1,32 @@
+# Notification routing WITH the AI alert explainer (used by setup/ai.sh).
+# Security alarms go to the explainer AND to email; everything else just email.
+#
+# NOTE: this REPLACES Grafana's default notification policy tree for org 1.
+#
+# Timings are tuned so a live demo shows mail quickly without a flood:
+#   group_wait      30s  -- brief pause so a burst batches into one email
+#   group_interval   5m  -- how soon a NEW alert in an existing group can mail
+#   repeat_interval  4h  -- re-nag cadence for something still firing
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: lonsemonsy-email
+    group_by:
+      - alertname
+      - grafana_folder
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      # Medium or higher security alarms also go to the AI explainer. "continue"
+      # means Grafana keeps going, so the next route still sends the normal email.
+      - receiver: lonsemonsy-ai-explainer
+        object_matchers:
+          - ["severity", "=~", "medium|high|critical"]
+        group_wait: 10s
+        continue: true
+      - receiver: lonsemonsy-email-resolved
+        object_matchers:
+          - ["email_when_resolved", "=", "yes"]
+      - receiver: lonsemonsy-email

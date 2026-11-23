@@ -1,0 +1,19 @@
+<!--
+  LoNSeMonSy decoders that ship with every install (setup copies this file to
+  /var/ossec/etc/decoders/).
+
+  Wazuh dashboard logins. The dashboard writes each web request to the journal as JSON:
+    opensearch-dashboards[123]: {"type":"response",...,"statusCode":401,"req":{"url":"/auth/login",
+    ...,"remoteAddress":"192.168.1.20",...},"res":{"statusCode":401,...}}
+  A wrong password is a 401 on /auth/login.
+-->
+<decoder name="lonsemonsy-dashboard-login">
+  <program_name>^opensearch-dashboards$</program_name>
+  <prematch>"url":"/auth/login"</prematch>
+</decoder>
+
+<decoder name="lonsemonsy-dashboard-login-fields">
+  <parent>lonsemonsy-dashboard-login</parent>
+  <regex type="pcre2">"remoteAddress":"([^"]+)".*"res":\{"statusCode":(\d+)</regex>
+  <order>srcip,status</order>
+</decoder>
