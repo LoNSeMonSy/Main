@@ -119,16 +119,16 @@ groups:
                     type: gt
                     params: [0]
 
-      - uid: lons-wazuh-critical
-        title: Security alert (High or Critical)
+      - uid: lons-wazuh-high
+        title: Security alert (High)
         condition: C
         for: 0m
         annotations:
           headline: >-
             {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
           summary: >-
-            A High or Critical security alert (Wazuh level 11 or above) fired
-            on the LoNSeMonSy appliance. Act now.
+            A High security alert (Wazuh level 11-12): likely an attack. Find out
+            what it is today, and change any password it mentions.
         labels:
           severity: high
         noDataState: OK
@@ -142,7 +142,83 @@ groups:
             model:
               refId: A
               timeField: timestamp
-              query: "rule.level:>=11"
+              query: "rule.level:[11 TO 12]"
+              metrics:
+                - id: "1"
+                  type: count
+              bucketAggs:
+                - id: "3"
+                  type: terms
+                  field: rule.description
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "4"
+                  type: terms
+                  field: agent.name
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "5"
+                  type: terms
+                  field: data.srcip
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                    missing: none
+                - id: "2"
+                  type: date_histogram
+                  field: timestamp
+                  settings:
+                    interval: "1m"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: sum
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      - uid: lons-wazuh-critical
+        title: Security alert (Critical)
+        condition: C
+        for: 0m
+        annotations:
+          headline: >-
+            {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
+          summary: >-
+            A Critical security alert (Wazuh level 13 or above). Act now: unplug
+            the machine from the network, then call whoever looks after it.
+        labels:
+          severity: critical
+        noDataState: OK
+        execErrState: OK
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P45A1D828630779A3
+            model:
+              refId: A
+              timeField: timestamp
+              query: "rule.level:>=13"
               metrics:
                 - id: "1"
                   type: count

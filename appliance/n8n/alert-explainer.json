@@ -117,7 +117,7 @@
             {
               "id": "23452fcc-785c-4a24-97a8-07aeea25bc65",
               "name": "search",
-              "value": "={{ ({'Security alert (Medium)': '(rule.level:[8 TO 10] AND NOT rule.groups:sca) OR rule.id:651', 'Security alert (High or Critical)': 'rule.level:>=11 OR rule.id:651', 'Port scan detected': 'rule.id:86601'})[$json.labels.alertname] || 'rule.id:0' }}",
+              "value": "={{ ({'Security alert (Medium)': '(rule.level:[8 TO 10] AND NOT rule.groups:sca) OR rule.id:651', 'Security alert (High)': 'rule.level:[11 TO 12] OR rule.id:651', 'Security alert (Critical)': 'rule.level:>=13 OR rule.id:651', 'Port scan detected': 'rule.id:86601'})[$json.labels.alertname] || 'rule.id:0' }}",
               "type": "string"
             },
             {

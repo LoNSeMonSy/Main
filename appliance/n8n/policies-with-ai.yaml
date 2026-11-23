@@ -26,6 +26,14 @@ policies:
           - ["severity", "=~", "medium|high|critical"]
         group_wait: 10s
         continue: true
+      - receiver: lonsemonsy-email-urgent   # Critical repeats every hour, High every 4
+        object_matchers:
+          - ["severity", "=", "critical"]
+        group_wait: 10s
+        repeat_interval: 1h
+      - receiver: lonsemonsy-email-urgent
+        object_matchers:
+          - ["severity", "=", "high"]
       - receiver: lonsemonsy-email-resolved
         object_matchers:
           - ["email_when_resolved", "=", "yes"]

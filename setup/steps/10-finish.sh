@@ -97,3 +97,10 @@ echo "  Forgot one, or someone else has it: lsmsy password grafana (or wazuh, ne
 echo "  Not sure what something means: setup/HELP.md"
 echo "  Protect a computer with a Wazuh agent: see wazuh/README.md"
 echo "  Everything else: type lsmsy"
+
+# The first install ends with one test alarm, so the first sign-in shows that alarms and email work.
+if [ "${SKIP_TEST:-0}" != 1 ] && [ ! -e /var/lib/lonsemonsy/last-test ] && systemctl is-active -q wazuh-manager; then
+  echo
+  echo "  Sending a test alarm, so you can check that alarms work:"
+  setup/lonsemonsy.sh test || echo "  it didn't send; try again with: lsmsy test"
+fi

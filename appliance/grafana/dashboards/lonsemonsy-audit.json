@@ -519,7 +519,6 @@
               "timestamp": true,
               "agent.name": true,
               "data.dstuser": true,
-              "data.win.eventdata.targetUserName": true,
               "data.srcip": true,
               "rule.description": true
             },
@@ -527,7 +526,6 @@
               "timestamp": 0,
               "agent.name": 1,
               "data.dstuser": 2,
-              "data.win.eventdata.targetUserName": 3,
               "data.srcip": 4,
               "rule.description": 5
             },
@@ -535,7 +533,6 @@
               "timestamp": "Time",
               "agent.name": "Device",
               "data.dstuser": "User",
-              "data.win.eventdata.targetUserName": "Windows user",
               "data.srcip": "From",
               "rule.description": "How"
             }
@@ -586,18 +583,6 @@
               {
                 "id": "custom.width",
                 "value": 90
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Windows user"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 110
               }
             ]
           },
@@ -901,22 +886,19 @@
               "timestamp": true,
               "agent.name": true,
               "rule.description": true,
-              "data.dstuser": true,
-              "data.win.eventdata.targetUserName": true
+              "data.dstuser": true
             },
             "indexByName": {
               "timestamp": 0,
               "agent.name": 1,
               "rule.description": 2,
-              "data.dstuser": 3,
-              "data.win.eventdata.targetUserName": 4
+              "data.dstuser": 3
             },
             "renameByName": {
               "timestamp": "Time",
               "agent.name": "Device",
               "rule.description": "What happened",
-              "data.dstuser": "Account",
-              "data.win.eventdata.targetUserName": "Windows account"
+              "data.dstuser": "Account"
             }
           }
         }
@@ -965,18 +947,6 @@
               {
                 "id": "custom.width",
                 "value": 100
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Windows account"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 130
               }
             ]
           }

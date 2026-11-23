@@ -5,7 +5,7 @@
 # Options (put them before ./setup/setup.sh):
 #   SKIP_QUESTIONS=1   don't ask anything        SKIP_WAZUH=1      use a Wazuh server you already have
 #   STATIC_IP=1        make the IP address static SKIP_SURICATA=1   no port-scan detection
-#   SKIP_FIREWALL=1    leave the firewall alone
+#   SKIP_FIREWALL=1    leave the firewall alone   SKIP_TEST=1      no test alarm at the end
 #   Cloud copy of the backups: answer the Backups question, or fill in BACKUP_REPO, BACKUP_KEY_ID, BACKUP_SECRET in appliance/.env
 # shellcheck source-path=SCRIPTDIR/..
 set -euo pipefail               # stop at the first error

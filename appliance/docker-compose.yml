@@ -215,6 +215,9 @@ services:
       - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_CONTEXT_LENGTH=4096
       - OLLAMA_KEEP_ALIVE=15m
+      # Don't keep old prompts in memory: they add up until the model gets killed.
+      - LLAMA_ARG_CACHE_RAM=0
+      - LLAMA_ARG_CTX_CHECKPOINTS=1
 
 networks:
   # Pinned so the bridge gateway (172.20.0.1) is stable: the Wazuh indexer binds

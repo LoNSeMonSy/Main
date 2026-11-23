@@ -1,4 +1,5 @@
 # The subject line of alarm emails: what happened, where, and from which address.
+# Critical and High ones start with the word, and their email starts with what to do.
 # The words come from each rule's "headline" (rules.yaml).
 apiVersion: 1
 
@@ -6,4 +7,13 @@ templates:
   - orgId: 1
     name: lonsemonsy
     template: |
-      {{ define "lonsemonsy.subject" }}{{ if eq .Status "firing" }}❌ {{ else }}✅ Resolved: {{ end }}{{ with index .Alerts 0 }}{{ if .Annotations.headline }}{{ .Annotations.headline }}{{ else }}{{ .Labels.alertname }}{{ end }}{{ end }}{{ if gt (len .Alerts) 1 }} ({{ len .Alerts }} alarms){{ end }}{{ end }}
+      {{ define "lonsemonsy.subject" }}{{ if ne .Status "firing" }}✅ Resolved: {{ else if eq .CommonLabels.severity "critical" }}🚨 CRITICAL: {{ else if eq .CommonLabels.severity "high" }}🔴 HIGH: {{ else }}❌ {{ end }}{{ with index .Alerts 0 }}{{ if .Annotations.headline }}{{ .Annotations.headline }}{{ else }}{{ .Labels.alertname }}{{ end }}{{ end }}{{ if gt (len .Alerts) 1 }} ({{ len .Alerts }} alarms){{ end }}{{ end }}
+
+      {{ define "lonsemonsy.urgent" }}{{ range .Alerts.Firing }}{{ if eq .Labels.severity "critical" }}🚨 CRITICAL: ACT NOW{{ else }}🔴 HIGH: LOOK AT THIS TODAY{{ end }}
+
+      What happened: {{ if .Annotations.headline }}{{ .Annotations.headline }}{{ else }}{{ .Labels.alertname }}{{ end }}
+      {{ with index .Labels "agent.name" }}Machine: {{ . }}
+      {{ end }}{{ with index .Labels "data.srcip" }}{{ if ne . "none" }}From address: {{ . }}
+      {{ end }}{{ end }}What to do: {{ .Annotations.summary }}
+
+      {{ end }}Open the dashboard: {{ .ExternalURL }}{{ end }}

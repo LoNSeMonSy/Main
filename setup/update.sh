@@ -12,7 +12,7 @@ flock -n 8 || { echo "  An update is already running. Try again when it's done."
 if [ "${1:-}" = --apply ]; then
   after=$(cat setup/VERSION 2>/dev/null || echo unknown)
   echo "  applying the update (a minute or two)..."
-  if ! SKIP_QUESTIONS=1 ./setup/setup.sh > /var/log/lonsemonsy-update.log 2>&1; then
+  if ! SKIP_QUESTIONS=1 SKIP_TEST=1 ./setup/setup.sh > /var/log/lonsemonsy-update.log 2>&1; then
     tail -15 /var/log/lonsemonsy-update.log
     echo "  The update didn't finish. The whole log: /var/log/lonsemonsy-update.log"; exit 1
   fi

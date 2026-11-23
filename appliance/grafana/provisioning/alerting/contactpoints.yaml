@@ -34,6 +34,19 @@ contactPoints:
           subject: '{{ template "lonsemonsy.subject" . }}'
         disableResolveMessage: false
 
+  # High and Critical alarms: the email starts with what happened and what to do.
+  - orgId: 1
+    name: lonsemonsy-email-urgent
+    receivers:
+      - uid: lonsemonsy-email-urgent
+        type: email
+        settings:
+          addresses: ${ALERT_EMAIL_TO}
+          singleEmail: true
+          subject: '{{ template "lonsemonsy.subject" . }}'
+          message: '{{ template "lonsemonsy.urgent" . }}'
+        disableResolveMessage: true
+
   # The AI explainer (n8n). Only used when AI explanations are on (setup/ai.sh).
   - orgId: 1
     name: lonsemonsy-ai-explainer
