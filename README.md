@@ -24,7 +24,10 @@ Security monitoring for small networks, on one Ubuntu machine.
 - **New device alarm:** NetAlertX spots unknown devices on the network
 - **Port scan alarm:** Suricata spots scans of this machine
 - **Firewall on by default:** only the ports LoNSeMonSy needs, only from your network
-- **One dashboard:** Grafana's Active Alarms page, with email alarms
+- **One dashboard:** Grafana's Alarms page, with email alarms
+- **Vulnerabilities page:** pick a device, see which software to update and which settings to fix
+- **Audit page:** who logged in, failed logins, admin commands, account and file changes
+- **System Health page:** CPU, memory, disk and network of the server, with alarms when the disk or memory fills up
 - **Update check:** Grafana shows when a new version is out
 - **Cloud backup (optional):** encrypted nightly copies to an S3 or Backblaze bucket, with an alarm if they stop
 
@@ -56,16 +59,20 @@ sudo ./setup/setup.sh
 | Command | What it does |
 |---|---|
 | `lsmsy` | shows the addresses, the version and these commands |
-| `lsmsy passwords` | shows the Grafana and Wazuh passwords |
+| `lsmsy password` | sets a new Grafana or Wazuh admin password and signs everyone out |
 | `lsmsy status` | shows whether everything is running |
 | `lsmsy firewall` | shows which ports are open |
 | `lsmsy update` | updates to the newest version |
-| `lsmsy backup` | makes a cloud backup now (`lsmsy backup setup` chooses the bucket) |
-| `lsmsy restore` | puts the newest cloud backup back |
+| `lsmsy backup` | makes a backup now (`lsmsy backup time 11pm` changes the nightly time, `lsmsy backup setup` adds a cloud copy) |
+| `lsmsy restore` | puts the newest backup back (`lsmsy restore cloud` uses the cloud copy) |
+| `lsmsy users` | lists the Grafana accounts (`lsmsy adduser` / `lsmsy deluser` add or remove one) |
+| `lsmsy report` | shows this week's security summary (also emailed on Mondays) |
+| `lsmsy test` | sends a fake alarm to check that alarms and email work |
+| `lsmsy remote` | turns on HTTPS access from anywhere with Tailscale (optional) |
 
 To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/README.md)
 
-**Email alarms** are sent from a Gmail account. Use a separate one made just for this, with an [app password](https://myaccount.google.com/apppasswords) (not its normal password; needs 2-Step Verification).
+Not sure what to answer during setup? Type `?` at any question, or see [setup/HELP.md](setup/HELP.md).
 
 ## What's inside
 
@@ -76,6 +83,7 @@ To protect a computer, install a Wazuh agent on it: [wazuh/README.md](wazuh/READ
 | [NetAlertX](https://docs.netalertx.com/) | device discovery |
 | [Grafana](https://grafana.com/docs/grafana/latest/) | dashboards and email alarms |
 | [InfluxDB](https://docs.influxdata.com/influxdb/v2/) | stores measurements over time |
+| [Telegraf](https://docs.influxdata.com/telegraf/v1/) | collects the server's health numbers |
 | [ufw](https://documentation.ubuntu.com/server/how-to/security/firewalls/) | the firewall |
 
 Versions are pinned in [`setup/PINNED_VERSIONS`](setup/PINNED_VERSIONS). LoNSeMonSy's own version is in `setup/VERSION`, and what changed in [`setup/CHANGELOG.md`](setup/CHANGELOG.md).

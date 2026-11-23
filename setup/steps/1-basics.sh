@@ -8,11 +8,21 @@ if [ ! -f "$ENV" ]; then
   echo "  created $ENV"
 fi
 
-apt-get update -qq
+wait_for_updates
+run "Checking Ubuntu's package list" apt-get -o DPkg::Lock::Timeout=1800 update
 need curl curl
 need openssl openssl
 need jq jq
+need qrencode qrencode   # QR codes for phones (remote access, the finish screen)
 if [ "${SKIP_FIREWALL:-0}" != 1 ]; then need ufw ufw; fi
+
+# Wazuh needs about 8 GB of memory. With less and no swap, add a 4 GB swap file so it
+# slows down instead of crashing.
+if [ "$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)" -lt 7500 ] && [ -z "$(swapon --show --noheadings)" ]; then
+  fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap -q /swapfile && swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo "  added a 4 GB swap file (this machine has under 8 GB of memory)"
+fi
 
 # This machine's network card, IP address, router and network, e.g. eth0,
 # 192.168.1.50, 192.168.1.1 and 192.168.1.0/24.

@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Lets the Backups page's "Back up now" button reach setup/backup-api.sh through Grafana.
+# Grafana adds the token on its own server, so it never reaches the browser.
+# Not a real Graphite: the type is only used for its plain HTTP proxy.
+datasources:
+  - name: Backup button
+    uid: lons-backup-api
+    type: graphite
+    access: proxy
+    url: http://172.20.0.1:5002
+    editable: false
+    jsonData:
+      httpHeaderName1: X-Backup-Token
+    secureJsonData:
+      httpHeaderValue1: $__env{BACKUP_API_TOKEN}
