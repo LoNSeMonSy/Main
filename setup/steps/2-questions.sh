@@ -120,9 +120,22 @@ questions() {
   if q_remote; then
     question "Remote access"
     say "Open the dashboards from your phone or laptop anywhere, with a 2-step sign-in." \
-        "It uses Tailscale (free). At the end of setup you sign in once with a Google," \
-        "Microsoft or GitHub account that has 2-step verification on."
-    if confirm "Remote access" "Set up remote access? [y/N] > " N; then remote=1; fi
+        "It uses Tailscale. At the end of setup you sign in with a Google, Microsoft or" \
+        "GitHub account. The dashboards then only open on devices signed in to Tailscale." \
+        "Cost: free for personal use. A business needs a paid plan, billed per user:" \
+        "see tailscale.com/pricing"
+    if confirm "Remote access" "Set up remote access? [y/N] > " N; then
+      remote=1
+      echo
+      if [ -n "${to:-}$(get ALERT_EMAIL_TO)" ]; then
+        say "Use the Gmail account the alarms are sent from: it already has 2-step verification." \
+            "While setup runs, get the Tailscale app on your phone. Scan this for the steps:"
+      else
+        say "While setup runs: turn on 2-step verification for that account, and get the" \
+            "Tailscale app on your phone. Scan this for the steps:"
+      fi
+      qr "$GUIDE#remote-access"
+    fi
   fi
   if q_ai; then
     question "AI explanations"
@@ -218,8 +231,10 @@ fi
 if [ -n "$backup_time" ]; then set_env BACKUP_TIME "$backup_time"; fi
 if [ -n "$site" ]; then
   set_env SITE_NAME "$site"
-  set_env SMTP_FROM_NAME "$site LoNSeMonSy"
+  set_env SMTP_FROM_NAME "$site via LoNSeMonSy"
 fi
+# Older installs: the emails' sender name.
+if [ "$(get SMTP_FROM_NAME)" = "$(get SITE_NAME) LoNSeMonSy" ]; then set_env SMTP_FROM_NAME "$(get SITE_NAME) via LoNSeMonSy"; fi
 if [ -n "$to" ]; then
   set_env ALERT_EMAIL_TO "$to"
   set_env SMTP_ENABLED true

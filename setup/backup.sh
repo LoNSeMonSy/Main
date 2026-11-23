@@ -38,9 +38,9 @@ cloud=$(get BACKUP_REPO)
 
 # Emails the result, when email alarms are set up.
 report() {
-  if [ "$(get SMTP_ENABLED)" != true ]; then return 0; fi
-  printf 'From: %s <%s>\nTo: %s\nSubject: %s\n\n%s\n' \
-    "$(get SMTP_FROM_NAME)" "$(get SMTP_FROM_ADDRESS)" "$(get ALERT_EMAIL_TO)" "$1" "$2" |
+  if [ "$(get SMTP_ENABLED)" != true ] || [ "${NO_EMAIL:-0}" = 1 ]; then return 0; fi
+  printf 'From: %s <%s>\nTo: %s\nSubject: =?UTF-8?B?%s?=\nContent-Type: text/plain; charset=UTF-8\n\n%s\n' \
+    "$(get SMTP_FROM_NAME)" "$(get SMTP_FROM_ADDRESS)" "$(get ALERT_EMAIL_TO)" "$(printf '%s' "$1" | base64 -w0)" "$2" |
     curl -s --max-time 30 --ssl-reqd --url "smtp://$(get SMTP_HOST)" --user "$(get SMTP_USER):$(get SMTP_PASSWORD)" \
       --mail-from "$(get SMTP_FROM_ADDRESS)" --mail-rcpt "$(get ALERT_EMAIL_TO)" --upload-file - || true
 }
@@ -67,7 +67,7 @@ audit() {
   if [ -z "$only" ] && [ -n "$cloud" ]; then what="local and cloud"; fi
   logger -t lonsemonsy-backup "{\"lonsemonsy\":\"backup\",\"action\":\"$1\",\"what\":\"$what\",\"by\":\"${by//\"/}\"}"
 }
-trap 'record "${only:-local}" 0; audit failed; report "Backup FAILED" "The backup did not finish. To see why, run on the server: sudo lsmsy backup"' ERR
+trap 'record "${only:-local}" 0; audit failed; report "❌ Backup failed" "The backup did not finish. To see why, run on the server: sudo lsmsy backup"' ERR
 
 # InfluxDB makes its own clean copy first (copying its files while it runs isn't safe).
 rm -rf /var/backups/lonsemonsy
@@ -87,6 +87,15 @@ for volume in grafana-data netalertx-data; do
 done
 if [ -d /var/ossec/etc ]; then paths+=(/var/ossec/etc); fi
 
+saved=$(for p in "${paths[@]}"; do
+  case "$p" in
+    *.env) n="LoNSeMonSy's settings and passwords (.env)" ;;   */lonsemonsy) n="Health and backup history (InfluxDB)" ;;
+    *grafana*) n="Grafana: accounts and dashboards" ;;         *netalertx*) n="NetAlertX: the device list" ;;
+    *) n="Wazuh: settings, rules and agent keys" ;;
+  esac
+  echo "- $n, $(du -shL "$p" | cut -f1)"
+done)
+
 # save STORE: back up to one store (made the first time), keeping 7 daily, 4 weekly and
 # 6 monthly copies; older ones are deleted. Sets copies, size (bytes) and secs.
 save() {
@@ -94,7 +103,8 @@ save() {
   local start=$SECONDS
   copies=0 size=0 secs=0
   restic cat config >/dev/null 2>&1 || restic init >/dev/null || return 1
-  restic backup --quiet "${paths[@]}" || return 1
+  summary=$(restic backup --json "${paths[@]}" | grep '"message_type":"summary"') || return 1
+  files=$(jq -r '"\(.total_files_processed) files: \(.files_new) new, \(.files_changed) changed, \(.files_unmodified) the same"' <<< "$summary")
   restic forget --quiet --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 6 || return 1
   copies=$(restic snapshots --json | jq length)
   size=$(restic stats --mode raw-data --json | jq .total_size)
@@ -104,20 +114,21 @@ failed=0 result=""
 if [ "$only" != cloud ]; then
   mkdir -p "$local_store"
   chmod 700 "$local_store"
-  if save "$local_store"; then record local 1; result="Local backup: OK, $copies copies kept"
+  if save "$local_store"; then record local 1; result="Local backup: OK, $copies copies kept ($files)"
   else record local 0; result="Local backup: FAILED. To see why, run on the server: sudo lsmsy backup"; failed=1; fi
 fi
 if [ -n "$cloud" ] && [ "$only" != local ]; then
-  if save "$cloud"; then record cloud 1; result+=${result:+$'\n'}"Cloud backup: OK, $copies copies kept"
+  if save "$cloud"; then record cloud 1; result+=${result:+$'\n'}"Cloud backup: OK, $copies copies kept ($files)"
   else record cloud 0; result+=${result:+$'\n'}"Cloud backup: FAILED. To see why, run on the server: sudo lsmsy backup"; failed=1; fi
 fi
 echo "$result"
 if [ "$failed" = 1 ]; then
   audit failed
-  report "Backup FAILED" "$result"
+  report "❌ Backup failed" "$result"
   exit 1
 fi
 audit finished
-report "Backup OK" "Backup finished $(date '+%A %b %-d at %-I:%M %p').
-Saved: settings, Grafana, InfluxDB, NetAlertX and Wazuh settings.
-$result"
+report "✅ Backup finished: $(date '+%A %b %-d at %-I:%M %p')" "$result
+
+What was saved:
+$saved"

@@ -95,7 +95,7 @@
   <rule id="100910" level="10">
     <if_sid>5712</if_sid>
     <srcip>192.0.2.99</srcip>
-    <description>TEST ALARM (lsmsy test): SSH brute force from $(srcip). Nothing to worry about.</description>
+    <description>TEST ALARM from lsmsy test (not a real attack)</description>
     <group>authentication_failures,lsmsy_test,</group>
   </rule>
 </group>

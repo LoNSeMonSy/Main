@@ -10,7 +10,9 @@ get() { grep -E "^$1=" "$ENV" | cut -d= -f2-; }
 q() { printf '"%s"' "$(printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g')"; }   # quoted Influx string
 
 known=/var/lib/lonsemonsy/remote-devices   # IDs of devices already seen
-first=0; [ -f "$known" ] || first=1        # first run: remember everyone, no alarm
+# No alarm in the first hour after turning it on: those are the owner's own devices.
+since=$(stat -c %Y /var/lib/lonsemonsy/remote-on 2>/dev/null || echo 0)
+first=0; if [ ! -s "$known" ] || [ $(( $(date +%s) - since )) -lt 3600 ]; then first=1; fi
 mkdir -p "${known%/*}"; touch "$known"
 
 if command -v tailscale >/dev/null && tailscale status >/dev/null 2>&1 &&

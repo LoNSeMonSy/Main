@@ -11,6 +11,9 @@ Newest first.
 - lsmsy users adds and removes accounts; lsmsy help is grouped
 - New Backups page with Back up now buttons (admins only); setup asks the backup time and time zone
 - Five wrong passwords on the Wazuh or NetAlertX login blocks that address for 10 minutes
+- Alarm emails say what happened, where and from which address; fewer emails right after setup
+- Once remote access is on, the dashboards only open over Tailscale (lsmsy remote ip on undoes it)
+- The business name shows on every Grafana page; backup emails list what was saved
 - lsmsy commands can't be run again right away (test, backup, update and others)
 
 ## 0.6.1 - 2026-11-19

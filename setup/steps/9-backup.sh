@@ -43,7 +43,7 @@ where="on this server"
 if [ -n "$(get BACKUP_REPO)" ]; then where="on this server and in the cloud"; fi
 # The first backup, unless there is one already (setup run again, or an update).
 if [ ! -f "$(get BACKUP_LOCAL)/config" ]; then
-  run "Making the first backup ($where)" setup/backup.sh ||
+  run "Making the first backup ($where)" env NO_EMAIL=1 setup/backup.sh ||
     echo "  The first backup failed. It tries again tonight; to see why now: sudo lsmsy backup"
 fi
 echo "  backups: every night at $(date -d "$when" '+%-I:%M %p'), $where"

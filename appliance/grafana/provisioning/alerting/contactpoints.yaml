@@ -19,6 +19,19 @@ contactPoints:
           # One email per alert group rather than one per series, so a burst of
           # scan hits arrives as a single readable message.
           singleEmail: true
+          subject: '{{ template "lonsemonsy.subject" . }}'
+        disableResolveMessage: true
+
+  # The same, plus an email when it's resolved: for things that get fixed (disk, backups).
+  - orgId: 1
+    name: lonsemonsy-email-resolved
+    receivers:
+      - uid: lonsemonsy-email-resolved
+        type: email
+        settings:
+          addresses: ${ALERT_EMAIL_TO}
+          singleEmail: true
+          subject: '{{ template "lonsemonsy.subject" . }}'
         disableResolveMessage: false
 
   # The AI explainer (n8n). Only used when AI explanations are on (setup/ai.sh).

@@ -68,25 +68,29 @@ setup/remote-check.sh >/dev/null 2>&1 || true
 
 echo
 cat setup/banner.txt
+echo "  Local Network Security Monitoring System"
+echo "  ${environment:+$environment · }version $(cat setup/VERSION)"
 site=$(get SITE_NAME)
 printf '\n  \033[1mWelcome%s! LoNSeMonSy is installed and watching your network.\033[0m\n' "${site:+, $site}"
-echo "  Setup took $(took "$setup_start"). Version $(cat setup/VERSION)."
+echo "  Setup took $(took "$setup_start")."
 echo
-echo "  Grafana:    http://$ip:3000     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
-echo "  NetAlertX:  http://$ip:20211    password $(get NETALERTX_PASSWORD)"
+grafana=http://$ip:3000; netalertx=http://$ip:20211; wazuh=https://$ip
+if [[ $(get GRAFANA_ROOT_URL) == https://* ]]; then   # remote access: the addresses that need the sign-in
+  grafana=$(get GRAFANA_ROOT_URL); netalertx=$(get NETALERTX_URL); wazuh=$(get WAZUH_URL)
+fi
+echo "  Grafana:    $grafana     user admin, password $(get GRAFANA_ADMIN_PASSWORD)"
+echo "  NetAlertX:  $netalertx     password $(get NETALERTX_PASSWORD)"
 if [ -s "$WPASS" ]; then
-  echo "  Wazuh:      https://$ip         user admin, password $(wazuh_password admin)"
+  echo "  Wazuh:      $wazuh     user admin, password $(wazuh_password admin)"
 fi
 echo "  Backups:    password $(get BACKUP_PASSWORD)   (a backup can't be restored without it)"
-remote_url=$(get GRAFANA_ROOT_URL)
-if [[ $remote_url == https://* ]]; then
-  echo "  From anywhere (Tailscale): Grafana ${remote_url}"
+if [[ $grafana == https://* ]]; then
+  if [ "$(get IP_ACCESS)" = off ]; then echo "  By IP address: off. If Tailscale isn't working: sudo lsmsy remote ip on"
+  else echo "  By IP address, not recommended (skips the 2-step sign-in): http://$ip:3000"; fi
 fi
-if command -v qrencode >/dev/null; then
-  echo
-  echo "  Grafana on your phone (scan with the camera):"
-  qrencode -t ANSIUTF8 -m 2 "${remote_url:-http://$ip:3000}" | sed 's/^/  /'
-fi
+echo
+echo "  Grafana on your phone (scan with the camera):"
+qr "$grafana"
 echo
 echo "  Save these passwords in a password manager now. They aren't shown again."
 echo "  Forgot one, or someone else has it: lsmsy password grafana (or wazuh, netalertx)"

@@ -108,6 +108,36 @@ set_env() {
   echo "$1=$2" >> "$ENV"
 }
 
+# qr TEXT: a small QR code a phone can scan (the text is always printed too, for laptops).
+qr() { if command -v qrencode >/dev/null; then qrencode -t ANSIUTF8 -l L -m 2 "$1" | sed 's/^/  /'; fi; }
+
+# The guide with clickable links, for a phone or another computer.
+GUIDE=https://github.com/LoNSeMonSy/Main/blob/${branch:-main}/setup/HELP.md
+
+# ip_access on|off LAN IFACE: may computers on this network open the dashboards by IP address?
+# Off once remote access works (then only Tailscale devices get in). SSH, the Wazuh agents'
+# ports and Tailscale are never touched. Saved as IP_ACCESS, so an update keeps it.
+ip_access() {
+  local port drop="-A DOCKER-USER -i $3 -p tcp --dport 3000"
+  for port in "3000 Grafana" "443 Wazuh dashboard" "20211 NetAlertX"; do
+    if [ "$1" = on ]; then
+      ufw allow from "$2" to any port "${port%% *}" proto tcp comment "${port#* }" >/dev/null
+    else
+      ufw delete allow from "$2" to any port "${port%% *}" proto tcp >/dev/null 2>&1 || true
+    fi
+  done
+  # Docker opens Grafana's port itself, past the rules above. This rule in Docker's own
+  # chain makes Grafana follow them too. Saved in ufw's file.
+  if [ "$1" = on ]; then drop+=" ! -s $2"; fi
+  if grep -q "LoNSeMonSy: Grafana" /etc/ufw/after.rules; then
+    sed -i "s|^-A DOCKER-USER -i .* --dport 3000 .*-j DROP\$|$drop -j DROP|" /etc/ufw/after.rules
+  else
+    printf '\n# LoNSeMonSy: Grafana only answers this network\n*filter\n:DOCKER-USER - [0:0]\n%s -j DROP\nCOMMIT\n' "$drop" >> /etc/ufw/after.rules
+  fi
+  ufw reload >/dev/null
+  set_env IP_ACCESS "$1"
+}
+
 # short_pw: a random 12-character password (letters and numbers), easy enough to type.
 short_pw() { openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | cut -c1-12; }
 

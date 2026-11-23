@@ -61,6 +61,16 @@
                 "type": "string",
                 "operation": "notEquals"
               }
+            },
+            {
+              "id": "5d0c9f0e-6c3b-4a53-9b0e-2f7f0a1c7d11",
+              "leftValue": "={{ $('One alarm at a time').all().findIndex(i => i.json.status === 'firing' && i.json.labels.alertname === $json.labels.alertname) === $itemIndex }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
             }
           ],
           "combinator": "and"
@@ -107,7 +117,13 @@
             {
               "id": "23452fcc-785c-4a24-97a8-07aeea25bc65",
               "name": "search",
-              "value": "={{ ({'Security alert (Medium)': 'rule.level:[8 TO 10] OR rule.id:651', 'Security alert (High or Critical)': 'rule.level:>=11 OR rule.id:651', 'Port scan detected': 'rule.id:86601'})[$json.labels.alertname] || 'rule.id:0' }}",
+              "value": "={{ ({'Security alert (Medium)': '(rule.level:[8 TO 10] AND NOT rule.groups:sca) OR rule.id:651', 'Security alert (High or Critical)': 'rule.level:>=11 OR rule.id:651', 'Port scan detected': 'rule.id:86601'})[$json.labels.alertname] || 'rule.id:0' }}",
+              "type": "string"
+            },
+            {
+              "id": "0c1f4a52-7a39-4d3a-8f57-7f0b5f2d9c31",
+              "name": "headline",
+              "value": "={{ $json.annotations.headline || $json.labels.alertname }}",
               "type": "string"
             }
           ]
@@ -289,7 +305,7 @@
       "parameters": {
         "fromEmail": "={{ $env.SMTP_FROM_ADDRESS }}",
         "toEmail": "={{ $env.ALERT_EMAIL_TO }}",
-        "subject": "=Explained: {{ $json.alarm }}",
+        "subject": "=\ud83e\udd16 Explained: {{ $('What to look up').item.json.headline }}",
         "emailFormat": "text",
         "text": "={{ $json.alarm }}\n\n{{ $json.explanation.replace(/\\*\\*/g, '').split('\\n').map(l => l.trim()).filter(l => l).join('\\n\\n') }}\n\nWhat was seen:\n\n{{ $('Latest Wazuh events').item.json.hits.hits.map((h, i) => { const s = h._source, r = s.rule || {}, ip = s.data?.srcip || s.data?.src_ip, u = s.data?.win?.eventdata?.targetUserName || s.data?.srcuser || s.data?.dstuser, blocked = String(r.id) === '651'; const t = new Date(String(s.timestamp).replace(/([+-]\\d\\d)(\\d\\d)$/, '$1:$2')).toLocaleTimeString('en-US', { timeZone: $env.GENERIC_TIMEZONE || 'UTC', hour: 'numeric', minute: '2-digit' }); const what = blocked ? 'Automatically blocked ' + ip + ' for 10 minutes' : (s.data?.alert?.signature || r.description); const d = ['Machine: ' + (s.agent?.name || 'unknown')]; if (ip && !blocked) d.push('From: ' + ip); if (u) d.push('User: ' + u); d.push('Level ' + r.level); return (i + 1) + '. ' + t + '  ' + what + '\\n   ' + d.join('   '); }).join('\\n\\n') }}\n\nNext steps:\n- {{ ['high','critical'].includes(($json.severity || '').toLowerCase()) ? 'This is serious. If you are not sure what to do, contact your IT person or Managed Service Provider (MSP) now and forward them this email.' : 'If you are not sure what this means, ask your IT person or Managed Service Provider (MSP) to take a look.' }}\n- See this alarm in Grafana: {{ $('One alarm at a time').item.json.generatorURL || 'open your LoNSeMonSy dashboard' }}\n- See the events in Wazuh (admins only): {{ (u => u.port === '8443' ? u.protocol + '//' + u.hostname + ':8445' : 'https://' + u.hostname)(new URL($('One alarm at a time').item.json.generatorURL || 'https://localhost')) }}/app/threat-hunting#/overview/?tab=general&tabView=events&_g=(time:(from:now-1h,to:now))\n- Guide for small businesses (CISA): https://www.cisa.gov/cyber-guidance-small-businesses\n",
         "options": {}

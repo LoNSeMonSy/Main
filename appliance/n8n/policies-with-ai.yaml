@@ -26,4 +26,7 @@ policies:
           - ["severity", "=~", "medium|high|critical"]
         group_wait: 10s
         continue: true
+      - receiver: lonsemonsy-email-resolved
+        object_matchers:
+          - ["email_when_resolved", "=", "yes"]
       - receiver: lonsemonsy-email

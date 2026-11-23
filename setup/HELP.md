@@ -68,20 +68,22 @@ Backups are encrypted with a backup password that setup makes and shows at the e
 
 ## Remote access
 
-Opens the dashboards from anywhere (a phone, a laptop at home) using [Tailscale](https://tailscale.com) (free for up to 3 users). Nothing is opened to the internet: only devices signed in to your Tailscale account can reach it, and that sign-in (Google, Microsoft or GitHub) uses their 2-step verification.
+Opens the dashboards from anywhere (a phone, a laptop at home) using [Tailscale](https://tailscale.com). Nothing is opened to the internet: only devices signed in to your Tailscale account can reach it.
 
-1. Pick the Google, Microsoft or GitHub account you'll sign in with and turn on its 2-step verification. That's the 2-step check for remote access, and LoNSeMonSy can't turn it on for you. Save the account's backup codes too, in case you lose your phone.
-2. At the end of setup, LoNSeMonSy shows a sign-in link and a QR code. Type the link into a browser on any computer, or scan the code with your phone, and sign in. That makes a free Tailscale account if you don't have one.
+**Cost:** Tailscale's free plan is for personal use. A business needs a paid plan, billed per user, and changes its own account to it: see [Tailscale's prices](https://tailscale.com/pricing).
+
+1. Best: use the Gmail account the alarm emails are sent from. Google only gives it an app password while its 2-step verification is on, and setup checks that you signed in with it. Without alarm emails, pick the Google, Microsoft or GitHub account you'll sign in with and turn on its 2-step verification ([Google](https://myaccount.google.com/signinoptions/two-step-verification), [Microsoft](https://account.microsoft.com/security), [GitHub](https://github.com/settings/security)). Neither LoNSeMonSy nor Tailscale forces this: without it, that account's password is enough to get in. Save its backup codes too, in case you lose your phone.
+2. At the end of setup, LoNSeMonSy shows a sign-in link and a QR code. Type the link into a browser on any computer, or scan the code with your phone, and sign in. That makes a Tailscale account if you don't have one.
 3. If asked, turn on **HTTPS Certificates** at https://login.tailscale.com/admin/dns (setup waits for it).
 4. Install the Tailscale app on each phone or laptop that should reach the dashboards, signed in to the same account. Setup shows a QR code for Grafana's address.
 
-Then, in https://login.tailscale.com/admin/settings/device-management:
+Then change these in Tailscale (setup can't do it for you):
 
-- **Device approval** on: a new phone or laptop can't connect until you approve it.
-- **Key expiry** 7 days: phones and laptops have to sign in again (with 2-step) every week.
-- On the Machines page, open this server's **...** menu and pick **Disable key expiry**, so remote access doesn't stop by itself.
+- On the [Machines](https://login.tailscale.com/admin/machines) page, open this server's **...** menu and pick **Disable key expiry**, so the server stays signed in.
+- In [Device management](https://login.tailscale.com/admin/settings/device-management), set **Key expiry** to **1 day** instead of 180. Phones and laptops then sign in again every day. The 2-step check happens at that sign-in, not each time you open a dashboard.
+- **Device approval** on, if your plan has it: a new phone or laptop can't connect until you approve it.
 
-If you lose access to that account, the dashboards still open from the office network with their normal passwords. A new phone or laptop on the account sets off the alarm "New device can reach your dashboard".
+Once remote access works, the dashboards stop opening by IP address, so nobody on the office network skips the sign-in. If Tailscale stops working or you lose that account, SSH in from the office network (or use the server's own screen) and run `sudo lsmsy remote ip on`. Undo it with `sudo lsmsy remote ip off`. A new phone or laptop on the account sets off the alarm "New device can reach your dashboard".
 
 Press Enter to skip; turn it on or off later with `lsmsy remote`.
 

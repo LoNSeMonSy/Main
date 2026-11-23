@@ -66,6 +66,10 @@ wazuh=$(get WAZUH_URL); first=${ts:-$lan}; wazuh=${wazuh:-${first:+https://$firs
 netalertx=$(get NETALERTX_URL); netalertx=${netalertx:-${first:+http://$first:20211}}
 [ -n "$netalertx" ] && lines+=$'\n'"lonsemonsy_link,name=netalertx value=$(q "${netalertx%/}")"
 
+# The business name, shown at the top of every page.
+site=$(get SITE_NAME)
+[ -n "$site" ] && lines+=$'\n'"lonsemonsy_link,name=site value=$(q "$site")"
+
 curl -sf -X POST "http://127.0.0.1:8086/api/v2/write" \
   --url-query "org=$(get INFLUXDB_ORG)" --url-query "bucket=$(get INFLUXDB_BUCKET)" --url-query precision=s \
   -H "Authorization: Token $(get INFLUXDB_ADMIN_TOKEN)" --data-binary "$lines" \

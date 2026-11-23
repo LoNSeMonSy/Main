@@ -126,7 +126,7 @@
       },
       "options": {
         "mode": "html",
-        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+        "content": "<div style=\"padding:2px 4px\"><b>${site}</b> &nbsp; Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
       }
     },
     {
@@ -163,7 +163,7 @@
               "type": "count"
             }
           ],
-          "query": "rule.level:[8 TO 10]",
+          "query": "rule.level:[8 TO 10] AND NOT rule.groups:sca",
           "timeField": "timestamp"
         },
         {
@@ -229,8 +229,8 @@
           },
           "queryType": "table",
           "timeColumns": [],
-          "queryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes')",
-          "rawQueryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes')"
+          "queryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')",
+          "rawQueryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')"
         },
         {
           "refId": "SA",
@@ -425,7 +425,7 @@
             "uid": "P45A1D828630779A3"
           },
           "timeField": "timestamp",
-          "query": "rule.level:>=8 OR rule.id:86601 OR rule.id:651",
+          "query": "(rule.level:>=8 AND NOT rule.groups:sca) OR rule.id:86601 OR rule.id:651",
           "metrics": [
             {
               "id": "1",
@@ -453,8 +453,8 @@
             "uid": "P341AFF9E5CCA0B9F"
           },
           "queryType": "table",
-          "queryText": "SELECT CAST(strftime('%s', devFirstConnection) AS INTEGER) AS timestamp, 'New device: ' || COALESCE(NULLIF(devName, '(name not found)'), devVendor, 'unknown') AS \"rule.description\", devLastIP AS \"data.srcip\" FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes')",
-          "rawQueryText": "SELECT CAST(strftime('%s', devFirstConnection) AS INTEGER) AS timestamp, 'New device: ' || COALESCE(NULLIF(devName, '(name not found)'), devVendor, 'unknown') AS \"rule.description\", devLastIP AS \"data.srcip\" FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes')",
+          "queryText": "SELECT CAST(strftime('%s', devFirstConnection) AS INTEGER) AS timestamp, 'New device: ' || COALESCE(NULLIF(devName, '(name not found)'), devVendor, 'unknown') AS \"rule.description\", devLastIP AS \"data.srcip\" FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')",
+          "rawQueryText": "SELECT CAST(strftime('%s', devFirstConnection) AS INTEGER) AS timestamp, 'New device: ' || COALESCE(NULLIF(devName, '(name not found)'), devVendor, 'unknown') AS \"rule.description\", devLastIP AS \"data.srcip\" FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')",
           "timeColumns": [
             "timestamp"
           ]
@@ -676,7 +676,7 @@
             "uid": "P45A1D828630779A3"
           },
           "timeField": "timestamp",
-          "query": "rule.level:>=8 OR rule.id:651 OR rule.id:86601",
+          "query": "(rule.level:>=8 AND NOT rule.groups:sca) OR rule.id:651 OR rule.id:86601",
           "metrics": [
             {
               "id": "1",
@@ -1161,6 +1161,24 @@
         },
         "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"netalertx\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "site",
+        "label": "Business name",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"site\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"site\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
         "refresh": 1,
         "hide": 2,
         "includeAll": false,

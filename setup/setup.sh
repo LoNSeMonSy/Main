@@ -12,6 +12,7 @@ set -euo pipefail               # stop at the first error
 cd "$(dirname "$0")/.." || exit 1   # work from the main folder
 
 cat setup/banner.txt
+echo "  Local Network Security Monitoring System"
 # Which branch this copy came from. Customers (main) see no label.
 branch=$(git -c safe.directory="$PWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 case "$branch" in
@@ -46,6 +47,7 @@ step 1 "Getting ready";        source setup/steps/1-basics.sh    # settings file
 step 2 "Questions";            source setup/steps/2-questions.sh # fixed IP, business name, alarm emails, cloud backup, remote access, AI
 step 3 "Docker";               source setup/steps/3-docker.sh    # runs Grafana, InfluxDB and NetAlertX
 step 4 "Settings";             source setup/steps/4-settings.sh  # passwords, time zone, network to scan
+setup/ai.sh download >/dev/null 2>&1 8>&- &                     # the AI's big download, while Wazuh installs
 step 5 "Wazuh";                source setup/steps/5-wazuh.sh     # the detection engine
 step 6 "Firewall";             source setup/steps/6-firewall.sh  # block everything except what's needed
 step 7 "Starting everything";  source setup/steps/7-start.sh     # and connect Grafana to Wazuh

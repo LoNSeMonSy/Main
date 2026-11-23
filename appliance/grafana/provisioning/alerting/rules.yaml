@@ -38,13 +38,17 @@ groups:
       #    the band table at the top). Fires on the first occurrence -- no
       #    count threshold, because at level >= 8 the noise floor is zero.
       #    The 10-minute window keeps the alarm visible long enough to see
-      #    on the Alarms dashboard, which uses the same window.
+      #    on the Alarms dashboard, which uses the same window. One alarm per
+      #    alert, machine and address, so the email's subject can name them.
+      #    Failed settings checks (sca) aren't alarms: see the Vulnerabilities page.
       # ------------------------------------------------------------------
       - uid: lons-wazuh-medium
         title: Security alert (Medium)
         condition: C
         for: 0m
         annotations:
+          headline: >-
+            {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
           summary: >-
             A Medium-band security alert (Wazuh level 8-10) fired on the
             LoNSeMonSy appliance. Look at it today. Historically these are: a
@@ -62,11 +66,36 @@ groups:
             model:
               refId: A
               timeField: timestamp
-              query: "rule.level:[8 TO 10]"
+              query: "rule.level:[8 TO 10] AND NOT rule.groups:sca"
               metrics:
                 - id: "1"
                   type: count
               bucketAggs:
+                - id: "3"
+                  type: terms
+                  field: rule.description
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "4"
+                  type: terms
+                  field: agent.name
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "5"
+                  type: terms
+                  field: data.srcip
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                    missing: none
                 - id: "2"
                   type: date_histogram
                   field: timestamp
@@ -95,6 +124,8 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: >-
+            {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
           summary: >-
             A High or Critical security alert (Wazuh level 11 or above) fired
             on the LoNSeMonSy appliance. Act now.
@@ -116,6 +147,31 @@ groups:
                 - id: "1"
                   type: count
               bucketAggs:
+                - id: "3"
+                  type: terms
+                  field: rule.description
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "4"
+                  type: terms
+                  field: agent.name
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                - id: "5"
+                  type: terms
+                  field: data.srcip
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
+                    missing: none
                 - id: "2"
                   type: date_histogram
                   field: timestamp
@@ -154,6 +210,8 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: >-
+            Port scan from {{ index $labels "data.src_ip" }}
           summary: >-
             Five or more Suricata port-scan signatures fired within 10 minutes,
             which means a host is enumerating open ports on the appliance.
@@ -176,6 +234,14 @@ groups:
                 - id: "1"
                   type: count
               bucketAggs:
+                - id: "3"
+                  type: terms
+                  field: data.src_ip
+                  settings:
+                    size: "5"
+                    order: desc
+                    orderBy: _count
+                    min_doc_count: "1"
                 - id: "2"
                   type: date_histogram
                   field: timestamp
@@ -215,12 +281,14 @@ groups:
       #    1-2 new devices is normal life (a new phone, a guest laptop): Medium.
       #    3+ in one hour is unusual for a small office and could be someone
       #    plugging in rogue equipment: High.
+      #    Quiet for the first 2 hours after install: every device is new then.
       # ------------------------------------------------------------------
       - uid: lons-new-device
         title: New device on the network
         condition: C
         for: 0m
         annotations:
+          headline: "One or two new devices joined the network"
           summary: >-
             One or two devices joined the network for the first time in the last
             hour. Check "Network device inventory" and confirm you recognise them.
@@ -243,6 +311,7 @@ groups:
                 WHERE devIsArchived = 0
                 AND devLastIP NOT LIKE '172.20.0.%'
                 AND devFirstConnection >= datetime('now', '-60 minutes')
+                AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')
               rawQueryText: *newdevsql
           - refId: C
             datasourceUid: __expr__
@@ -260,6 +329,7 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: "Three or more new devices joined the network"
           summary: >-
             Three or more devices joined the network for the first time within an
             hour. That is unusual for a small office. Check "Network device
@@ -301,6 +371,7 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: "A new phone or laptop can open your dashboards"
           summary: >-
             A new phone or laptop was added to the Tailscale account used for remote
             access, so it can open the dashboards from outside. If you don't know it,
@@ -356,10 +427,12 @@ groups:
         condition: C
         for: 168h
         annotations:
+          headline: "A LoNSeMonSy update has been waiting for a week"
           summary: >-
             A newer version of LoNSeMonSy has been available for a week. See the
             Updates page for what's new, then run sudo ./setup/update.sh.
         labels:
+          email_when_resolved: "yes"
           severity: low
         noDataState: OK
         execErrState: OK
@@ -403,9 +476,12 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: >-
+            No {{ $labels.where }} backup for over 2 days
           summary: >-
             No {{ $labels.where }} backup has worked for over 2 days. See the Backups page, or run sudo lsmsy backup on the server to see why.
         labels:
+          email_when_resolved: "yes"
           severity: medium
         noDataState: OK
         execErrState: OK
@@ -451,9 +527,12 @@ groups:
         condition: C
         for: 0m
         annotations:
+          headline: >-
+            The last {{ $labels.where }} backup failed
           summary: >-
             The last {{ $labels.where }} backup failed. See the Backups page, or run sudo lsmsy backup on the server to see why.
         labels:
+          email_when_resolved: "yes"
           severity: medium
         noDataState: OK
         execErrState: OK
@@ -500,9 +579,11 @@ groups:
         condition: C
         for: 5m
         annotations:
+          headline: "The server's disk is over 90% full"
           summary: >-
             The server's disk is over 90% full. Free up space or add a bigger disk.
         labels:
+          email_when_resolved: "yes"
           severity: medium
         noDataState: OK
         execErrState: OK
@@ -545,9 +626,11 @@ groups:
         condition: C
         for: 10m
         annotations:
+          headline: "The server is low on memory"
           summary: >-
             The server has used over 95% of its memory for 10 minutes. It needs more memory.
         labels:
+          email_when_resolved: "yes"
           severity: medium
         noDataState: OK
         execErrState: OK

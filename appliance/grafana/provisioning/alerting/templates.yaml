@@ -1,0 +1,9 @@
+# The subject line of alarm emails: what happened, where, and from which address.
+# The words come from each rule's "headline" (rules.yaml).
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: lonsemonsy
+    template: |
+      {{ define "lonsemonsy.subject" }}{{ if eq .Status "firing" }}❌ {{ else }}✅ Resolved: {{ end }}{{ with index .Alerts 0 }}{{ if .Annotations.headline }}{{ .Annotations.headline }}{{ else }}{{ .Labels.alertname }}{{ end }}{{ end }}{{ if gt (len .Alerts) 1 }} ({{ len .Alerts }} alarms){{ end }}{{ end }}

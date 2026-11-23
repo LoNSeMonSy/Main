@@ -19,15 +19,15 @@ G=http://localhost:3000
 # wait_between NAME SECONDS: commands that send alarms, make backups or change passwords
 # can't be run again right away, so nobody can flood the server or the inbox with them.
 # The time is kept where only root can change it. (The nightly backup isn't limited.)
-wait_between() {
-  local f=/var/lib/lonsemonsy/last-$1 now last left
-  now=$(date +%s)
-  last=$(sudo cat "$f" 2>/dev/null || echo 0)
-  left=$((last + $2 - now))
+wait_between() { can_run "$1" "$2"; just_ran "$1"; }
+just_ran() { sudo mkdir -p /var/lib/lonsemonsy && date +%s | sudo tee "/var/lib/lonsemonsy/last-$1" >/dev/null; }
+can_run() {
+  local last left
+  last=$(sudo cat "/var/lib/lonsemonsy/last-$1" 2>/dev/null || echo 0)
+  left=$((last + $2 - $(date +%s)))
   if [ "$left" -gt 0 ]; then
     echo "  lsmsy $1 was run a moment ago. Try again in $(( (left + 59) / 60 )) min."; exit 1
   fi
-  sudo mkdir -p /var/lib/lonsemonsy && echo "$now" | sudo tee "$f" >/dev/null
 }
 
 # add_user NAME ROLE [EMAIL]: a new Grafana account with a made-up password.
@@ -54,14 +54,24 @@ del_user() {
 }
 
 case "${1:-}" in
-  password)  wait_between password 60; sudo "$dir/setup/change-password.sh" "${2:-}" ;;
+  password)
+    what=${2:-}
+    if [ -z "$what" ]; then
+      echo "  Which password do you want to change?"
+      read -r -p "  grafana, wazuh or netalertx (Enter to cancel): " what
+      [ -n "$what" ] || exit 0
+    fi
+    case "${what,,}" in grafana|wazuh|netalertx) what=${what,,} ;;
+      *) echo "  Type grafana, wazuh or netalertx."; exit 1 ;; esac
+    can_run password 60
+    if sudo "$dir/setup/change-password.sh" "$what"; then just_ran password; fi ;;   # only a real change counts
   passwords) echo "  Passwords are shown once, at the end of setup. To set a new one: lsmsy password grafana (or wazuh, netalertx)" ;;
   update)    wait_between update 300; sudo "$dir/setup/update.sh" ;;
   backup)
     if [ -z "${2:-}" ]; then wait_between backup 600; fi   # "backup time" and "backup setup" aren't limited
     sudo "$dir/setup/backup.sh" "${@:2}" ;;
   restore)   wait_between restore 300; sudo "$dir/setup/restore.sh" "${2:-}" ;;
-  remote)    sudo "$dir/setup/remote.sh" ;;
+  remote)    if [ "${2:-}" = ip ]; then sudo "$dir/setup/remote.sh" ip "${3:-}"; else sudo "$dir/setup/remote.sh"; fi ;;
   ai)
     if [ "${2:-status}" != status ]; then wait_between ai 120; fi
     sudo "$dir/setup/ai.sh" "${2:-status}" ;;
@@ -104,13 +114,13 @@ case "${1:-}" in
     done ;;
   test)
     wait_between test 300
-    # 10 fake failed SSH logins from a documentation-only address (192.0.2.99).
+    # 8 fake failed SSH logins (just enough for one alarm) from a documentation-only address (192.0.2.99).
     # Wazuh sees an SSH brute force, Grafana raises an alarm and emails it.
-    for i in $(seq 10); do
+    for i in $(seq 8); do
       logger -p auth.notice -t sshd --id=$$ "Failed password for invalid user lsmsy-test from 192.0.2.99 port $((40000 + i)) ssh2"
       sleep 0.3
     done
-    echo "  test alarm sent: 10 fake failed logins from 192.0.2.99"
+    echo "  test alarm sent: 8 fake failed logins from 192.0.2.99"
     echo "  it shows on the Grafana Alarms page (and by email, if set up) in about a minute."
     echo "  192.0.2.99 also gets auto-blocked for 10 minutes; that is part of the test." ;;
   "")
@@ -121,15 +131,24 @@ case "${1:-}" in
     esac
     site=$( (grep -E '^SITE_NAME=' "$dir/appliance/.env" 2>/dev/null || sudo -n grep -E '^SITE_NAME=' "$dir/appliance/.env" 2>/dev/null) | cut -d= -f2-)
     cat "$dir/setup/banner.txt"
-    echo "  Welcome${site:+, $site}!"
     echo "  Local Network Security Monitoring System"
     echo "  ${environment:+$environment · }version $(cat "$dir/setup/VERSION" 2>/dev/null || echo unknown)"
     echo
-    echo "  Grafana:    http://$ip:3000"
-    echo "  Wazuh:      https://$ip"
-    echo "  NetAlertX:  http://$ip:20211"
+    echo "  Welcome${site:+, $site}!"
+    echo
     remote=$( (grep -E '^GRAFANA_ROOT_URL=' "$dir/appliance/.env" 2>/dev/null || sudo -n grep -E '^GRAFANA_ROOT_URL=' "$dir/appliance/.env" 2>/dev/null) | cut -d= -f2-)
-    if [[ $remote == https://* ]]; then echo "  Anywhere:   $remote   (Grafana, over Tailscale)"; fi
+    if [[ $remote == https://* ]]; then
+      echo "  Grafana:    $remote"
+      echo "  Wazuh:      ${remote%:*}:8445"
+      echo "  NetAlertX:  ${remote%:*}:8444"
+      if [ "$( (grep -E '^IP_ACCESS=' "$dir/appliance/.env" 2>/dev/null || sudo -n grep -E '^IP_ACCESS=' "$dir/appliance/.env" 2>/dev/null) | cut -d= -f2-)" != off ]; then
+        echo "  By IP, not recommended (skips the 2-step sign-in):  http://$ip:3000   https://$ip   http://$ip:20211"
+      fi
+    else
+      echo "  Grafana:    http://$ip:3000"
+      echo "  Wazuh:      https://$ip"
+      echo "  NetAlertX:  http://$ip:20211"
+    fi
     echo
     echo "  Installed in $dir"
     echo

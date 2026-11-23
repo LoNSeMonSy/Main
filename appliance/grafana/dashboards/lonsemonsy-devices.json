@@ -152,6 +152,24 @@
         "sort": 0,
         "options": [],
         "current": {}
+      },
+      {
+        "name": "site",
+        "label": "Business name",
+        "type": "query",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "P951FEA4DE68E13C5"
+        },
+        "query": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"site\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "definition": "from(bucket: \"monitoring\")\n  |> range(start: -3d)\n  |> filter(fn: (r) => r._measurement == \"lonsemonsy_link\" and r.name == \"site\")\n  |> last()\n  |> keep(columns: [\"_value\"])",
+        "refresh": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 0,
+        "options": [],
+        "current": {}
       }
     ]
   },
@@ -181,7 +199,7 @@
       },
       "options": {
         "mode": "html",
-        "content": "<div style=\"padding:2px 4px\">Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
+        "content": "<div style=\"padding:2px 4px\"><b>${site}</b> &nbsp; Other tools: &nbsp;<a href=\"${wazuh:raw}\" target=\"_blank\" rel=\"noopener\">Wazuh \u2197</a> &nbsp;\u00b7&nbsp; <a href=\"${netalertx:raw}/devices.php\" target=\"_blank\" rel=\"noopener\">Devices (NetAlertX) \u2197</a></div>"
       }
     },
     {
