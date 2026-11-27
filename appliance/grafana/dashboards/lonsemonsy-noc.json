@@ -133,206 +133,20 @@
       "type": "stat",
       "title": "",
       "transparent": false,
-      "description": "Counts how many of the alarm rules (in the LoNSeMonSy Alerts folder) are currently tripped. The thresholds here mirror appliance/grafana/provisioning/alerting/rules.yaml -- change both together.",
+      "description": "How many alarms are in the box below.",
       "datasource": {
         "type": "datasource",
-        "uid": "-- Mixed --"
+        "uid": "-- Dashboard --"
       },
       "targets": [
         {
           "refId": "A",
-          "hide": true,
           "datasource": {
-            "type": "grafana-opensearch-datasource",
-            "uid": "P45A1D828630779A3"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "bucketAggs": [
-            {
-              "field": "timestamp",
-              "id": "2",
-              "settings": {
-                "interval": "1m"
-              },
-              "type": "date_histogram"
-            }
-          ],
-          "format": "time_series",
-          "metrics": [
-            {
-              "id": "1",
-              "type": "count"
-            }
-          ],
-          "query": "rule.level:[8 TO 10] AND NOT rule.groups:sca",
-          "timeField": "timestamp"
-        },
-        {
-          "refId": "B",
-          "hide": true,
-          "datasource": {
-            "type": "grafana-opensearch-datasource",
-            "uid": "P45A1D828630779A3"
-          },
-          "bucketAggs": [
-            {
-              "field": "timestamp",
-              "id": "2",
-              "settings": {
-                "interval": "1m"
-              },
-              "type": "date_histogram"
-            }
-          ],
-          "format": "time_series",
-          "metrics": [
-            {
-              "id": "1",
-              "type": "count"
-            }
-          ],
-          "query": "rule.level:>=11",
-          "timeField": "timestamp"
-        },
-        {
-          "refId": "C",
-          "hide": true,
-          "datasource": {
-            "type": "grafana-opensearch-datasource",
-            "uid": "P45A1D828630779A3"
-          },
-          "bucketAggs": [
-            {
-              "field": "timestamp",
-              "id": "2",
-              "settings": {
-                "interval": "1m"
-              },
-              "type": "date_histogram"
-            }
-          ],
-          "format": "time_series",
-          "metrics": [
-            {
-              "id": "1",
-              "type": "count"
-            }
-          ],
-          "query": "rule.id:86601",
-          "timeField": "timestamp"
-        },
-        {
-          "refId": "E",
-          "hide": true,
-          "datasource": {
-            "type": "frser-sqlite-datasource",
-            "uid": "P341AFF9E5CCA0B9F"
-          },
-          "queryType": "table",
-          "timeColumns": [],
-          "queryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')",
-          "rawQueryText": "SELECT COUNT(*) AS new_devices FROM Devices WHERE devIsArchived = 0 AND devLastIP NOT LIKE '172.20.0.%' AND devFirstConnection >= datetime('now', '-60 minutes') AND (SELECT MIN(devFirstConnection) FROM Devices WHERE devFirstConnection <> '') < datetime('now', '-2 hours')"
-        },
-        {
-          "refId": "SA",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "A",
-          "reducer": "sum",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "SB",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "B",
-          "reducer": "sum",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "SC",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "C",
-          "reducer": "sum",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "F",
-          "hide": true,
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"disk\" and r._field == \"used_percent\" and r.path == \"/\")\n  |> last()\n  |> keep(columns: [\"_time\", \"_value\"])"
-        },
-        {
-          "refId": "SF",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "F",
-          "reducer": "last",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "G",
-          "hide": true,
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"monitoring\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"mem\" and r._field == \"used_percent\")\n  |> mean()\n  |> keep(columns: [\"_time\", \"_value\"])"
-        },
-        {
-          "refId": "SG",
-          "hide": true,
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "reduce",
-          "expression": "G",
-          "reducer": "last",
-          "settings": {
-            "mode": "replaceNN",
-            "replaceWithValue": 0
-          }
-        },
-        {
-          "refId": "Active alarms",
-          "datasource": {
-            "type": "__expr__",
-            "uid": "__expr__"
-          },
-          "type": "math",
-          "expression": "($SA > 0) + ($SB > 0) + ($SC >= 5) + ($E > 0) + ($SF > 90) + ($SG > 95)"
+          "panelId": 103,
+          "withTransforms": true
         }
       ],
       "gridPos": {
@@ -349,9 +163,9 @@
         "wideLayout": true,
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "count"
           ],
-          "fields": "",
+          "fields": "/^Alert$/",
           "values": false
         }
       },
@@ -397,14 +211,12 @@
           ]
         },
         "overrides": []
-      },
-      "timeFrom": "10m",
-      "hideTimeOverride": true
+      }
     },
     {
       "type": "table",
       "title": "Alarms going off now",
-      "description": "Everything that is setting off an alarm right now. Older alerts are in the table below.",
+      "description": "Everything that is setting off an alarm right now. Repeats are one row (Times). Older alerts are in the table below.",
       "datasource": {
         "type": "datasource",
         "uid": "-- Mixed --"
@@ -431,7 +243,7 @@
               "id": "1",
               "type": "raw_data",
               "settings": {
-                "size": "50",
+                "size": "200",
                 "order": "desc"
               }
             }
@@ -481,31 +293,81 @@
           }
         },
         {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "rule.description": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Account": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "agent.name": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "data.srcip": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "timestamp": {
+                "aggregations": [
+                  "max",
+                  "count"
+                ],
+                "operation": "aggregate"
+              },
+              "_id": {
+                "aggregations": [
+                  "firstNotNull"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "includeByName": {
-              "timestamp": true,
+              "timestamp (max)": true,
               "rule.description": true,
+              "timestamp (count)": true,
               "Account": true,
               "agent.name": true,
               "data.srcip": true,
-              "_id": true
+              "_id (firstNotNull)": true
             },
             "indexByName": {
-              "timestamp": 0,
+              "timestamp (max)": 0,
               "rule.description": 1,
-              "Account": 2,
-              "agent.name": 3,
-              "data.srcip": 4,
-              "_id": 5
+              "timestamp (count)": 2,
+              "Account": 3,
+              "agent.name": 4,
+              "data.srcip": 5,
+              "_id (firstNotNull)": 6
             },
             "renameByName": {
-              "timestamp": "Time",
+              "timestamp (max)": "Time",
               "rule.description": "Alert",
+              "timestamp (count)": "Times",
               "agent.name": "Machine",
               "data.srcip": "From IP",
-              "_id": "Wazuh"
+              "_id (firstNotNull)": "Wazuh"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Time",
+                "desc": true
+              }
+            ]
           }
         }
       ],
@@ -534,6 +396,18 @@
               {
                 "id": "custom.width",
                 "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Times"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
               }
             ]
           },
@@ -650,12 +524,13 @@
             ]
           }
         ]
-      }
+      },
+      "id": 103
     },
     {
       "type": "table",
       "title": "Each alert (last 24 hours)",
-      "description": "Medium or worse security alerts, port scans and auto-blocks, newest first.",
+      "description": "Medium or worse security alerts, port scans and auto-blocks, newest first. Repeats are one row (Times).",
       "datasource": {
         "type": "grafana-opensearch-datasource",
         "uid": "P45A1D828630779A3"
@@ -682,7 +557,7 @@
               "id": "1",
               "type": "raw_data",
               "settings": {
-                "size": "50",
+                "size": "200",
                 "order": "desc"
               }
             }
@@ -707,31 +582,81 @@
           }
         },
         {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "rule.description": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Account": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "agent.name": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "data.srcip": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "timestamp": {
+                "aggregations": [
+                  "max",
+                  "count"
+                ],
+                "operation": "aggregate"
+              },
+              "_id": {
+                "aggregations": [
+                  "firstNotNull"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "includeByName": {
-              "timestamp": true,
+              "timestamp (max)": true,
               "rule.description": true,
+              "timestamp (count)": true,
               "Account": true,
               "agent.name": true,
               "data.srcip": true,
-              "_id": true
+              "_id (firstNotNull)": true
             },
             "indexByName": {
-              "timestamp": 0,
+              "timestamp (max)": 0,
               "rule.description": 1,
-              "Account": 2,
-              "agent.name": 3,
-              "data.srcip": 4,
-              "_id": 5
+              "timestamp (count)": 2,
+              "Account": 3,
+              "agent.name": 4,
+              "data.srcip": 5,
+              "_id (firstNotNull)": 6
             },
             "renameByName": {
-              "timestamp": "Time",
+              "timestamp (max)": "Time",
               "rule.description": "Alert",
+              "timestamp (count)": "Times",
               "agent.name": "Machine",
               "data.srcip": "From IP",
-              "_id": "Wazuh"
+              "_id (firstNotNull)": "Wazuh"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Time",
+                "desc": true
+              }
+            ]
           }
         }
       ],
@@ -759,6 +684,18 @@
               {
                 "id": "custom.width",
                 "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Times"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
               }
             ]
           },

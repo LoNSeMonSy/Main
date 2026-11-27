@@ -46,6 +46,7 @@ groups:
         title: Security alert (Medium)
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
@@ -123,6 +124,7 @@ groups:
         title: Security alert (High)
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
@@ -199,6 +201,7 @@ groups:
         title: Security alert (Critical)
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             {{ index $labels "rule.description" }} on {{ index $labels "agent.name" }}{{ if ne (index $labels "data.srcip") "none" }} from {{ index $labels "data.srcip" }}{{ end }}
@@ -285,6 +288,7 @@ groups:
         title: Port scan detected
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             Port scan from {{ index $labels "data.src_ip" }}
@@ -363,6 +367,7 @@ groups:
         title: New device on the network
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: "One or two new devices joined the network"
           summary: >-
@@ -404,6 +409,7 @@ groups:
         title: Several new devices at once
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: "Three or more new devices joined the network"
           summary: >-
@@ -446,6 +452,7 @@ groups:
         title: New device can reach your dashboard
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: "A new phone or laptop can open your dashboards"
           summary: >-
@@ -551,6 +558,7 @@ groups:
         title: Backup is out of date
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             No {{ $labels.where }} backup for over 2 days
@@ -602,6 +610,7 @@ groups:
         title: Backup failed
         condition: C
         for: 0m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: >-
             The last {{ $labels.where }} backup failed
@@ -654,6 +663,7 @@ groups:
         title: Disk almost full
         condition: C
         for: 5m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: "The server's disk is over 90% full"
           summary: >-
@@ -701,6 +711,7 @@ groups:
         title: Server low on memory
         condition: C
         for: 10m
+        keepFiringFor: 30m   # stays on 30 min after it clears, so a bouncing alarm sends one email
         annotations:
           headline: "The server is low on memory"
           summary: >-
